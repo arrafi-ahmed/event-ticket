@@ -1,0 +1,23 @@
+<script setup>
+import { useDisplay } from "vuetify";
+import { getClientPublicImgUrl } from "@/util";
+
+const { mobile } = useDisplay();
+const { customClass } = defineProps(["customClass"]);
+</script>
+
+<template>
+  <div :class="`d-flex align-center ${customClass}`">
+    <div style="width: 10rem">
+      <v-img :src="getClientPublicImgUrl('logo.webp')"></v-img>
+    </div>
+
+    <div class="pl-2">
+      <component :is="mobile ? 'h2' : 'h1'">
+        <!--        <span class="text-primary">{{ appName }}</span>-->
+      </component>
+    </div>
+  </div>
+</template>
+
+<style scoped></style>

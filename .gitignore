@@ -1,0 +1,32 @@
+.DS_Store
+node_modules/
+dist/
+
+api/public/tmp/*
+api/public/event-logo/*
+api/public/user/*
+
+# allow all the folders themselves to be tracked
+!api/public/tmp/.gitkeep
+!api/public/event-logo/.gitkeep
+!api/public/user/.gitkeep
+
+# env files
+.env
+.env.development
+.env.production
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
