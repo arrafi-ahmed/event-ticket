@@ -1,5 +1,5 @@
 <script setup>
-import { getUserImageUrl } from "@/util";
+import { getUserImageUrl } from "@/others/util";
 
 const { imgSrc, clickable } = defineProps({
   imgSrc: {},

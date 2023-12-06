@@ -5,6 +5,7 @@ import { useStore } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
 import BadgePreview from "@/components/BadgePreview.vue";
+import { getEventLogoUrl } from "../others/util";
 
 const { mobile } = useDisplay();
 
@@ -13,13 +14,16 @@ const store = useStore();
 
 const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
-const badges = computed(() => store.state.badge.badges);
-const badge = computed(() => store.state.badge.badge);
+const badgeDesigns = computed(() => store.state.badgeDesign.badgeDesigns);
+const badgeDesign = computed(() => store.state.badgeDesign.badgeDesign);
 
 const dialog = ref(false);
 
-const openBadge = async (badgeId, registrationFormId) => {
-  await store.dispatch("badge/setBadge", { badgeId, registrationFormId });
+const openBadge = async (badgeDesignId) => {
+  await store.dispatch("badgeDesign/setBadgeDesign", {
+    badgeDesignId,
+  });
+  console.log("badgeDesign", badgeDesign.value);
   dialog.value = !dialog.value;
 };
 
@@ -27,7 +31,7 @@ onMounted(async () => {
   await Promise.all([
     store.dispatch("event/setEvent", route.params.eventId),
     store.dispatch("registrationForm/setForms", route.params.eventId),
-    store.dispatch("badge/setBadges", route.params.eventId),
+    store.dispatch("badgeDesign/setBadgeDesigns", route.params.eventId),
   ]);
 });
 </script>
@@ -37,40 +41,61 @@ onMounted(async () => {
     <v-row>
       <v-col>
         <page-title :title="event.name" justify="space-between">
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props"> Add</v-btn>
-            </template>
-            <v-list density="compact">
-              <v-list-item
-                :to="{
-                  name: 'registration-form-add',
-                }"
-                density="compact"
-                title="Form"
-              ></v-list-item>
-              <v-list-item
-                :to="{
-                  name: 'badge-create',
-                  params: {
-                    eventId: route.params.eventId,
-                  },
-                }"
-                density="compact"
-                title="Badge"
-              ></v-list-item>
-              <v-list-item
-                :to="{
-                  name: 'ticket-add',
-                  params: {
-                    eventId: route.params.eventId,
-                  },
-                }"
-                density="compact"
-                title="Ticket"
-              ></v-list-item>
-            </v-list>
-          </v-menu>
+          <v-row align="center">
+            <v-col v-if="event.logoLeft" cols="auto">
+              <div>
+                <small>Event Logo:</small>
+              </div>
+              <v-avatar rounded="sm" size="x-large">
+                <v-img :src="getEventLogoUrl(event.logoLeft)" />
+              </v-avatar>
+            </v-col>
+            <v-col v-if="event.logoRight" cols="auto">
+              <div>
+                <small>Sponsor Logo:</small>
+              </div>
+              <v-avatar rounded="sm" size="x-large">
+                <v-img :src="getEventLogoUrl(event.logoRight)" />
+              </v-avatar>
+            </v-col>
+
+            <v-divider class="mx-2" inset vertical></v-divider>
+
+            <v-menu>
+              <template v-slot:activator="{ props }">
+                <v-btn class="ml-5" color="primary" v-bind="props"> Add</v-btn>
+              </template>
+              <v-list density="compact">
+                <v-list-item
+                  :to="{
+                    name: 'registration-form-add',
+                  }"
+                  density="compact"
+                  title="Form"
+                ></v-list-item>
+                <v-list-item
+                  :to="{
+                    name: 'badge-create',
+                    params: {
+                      eventId: route.params.eventId,
+                    },
+                  }"
+                  density="compact"
+                  title="Badge"
+                ></v-list-item>
+                <v-list-item
+                  :to="{
+                    name: 'ticket-add',
+                    params: {
+                      eventId: route.params.eventId,
+                    },
+                  }"
+                  density="compact"
+                  title="Ticket"
+                ></v-list-item>
+              </v-list>
+            </v-menu>
+          </v-row>
         </page-title>
       </v-col>
     </v-row>
@@ -143,14 +168,14 @@ onMounted(async () => {
             <span>Badges:</span>
           </v-card-title>
           <v-card-text>
-            <v-list v-if="badges.length > 0" density="compact">
-              <template v-for="(item, index) in badges">
+            <v-list v-if="badgeDesigns.length > 0" density="compact">
+              <template v-for="(item, index) in badgeDesigns">
                 <v-list-item
                   v-if="item"
                   :key="index"
                   :title="item?.title"
                   link
-                  @click="openBadge(item.id, item.registrationFormId)"
+                  @click="openBadge(item.id)"
                 ></v-list-item>
               </template>
             </v-list>
@@ -165,8 +190,8 @@ onMounted(async () => {
 
   <v-dialog v-model="dialog" width="700">
     <badge-preview
-      :badge-data="badge.badgeData"
-      :badge-visibility="badge.badgeVisibility"
+      :badge-data="badgeDesign.badgeData"
+      :badge-visibility="badgeDesign.badgeVisibility"
       :event="event"
       card-title="Badge Design Preview"
     ></badge-preview>

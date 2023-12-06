@@ -3,29 +3,31 @@ import $axios from "@/plugins/axios";
 export const namespaced = true;
 
 export const state = {
-  badges: [],
-  badge: {},
+  badgeDesigns: [],
+  badgeDesign: {},
 };
 
 export const mutations = {
-  setBadges(state, payload) {
-    state.badges = payload;
+  setBadgeDesigns(state, payload) {
+    state.badgeDesigns = payload;
   },
-  setBadge(state, payload) {
-    state.badge = payload;
+  setBadgeDesign(state, payload) {
+    state.badgeDesign = payload;
   },
-  addBadge(state, payload) {
-    state.badges.unshift(payload);
+  addBadgeDesign(state, payload) {
+    state.badgeDesigns.unshift(payload);
   },
 };
 
 export const actions = {
-  setBadges({ commit }, request) {
+  setBadgeDesigns({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .get("/api/badge/getAllBadges", { params: { eventId: request } })
+        .get("/api/badgeDesign/getAllBadgeDesigns", {
+          params: { eventId: request },
+        })
         .then((response) => {
-          commit("setBadges", response.data?.payload);
+          commit("setBadgeDesigns", response.data?.payload);
           resolve(response);
         })
         .catch((err) => {
@@ -33,17 +35,16 @@ export const actions = {
         });
     });
   },
-  setBadge({ commit }, request) {
+  setBadgeDesign({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .get("/api/badge/getBadge", {
+        .get("/api/badgeDesign/getBadgeDesignWVisibility", {
           params: {
-            badgeId: request.badgeId,
-            registrationFormId: request.registrationFormId,
+            badgeDesignId: request.badgeDesignId,
           },
         })
         .then((response) => {
-          commit("setBadge", response.data?.payload);
+          commit("setBadgeDesign", response.data?.payload);
           resolve(response.data?.payload);
         })
         .catch((err) => {
@@ -51,12 +52,12 @@ export const actions = {
         });
     });
   },
-  addBadge({ commit }, request) {
+  addBadgeDesign({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .post("/api/badge/save", { payload: request })
+        .post("/api/badgeDesign/saveBadgeDesign", { payload: request })
         .then((response) => {
-          commit("addBadge", response.data?.payload);
+          commit("addBadgeDesign", response.data?.payload);
           resolve(response);
         })
         .catch((err) => {

@@ -3,7 +3,7 @@ import Logo from "@/components/Logo.vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { computed, ref } from "vue";
-import { getToLink } from "@/util";
+import { getToLink } from "@/others/util";
 import { useDisplay } from "vuetify";
 import UserAvatar from "@/components/UserAvatar.vue";
 

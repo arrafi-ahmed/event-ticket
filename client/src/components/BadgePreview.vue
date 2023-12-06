@@ -1,5 +1,5 @@
 <script setup>
-import { getApiPublicImgUrl, getClientPublicImgUrl } from "@/util";
+import { getApiPublicImgUrl, getClientPublicImgUrl } from "@/others/util";
 import BadgeDetails from "@/components/BadgeDetails.vue";
 
 const { cardTitle, badgeData, badgeVisibility, event } = defineProps([

@@ -5,9 +5,11 @@ import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
 import FormItems from "@/components/FormItems.vue";
-import { getCountryList, getCurrencySymbol } from "@/util";
+import { getCountryList, getCurrencySymbol } from "@/others/util";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "vuetify-sonner";
+import { checkStripeStatus, submitStripePayment } from "@/others/payment";
+import Paypal from "@/components/Paypal.vue";
 
 const { mobile } = useDisplay();
 const route = useRoute();
@@ -47,7 +49,8 @@ const getOverAllIndex = (quantities, parentIndex, childIndex) => {
 const allStandardAnswers = ref([]);
 let quantities = reactive([]);
 
-const amountSum = computed(() => {
+const currency = computed(() => tickets.value[0]?.currency);
+const subtotal = computed(() => {
   let amountTotal = 0;
   quantities.forEach((parentItem) => {
     const foundTicket = tickets.value.find(
@@ -58,8 +61,12 @@ const amountSum = computed(() => {
         ? foundTicket.earlyBirdPrice
         : foundTicket.price) * parentItem.quantity;
   });
-  return amountTotal;
+  return Number(amountTotal);
 });
+const tax = computed(() =>
+  Number(subtotal.value * (event.value.taxPercentage / 100)).toFixed(2)
+);
+const total = computed(() => Number(subtotal.value) + Number(tax.value));
 
 //step 1
 const submitForm1 = ref(null);
@@ -80,12 +87,12 @@ const handleSubmitStep1 = async () => {
   currStep.value++;
 
   // If total amount is 0, skip payment
-  if (!amountSum.value) return;
+  if (!total.value) return;
 
-  // Fetch the client secret from your server.
+  // Fetch the client secret from your server. --stripe
   await store.dispatch("purchase/setClientSecret", {
-    amount: Number(amountSum.value),
-    currency: tickets.value[0]?.currency.toLowerCase(),
+    amount: Number(total.value),
+    currency: currency.value.toLowerCase(),
   });
 };
 const standardAnswers = ref([]);
@@ -114,7 +121,7 @@ const handleSubmitStep2 = async () => {
   const areRegisteredUsersExist = await store.dispatch(
     "registrationForm/areRegisteredUsersExist",
     {
-      allStandardAnswers: allStandardAnswers.value,
+      allStandardAnswers: allStandardAnswers.value.filter((item) => item),
       formId: route.params.formId,
     }
   );
@@ -136,9 +143,9 @@ const handleSubmitStep2 = async () => {
 };
 
 //stripe payment
-let stripe = null; // Declare a variable to store the Stripe instance
+let stripe = null;
 let elements = null;
-const paymentTab = ref(amountSum.value ? "stripe" : "none");
+const paymentTab = ref(total.value ? "stripe" : "none");
 const cardElement = ref(null);
 
 //step 3
@@ -146,7 +153,7 @@ const handleSubmitStep3 = async () => {
   currStep.value++;
 
   // If total amount is 0, skip payment
-  if (!amountSum.value) return;
+  if (!total.value) return;
 
   store.commit("setProgress", true);
 
@@ -170,104 +177,47 @@ const handleSubmitStep3 = async () => {
   });
 };
 
-//before step 4
-const submitStripePayment = async () => {
-  if (!stripe) return;
-
-  const { error } = await stripe.confirmPayment({
-    elements,
-    redirect: "if_required",
-  });
-
-  if (error) {
-    let msg = "";
-    if (error.type === "card_error" || error.type === "validation_error") {
-      msg = error.message;
-    } else {
-      msg = "An unexpected error occurred.";
-    }
-    toast(msg, {
-      cardProps: { color: "error" },
-      action: {
-        label: "Close",
-        buttonProps: {
-          color: "white",
-        },
-        onClick() {},
-      },
-    });
-  }
-};
-
-async function checkStripeStatus() {
-  if (!clientSecret.value) return;
-
-  const { paymentIntent } = await stripe.retrievePaymentIntent(
-    clientSecret.value
-  );
-
-  let msg = "";
-  let color = "";
-  switch (paymentIntent.status) {
-    case "succeeded":
-      msg = "Payment succeeded!";
-      color = "success";
-      break;
-    case "processing":
-      msg = "Your payment is processing.";
-      color = "info";
-      break;
-    case "requires_payment_method":
-      msg = "Your payment was not successful, please try again.";
-      color = "error";
-      break;
-    default:
-      msg = "Something went wrong.";
-      color = "error";
-      break;
-  }
-
-  toast(msg, {
-    cardProps: { color },
-    action: {
-      label: "Close",
-      buttonProps: {
-        color: "white",
-      },
-      onClick() {},
-    },
-  });
-  return paymentIntent.status;
-}
-
 //step 4
 const handleSubmitStepLast = async () => {
+  console.log(96, "inside post-approval");
   store.commit("setProgress", true);
 
-  let paymentStatus = "succeeded";
-  // If total amount is 0, skip payment
-  if (amountSum.value) {
-    await submitStripePayment();
-    paymentStatus = await checkStripeStatus();
+  let paymentStatus = "pending";
+  // If method is stripe & total amount is not 0, continue stripe
+  if (paymentTab.value === "stripe" && total.value) {
+    await submitStripePayment(elements, stripe);
+    paymentStatus = await checkStripeStatus(clientSecret, stripe);
+  } else if (paymentTab.value === "paypal") {
+    paymentStatus = "succeeded"; //called inside paypal onApproval
   }
+
+  if (!total.value) paymentStatus = "succeeded";
 
   let qustionIds = [];
   if (form.value.questions.length > 0 && form.value.questions[0]) {
     qustionIds = form.value.questions.map((item) => item.id);
   }
+  console.log(34, quantities.flatMap((item) =>
+      Array(Number(item.quantity)).fill(item.ticketId)
+  ))
   store
     .dispatch("registrationForm/submitUserForm", {
       registrationForm: {
         formId: route.params.formId,
-        allStandardAnswers: allStandardAnswers.value,
+        allStandardAnswers: allStandardAnswers.value.filter((item) => item),
         qustionIds,
         additionalAnswers: additionalAnswers.value,
       },
       purchase: {
         paymentMethod: paymentTab.value,
         paymentStatus: paymentStatus,
-        totalAmount: Number(amountSum.value), //TODO: fix total amount
-        ticketId: quantities.map((item) => item.ticketId),
+        totalAmount: Number(total.value),
+        ticketId: quantities.flatMap((item) =>
+          Array(Number(item.quantity)).fill(item.ticketId)
+        ),
+        ticketType: quantities.flatMap((item) =>
+          Array(Number(item.quantity)).fill(item.ticketType)
+        ),
       },
     })
     .then((result) => {
@@ -295,6 +245,11 @@ const isPaymentBtnDisabled = computed(() => {
   return false;
 });
 
+const isTicketTypeExtras = (ticketId) => {
+  const foundTicket = tickets.value.find((item) => item.id == ticketId);
+  return foundTicket.ticketType.toLowerCase() === "extras";
+};
+
 onMounted(async () => {
   await Promise.all([
     store.dispatch("event/setEvent", route.params.eventId),
@@ -307,10 +262,13 @@ onMounted(async () => {
   ]);
 
   Object.assign(
-    quantities,
-    tickets.value.map((obj) => {
-      return { ticketId: obj.id, name: obj.name, quantity: 0 };
-    })
+      quantities,
+      tickets.value.map(({ id, ticketType, name }) => ({
+        ticketId: id,
+        ticketType: ticketType.toLowerCase(),
+        name,
+        quantity: 0,
+      }))
   );
 
   // Initialize the Stripe instance
@@ -359,10 +317,8 @@ onMounted(async () => {
                 :key="'s-' + index"
                 :value="index + 1"
               >
-                <!--                {{ quantities }}<br /><br />{{ tickets }}<br /><br />{{-->
-                <!--                  amountSum-->
-                <!--                }}-->
-                <!--                tickets step-->
+                {{ quantities }}<br /><br />{{ tickets }}<br /><br />
+                <!--          tickets step-->
                 <v-card v-if="index === 0">
                   <v-form
                     ref="submitForm1"
@@ -469,22 +425,50 @@ onMounted(async () => {
                       </tbody>
                     </v-table>
 
-                    <v-row align="center" class="mt-2" justify="end">
+                    <v-row align="center" class="mt-2" justify="end" no-gutters>
                       <v-col cols="auto">
-                        <span class="text-h6">Total:</span>
+                        <span>Sub Total: </span>
                       </v-col>
-                      <v-col cols="auto">
+                      <v-col class="ml-2" cols="auto">
                         <v-chip
                           v-if="tickets[0]"
-                          :prepend-icon="
-                            getCurrencySymbol(tickets?.[0]?.currency, 'icon')
-                          "
+                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
+                          class="chip-currency"
+                          size="large"
+                        >
+                          <span class="chip-currency-font">{{ subtotal }}</span>
+                        </v-chip>
+                      </v-col>
+                    </v-row>
+
+                    <v-row align="center" class="mt-2" justify="end" no-gutters>
+                      <v-col cols="auto">
+                        <span>Tax: ({{ event.taxPercentage }}%)</span>
+                      </v-col>
+                      <v-col class="ml-2" cols="auto">
+                        <v-chip
+                          v-if="tickets[0]"
+                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
+                          class="chip-currency"
+                          size="large"
+                        >
+                          <span class="chip-currency-font">{{ tax }}</span>
+                        </v-chip>
+                      </v-col>
+                    </v-row>
+
+                    <v-row align="center" class="mt-2" justify="end" no-gutters>
+                      <v-col cols="auto">
+                        <span class="text-h6">Total: </span>
+                      </v-col>
+                      <v-col class="ml-2" cols="auto">
+                        <v-chip
+                          v-if="tickets[0]"
+                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
                           class="chip-currency"
                           size="x-large"
                         >
-                          <span class="chip-currency-font">{{
-                            amountSum
-                          }}</span>
+                          <span class="chip-currency-font">{{ total }}</span>
                         </v-chip>
                       </v-col>
                     </v-row>
@@ -513,10 +497,11 @@ onMounted(async () => {
                         v-for="(childItem, childIndex) in Number(
                           parentItem.quantity
                         )"
+                        v-if="!isTicketTypeExtras(parentItem.ticketId)"
                         :key="'c-' + childIndex"
                       >
                         <v-divider
-                          v-if="parentIndex > 0"
+                          v-if="parentIndex > 0 || childIndex > 0"
                           class="my-10"
                         ></v-divider>
                         <div>
@@ -591,7 +576,7 @@ onMounted(async () => {
 
                 <!--                payment step-->
                 <v-card v-if="index === 3">
-                  <template v-if="amountSum">
+                  <template v-if="total">
                     <h3 class="pb-5">Payment Methods</h3>
 
                     <v-tabs v-model="paymentTab" bg-color="primary">
@@ -605,14 +590,47 @@ onMounted(async () => {
                         <div ref="cardElement" class="ma-5"></div>
                       </v-window-item>
 
-                      <v-window-item value="paypal"> sdf</v-window-item>
+                      <v-window-item value="paypal">
+                        <Paypal
+                          :amount="Number(total)"
+                          :currency="currency.toUpperCase()"
+                          @post-approval="handleSubmitStepLast"
+                        />
+                      </v-window-item>
 
-                      <v-window-item value="bank"> bank</v-window-item>
+                      <v-window-item value="bank">
+                        <div class="pa-5">
+                          <div>
+                            <span class="font-weight-bold">Payment terms: </span
+                            ><span
+                              >Full payment is due within 28 days of invoice
+                              date. Bank Transfer paying in USD</span
+                            >
+                          </div>
+                          <div>
+                            <span class="font-weight-bold">Bank: </span
+                            ><span>Natwest Bank PLC</span>
+                          </div>
+                          <div>
+                            <span class="font-weight-bold">Account Name: </span
+                            ><span>TorchMarketing Co. Ltd.</span>
+                          </div>
+                          <div>
+                            <span class="font-weight-bold">IBAN: </span
+                            ><span>GB03NWBK60730120628943</span>
+                          </div>
+                          <div>
+                            <span class="font-weight-bold">SWIFT/BIC: </span
+                            ><span>NWBKGB2L</span>
+                          </div>
+                          <div>DOWNLOAD YOUR INVOICE AT THE TOP</div>
+                        </div>
+                      </v-window-item>
                     </v-window>
                   </template>
                   <template v-else> Payment not required</template>
 
-                  <v-row justify="end">
+                  <v-row v-if="paymentTab !== 'paypal'" justify="end">
                     <v-col cols="auto">
                       <v-btn
                         :density="mobile ? 'compact' : 'default'"
@@ -627,11 +645,6 @@ onMounted(async () => {
                 </v-card>
               </v-stepper-window-item>
             </v-stepper-window>
-
-            <!--              <v-stepper-actions-->
-            <!--                :disable="disable"-->
-            <!--                @click:next="handleSubmitStep1"-->
-            <!--              ></v-stepper-actions>-->
           </template>
         </v-stepper>
       </v-col>

@@ -4,7 +4,7 @@ import { useStore } from "vuex";
 import { computed, onMounted, reactive, ref, toRaw } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
-import { input_fields } from "@/util";
+import { input_fields } from "@/others/util";
 
 const { mobile } = useDisplay();
 const route = useRoute();

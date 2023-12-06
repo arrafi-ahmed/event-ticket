@@ -2,7 +2,7 @@
 import PageTitle from "@/components/PageTitle.vue";
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
-import { getEventLogoUrl } from "@/util";
+import { formatDate, getEventLogoUrl } from "@/others/util";
 import { useDate, useDisplay } from "vuetify";
 
 const { mobile } = useDisplay();
@@ -16,10 +16,9 @@ const events = computed(() => {
   return events_init.value.map((event) => ({
     prependAvatar: getEventLogoUrl(event.logoLeft),
     title: event.name,
-    subtitle: `Date: ${date.format(
-      event.date?.slice(0, 10),
-      "fullDateWithWeekday"
-    )} <br> Location: ${event.location}`,
+    subtitle: `Date: ${formatDate(event.date?.slice(0, 10))} <br> Location: ${
+      event.location
+    }`,
     link: "true",
     to: { name: "event-single", params: { eventId: event.id } },
   }));

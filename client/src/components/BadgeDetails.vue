@@ -1,5 +1,4 @@
 <script setup>
-
 const { badgeData, id, index } = defineProps(["badgeData", "id", "index"]);
 </script>
 

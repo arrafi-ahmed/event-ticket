@@ -4,7 +4,7 @@ import ProgressLoader from "@/components/ProgressLoader.vue";
 
 import { watch } from "vue";
 import { useRoute } from "vue-router";
-import { appName } from "@/util";
+import { appName } from "@/others/util";
 
 const route = useRoute();
 

@@ -152,7 +152,8 @@ CREATE TABLE badge
     qrcode_uuid     uuid        NOT NULL,
     badge_status    varchar(50) NOT NULL,
     badge_design_id integer REFERENCES badge_design ON DELETE CASCADE,
-    user_id         integer REFERENCES users ON DELETE CASCADE
+    user_id         integer REFERENCES users ON DELETE CASCADE,
+    ticket_id       integer     NOT NULL REFERENCES ticket ON DELETE CASCADE --extra added
 );
 
 -- Badge Scan Information
@@ -167,10 +168,10 @@ CREATE TABLE badge_scan
 -- Badge Visibility Information
 CREATE TABLE badge_visibility
 (
-    id             serial PRIMARY KEY,
-    field_id_front integer[] NOT NULL,
-    field_id_rear  integer[] NOT NULL,
-    badge_id       integer REFERENCES badge_design ON DELETE CASCADE
+    id              serial PRIMARY KEY,
+    field_id_front  integer[] NOT NULL,
+    field_id_rear   integer[] NOT NULL,
+    badge_design_id integer REFERENCES badge_design ON DELETE CASCADE
 );
 
 -- Fields Information

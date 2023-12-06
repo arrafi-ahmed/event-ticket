@@ -1,6 +1,6 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -16,8 +16,7 @@ const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
 const fields = computed(() => store.state.registrationForm.fields);
 
-const badgeDesign = reactive({
-  title: "FULL DELEGATE",
+let badgeDesign = reactive({
   colorScheme: "#3F51B5",
   textTopLeft: null,
   textTopRight: null,
@@ -25,6 +24,14 @@ const badgeDesign = reactive({
   textBottomRight: null,
   registrationForm: null,
   event: null,
+  title: null,
+});
+
+const getTitle = computed(() => {
+  const foundForm = forms.value.find(
+    (item) => item.rfId == badgeDesign.registrationForm
+  );
+  return foundForm?.name?.toUpperCase();
 });
 
 const badgeVisibility = reactive({
@@ -47,7 +54,7 @@ const handleAddBadge = async () => {
   badgeDesign.registrationForm = undefined;
 
   store
-    .dispatch("badge/addBadge", { badgeDesign, badgeVisibility })
+    .dispatch("badgeDesign/addBadgeDesign", { badgeDesign, badgeVisibility })
     .then((result) => {
       router.push({
         name: "event-single",
@@ -57,6 +64,14 @@ const handleAddBadge = async () => {
 };
 
 const dialog = ref(false);
+
+watch(
+  () => badgeDesign.registrationForm,
+  (newVal, oldVal) => {
+    const foundForm = forms.value.find((item) => item.rfId == newVal);
+    badgeDesign.title = foundForm?.name?.toUpperCase();
+  }
+);
 
 onMounted(async () => {
   if (route.params.eventId) {

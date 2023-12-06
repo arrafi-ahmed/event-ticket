@@ -1,5 +1,6 @@
 <script setup>
-import { computed, defineEmits, defineProps, ref, watch } from "vue";
+import { defineEmits, defineProps, ref, watch } from "vue";
+import { formatDate } from "@/others/util";
 
 const { label, color, modelValue, customClass } = defineProps([
   "label",
@@ -11,17 +12,6 @@ const emit = defineEmits("update:modelValue");
 
 const isMenuOpen = ref(false);
 const selectedDate = ref(modelValue);
-
-const formattedDate = computed(() => {
-  if (selectedDate.value) {
-    const date = new Date(selectedDate.value);
-    const day = `0${date.getDate()}`.slice(-2);
-    const month = `0${date.getMonth() + 1}`.slice(-2);
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
-  return "";
-});
 
 watch(modelValue, (newDate) => {
   selectedDate.value = newDate;
@@ -38,7 +28,7 @@ watch(selectedDate, (newDate) => {
       <v-text-field
         :class="customClass"
         :label="label"
-        :model-value="formattedDate"
+        :model-value="formatDate(selectedDate)"
         hide-details
         prepend-inner-icon="mdi-calendar"
         readonly

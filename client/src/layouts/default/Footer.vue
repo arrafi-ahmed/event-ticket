@@ -1,5 +1,5 @@
 <script setup>
-import { appName } from "@/util";
+import { appName } from "@/others/util";
 </script>
 <template>
   <v-footer class="bg-grey-lighten-3 flex-grow-0">

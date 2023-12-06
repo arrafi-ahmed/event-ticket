@@ -3,7 +3,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import { reactive, ref } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import { isValidImage } from "@/util";
+import { isValidImage } from "@/others/util";
 import { useDisplay } from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
 

@@ -1,12 +1,12 @@
 const router = require("express").Router();
-const badgeService = require("../service/badge");
+const badgeService = require("../service/badgeDesign");
 const ApiResponse = require("../model/ApiResponse");
 const auth = require("../middleware/auth");
 const registrationFormService = require("../service/registrationForm");
 
-router.post("/save", auth, (req, res, next) => {
+router.post("/saveBadgeDesign", auth, (req, res, next) => {
   badgeService
-    .saveBadge(req.body)
+    .saveBadgeDesign(req.body)
     .then((results) => {
       if (results) {
         res
@@ -19,16 +19,16 @@ router.post("/save", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
-router.get("/getAllBadges", auth, (req, res, next) => {
+router.get("/getAllBadgeDesigns", auth, (req, res, next) => {
   badgeService
-    .getAllBadges(req.query.eventId)
+    .getAllBadgeDesigns(req.query.eventId)
     .then((results) => res.status(200).json(new ApiResponse(null, results)))
     .catch((err) => next(err));
 });
 
-router.get("/getBadge", auth, (req, res, next) => {
+router.get("/getBadgeDesignWVisibility", auth, (req, res, next) => {
   badgeService
-    .getBadge(req.query.badgeId, req.query.registrationFormId)
+    .getBadgeDesignWVisibility(req.query.badgeDesignId)
     .then((result) => res.status(200).json(new ApiResponse(null, result)))
     .catch((err) => next(err));
 });

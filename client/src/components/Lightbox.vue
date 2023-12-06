@@ -1,5 +1,5 @@
 <script setup>
-import { getEventImageUrl } from "@/util";
+import { getEventImageUrl } from "@/others/util";
 import { ref } from "vue";
 
 const { imgSrc, aspectRatio } = defineProps(["imgSrc", "aspectRatio"]);

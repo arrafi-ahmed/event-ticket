@@ -27,7 +27,7 @@ uncaughtErrHandler();
 app.use("/api/user", require("./src/controller/user"));
 app.use("/api/event", require("./src/controller/event"));
 app.use("/api/registrationForm", require("./src/controller/registrationForm"));
-app.use("/api/badge", require("./src/controller/badge"));
+app.use("/api/badgeDesign", require("./src/controller/badgeDesign"));
 app.use("/api/ticket", require("./src/controller/ticket"));
 app.use("/api/purchase", require("./src/controller/purchase"));
 app.use("/api/users", require("./src/controller/users"));

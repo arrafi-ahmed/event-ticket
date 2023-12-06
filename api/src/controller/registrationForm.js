@@ -67,11 +67,11 @@ router.get("/getFormWQuestion", (req, res, next) => {
 router.post("/submitUserForm", (req, res, next) => {
   registrationFormService
     .submitUserForm(req.body)
-    .then((results) => {
-      if (results) {
+    .then((result) => {
+      if (result) {
         res
           .status(200)
-          .json(new ApiResponse("Registration successful!", results[0]));
+          .json(new ApiResponse("Registration successful!", result));
       }
     })
     .catch((err) => next(err));
@@ -81,6 +81,8 @@ router.post("/areRegisteredUsersExist", (req, res, next) => {
   const {
     payload: { allStandardAnswers, formId },
   } = req.body;
+
+    console.log(49, allStandardAnswers)
 
   const users = allStandardAnswers.map((parentItem) => {
     const [, , , , , , email] = parentItem; // Use array destructuring to get the element at index 6

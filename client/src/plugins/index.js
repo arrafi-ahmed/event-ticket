@@ -10,7 +10,7 @@ import router from "../router";
 import store from "../store";
 import $axios from "@/plugins/axios";
 import {appear} from "@/directive/appear";
-import {getQueryParam, removeQueryParams} from "@/util";
+import {getQueryParam, removeQueryParams} from "@/others/util";
 import {createI18n} from "vue-i18n";
 
 const i18n = createI18n({

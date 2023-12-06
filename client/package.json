@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mdi/font": "7.0.96",
+    "@paypal/paypal-js": "^7.1.1",
     "@stripe/stripe-js": "^2.2.0",
     "axios": "^1.5.0",
     "core-js": "^3.29.0",
