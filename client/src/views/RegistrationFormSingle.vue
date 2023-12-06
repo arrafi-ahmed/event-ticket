@@ -111,6 +111,11 @@ const handleUpdateAdditionalAnswers = (value) => {
 };
 
 //step 2
+const formFiller = ref(null);
+const formFillerOptions = computed(() => {
+  return allStandardAnswers.value.map((item) => item?.[6]);
+});
+
 const submitForm2 = ref(null);
 const isSubmitForm2Valid = ref(true);
 const handleSubmitStep2 = async () => {
@@ -197,9 +202,12 @@ const handleSubmitStepLast = async () => {
   if (form.value.questions.length > 0 && form.value.questions[0]) {
     qustionIds = form.value.questions.map((item) => item.id);
   }
-  console.log(34, quantities.flatMap((item) =>
+  console.log(
+    34,
+    quantities.flatMap((item) =>
       Array(Number(item.quantity)).fill(item.ticketId)
-  ))
+    )
+  );
   store
     .dispatch("registrationForm/submitUserForm", {
       registrationForm: {
@@ -262,13 +270,13 @@ onMounted(async () => {
   ]);
 
   Object.assign(
-      quantities,
-      tickets.value.map(({ id, ticketType, name }) => ({
-        ticketId: id,
-        ticketType: ticketType.toLowerCase(),
-        name,
-        quantity: 0,
-      }))
+    quantities,
+    tickets.value.map(({ id, ticketType, name }) => ({
+      ticketId: id,
+      ticketType: ticketType.toLowerCase(),
+      name,
+      quantity: 0,
+    }))
   );
 
   // Initialize the Stripe instance
@@ -531,6 +539,22 @@ onMounted(async () => {
                         type="question"
                         @update="handleUpdateAdditionalAnswers"
                       />
+
+                      <!--                      form filler-->
+                      <v-divider
+                        :thickness="2"
+                        class="my-5 my-md-10"
+                      ></v-divider>
+                      <h3>Who is the form filler?</h3>
+                      <v-select
+                        v-model="formFiller"
+                        :items="formFillerOptions"
+                        label="Who is the form filler?"
+                        :rules="[(v) => !!v || 'required']"
+                        class="mt-2 mt-md-4"
+                        density="compact"
+                        hide-details="auto"
+                      ></v-select>
                     </div>
 
                     <v-row justify="end">

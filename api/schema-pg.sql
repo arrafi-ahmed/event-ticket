@@ -62,7 +62,7 @@ CREATE TABLE registration_form_type
 CREATE TABLE registration_form
 (
     id           serial PRIMARY KEY,
-    form_type_id smallint NOT NULL REFERENCES registration_form_type,
+    form_type_id smallint REFERENCES registration_form_type NOT NULL,
     event_id     integer REFERENCES event ON DELETE CASCADE
 );
 
@@ -90,10 +90,11 @@ CREATE TABLE answer
 CREATE TABLE registration
 (
     id                   serial PRIMARY KEY,
-    created_at           date NOT NULL,
+    created_at           date                                                   NOT NULL,
     status               varchar(50),
-    registered_user_id   integer [],
-    registration_form_id integer REFERENCES registration_form ON DELETE CASCADE
+    registered_user_id   integer[]                                              NOT NULL,
+    form_filler          integer REFERENCES users (id) ON DELETE CASCADE        NOT NULL,
+    registration_form_id integer REFERENCES registration_form ON DELETE CASCADE NOT NULL
 );
 
 -- Ticket Information
@@ -141,7 +142,7 @@ CREATE TABLE purchase
     total_amount    numeric                  NOT NULL,
     created_at      timestamp with time zone NOT NULL,
     registration_id integer REFERENCES registration ON DELETE CASCADE,
-    ticket_id       integer[] NOT NULL,
+    ticket_id       integer[]                NOT NULL,
     promo_code_id   integer                  REFERENCES promo_code ON DELETE SET NULL
 );
 
@@ -149,11 +150,11 @@ CREATE TABLE purchase
 CREATE TABLE badge
 (
     id              serial PRIMARY KEY,
-    qrcode_uuid     uuid        NOT NULL,
-    badge_status    varchar(50) NOT NULL,
+    qrcode_uuid     uuid                                        NOT NULL,
+    badge_status    varchar(50)                                 NOT NULL,
     badge_design_id integer REFERENCES badge_design ON DELETE CASCADE,
     user_id         integer REFERENCES users ON DELETE CASCADE,
-    ticket_id       integer     NOT NULL REFERENCES ticket ON DELETE CASCADE --extra added
+    ticket_id       integer REFERENCES ticket ON DELETE CASCADE NOT NULL --extra added
 );
 
 -- Badge Scan Information
