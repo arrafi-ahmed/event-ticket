@@ -33,7 +33,7 @@ router.get("/getAllEvents", auth, (req, res, next) => {
 
 router.get("/getEvent", (req, res, next) => {
   eventService
-    .getEvent(req.query.eventId)
+    .getEventById(req.query.eventId)
     .then((results) => res.status(200).json(new ApiResponse(null, results[0])))
     .catch((err) => next(err));
 });

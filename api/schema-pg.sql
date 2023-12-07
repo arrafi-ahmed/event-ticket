@@ -143,6 +143,7 @@ CREATE TABLE purchase
     created_at      timestamp with time zone NOT NULL,
     registration_id integer REFERENCES registration ON DELETE CASCADE,
     ticket_id       integer[]                NOT NULL,
+    ticket_price    integer[]                NOT NULL,
     promo_code_id   integer                  REFERENCES promo_code ON DELETE SET NULL
 );
 

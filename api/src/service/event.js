@@ -31,8 +31,8 @@ exports.getAllEvents = async () => {
                      from event`;
 };
 
-exports.getEvent = async (eventId) => {
+exports.getEventById = async (id) => {
   return await sql`select *
                      from event
-                     where id = ${eventId}`;
+                     where id = ${id}`;
 };

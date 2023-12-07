@@ -1,7 +1,15 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed, nextTick, onMounted, reactive, ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  reactive,
+  ref,
+  toRaw,
+  watch,
+} from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
 import FormItems from "@/components/FormItems.vue";
@@ -41,7 +49,8 @@ const formattedFields = computed(() =>
 const getOverAllIndex = (quantities, parentIndex, childIndex) => {
   let totalPreviousIterations = 0;
   for (let i = 0; i < parentIndex; i++) {
-    totalPreviousIterations += Number(quantities[i]?.quantity);
+    if (quantities[i].ticketType.toLowerCase() !== "extras")
+      totalPreviousIterations += Number(quantities[i]?.quantity);
   }
   return totalPreviousIterations + childIndex;
 };
@@ -72,11 +81,15 @@ const total = computed(() => Number(subtotal.value) + Number(tax.value));
 const submitForm1 = ref(null);
 const isSubmitForm1Valid = ref(true);
 const handleSubmitStep1 = async () => {
-  let sum = quantities.reduce((total, item) => {
-    let quantity = Number(item.quantity);
-    return total + (isNaN(quantity) ? 0 : quantity);
+  let sum = toRaw(quantities).reduce((total, item) => {
+    console.log(39, item, item.ticketType);
+    if (item.ticketType.toLowerCase() !== "extras") {
+      let quantity = Number(item.quantity);
+      return total + (isNaN(quantity) ? 0 : quantity);
+    }
+    return total;
   }, 0);
-
+  console.log(40, sum);
   quantities = quantities.filter((item) => Number(item.quantity) !== 0);
 
   allStandardAnswers.value = Array(sum).fill(null);
@@ -103,6 +116,7 @@ const handleUpdateStandardAnswers = ({
 }) => {
   standardAnswers.value = [...newVal, quantities[quantityIndex].ticketId];
   allStandardAnswers.value[overAllIndex] = standardAnswers.value;
+  console.log(allStandardAnswers.value);
 };
 
 const additionalAnswers = ref([]);
@@ -111,10 +125,22 @@ const handleUpdateAdditionalAnswers = (value) => {
 };
 
 //step 2
-const formFiller = ref(null);
 const formFillerOptions = computed(() => {
   return allStandardAnswers.value.map((item) => item?.[6]);
 });
+const formFiller = ref(null);
+
+watch(formFillerOptions, (newOptions) => {
+  if (!formFiller.value || !newOptions.includes(formFiller.value)) {
+    formFiller.value = newOptions[0];
+  }
+});
+
+const isEmailDuplicated = () => {
+  const emails = allStandardAnswers.value.map((item) => item?.[6]);
+  const uniqueEmails = new Set(emails);
+  return emails.length !== uniqueEmails.size;
+};
 
 const submitForm2 = ref(null);
 const isSubmitForm2Valid = ref(true);
@@ -123,6 +149,7 @@ const handleSubmitStep2 = async () => {
   if (!isSubmitForm2Valid.value) return;
 
   //check duplicate email registration
+  const isEmailDuplicatedFound = isEmailDuplicated();
   const areRegisteredUsersExist = await store.dispatch(
     "registrationForm/areRegisteredUsersExist",
     {
@@ -130,8 +157,9 @@ const handleSubmitStep2 = async () => {
       formId: route.params.formId,
     }
   );
-  if (areRegisteredUsersExist) {
-    toast("Email already registered!", {
+  console.log(82, isEmailDuplicatedFound, areRegisteredUsersExist);
+  if (isEmailDuplicatedFound || areRegisteredUsersExist) {
+    toast("Duplicate Email found!", {
       cardProps: { color: "error" },
       action: {
         label: "Close",
@@ -215,18 +243,23 @@ const handleSubmitStepLast = async () => {
         allStandardAnswers: allStandardAnswers.value.filter((item) => item),
         qustionIds,
         additionalAnswers: additionalAnswers.value,
+        formFillerEmail: formFiller.value,
       },
       purchase: {
         paymentMethod: paymentTab.value,
-        paymentStatus: paymentStatus,
+        paymentStatus,
         totalAmount: Number(total.value),
         ticketId: quantities.flatMap((item) =>
           Array(Number(item.quantity)).fill(item.ticketId)
+        ),
+        ticketPrice: quantities.flatMap((item) =>
+          Array(Number(item.quantity)).fill(item.ticketPrice)
         ),
         ticketType: quantities.flatMap((item) =>
           Array(Number(item.quantity)).fill(item.ticketType)
         ),
       },
+      eventId: route.params.eventId,
     })
     .then((result) => {
       currStep.value++;
@@ -271,8 +304,9 @@ onMounted(async () => {
 
   Object.assign(
     quantities,
-    tickets.value.map(({ id, ticketType, name }) => ({
+    tickets.value.map(({ id, ticketType, price, name }) => ({
       ticketId: id,
+      ticketPrice: price,
       ticketType: ticketType.toLowerCase(),
       name,
       quantity: 0,
@@ -433,7 +467,12 @@ onMounted(async () => {
                       </tbody>
                     </v-table>
 
-                    <v-row align="center" class="mt-2" justify="end" no-gutters>
+                    <v-row
+                      align="center"
+                      class="mt-2 mt-md-4"
+                      justify="end"
+                      no-gutters
+                    >
                       <v-col cols="auto">
                         <span>Sub Total: </span>
                       </v-col>

@@ -3,7 +3,9 @@ const { sql } = require("../db");
 const badgeService = require("./badge");
 const badgeDesignService = require("./badgeDesign");
 const purchaseService = require("./purchase");
-const { sortExtrasLast } = require("./ticket");
+const ticketService = require("./ticket");
+const emailContentService = require("./emailContent");
+const sendMailService = require("./sendMail");
 
 exports.getAllForms = async (eventId) => {
   return await sql`select *, rf.id as rf_id, ft.id as ft_id
@@ -70,16 +72,6 @@ exports.getFormTypeByFormId = async (formId) => {
                      from registration_form
                      where id = ${formId}`;
 };
-// [
-//   { ticketId: 2, name: "Researcher Pass", quantity: "1" }, - user 1
-//   { ticketId: 6, name: "Site Visit", quantity: "2" },
-//   { ticketId: 1, name: "University Pass", quantity: "2" }, - user 2, user 3
-//   { ticketId: 3, name: "VIP Pass", quantity: "1" },        - user 4
-// ];
-// [
-//   { ticketId: 6, ticketType: "extras", name: "Site Visit", quantity: "2" },
-//   { ticketId: 1, ticketType: "standard", name: "University Pass", quantity: "1", },
-// ];
 
 exports.areRegisteredUsersExist = async (users, formId) => {
   const results = await Promise.all(
@@ -110,8 +102,10 @@ exports.submitUserForm = async ({
       allStandardAnswers,
       qustionIds,
       additionalAnswers,
+      formFillerEmail,
     },
     purchase,
+    eventId,
   },
 }) => {
   const [formType] = await exports.getFormTypeByFormId(formId);
@@ -138,7 +132,7 @@ exports.submitUserForm = async ({
     return user;
   });
 
-  const insertedUsers = await sql`insert into users ${sql(users)} returning id`;
+  const insertedUsers = await sql`insert into users ${sql(users)} returning *`;
 
   if (additionalAnswers.length > 0) {
     const answers = additionalAnswers.map((item, index) => ({
@@ -150,28 +144,34 @@ exports.submitUserForm = async ({
       answers
     )} returning *`;
   }
+  // find formFiller userId by email
+  const formFiller = insertedUsers.find(
+    (item) => item.email === formFillerEmail
+  );
+  console.log(32, formFiller);
   const registration = {
     createdAt: new Date(),
     registeredUserId: insertedUsers.map((item) => item.id),
     registrationFormId: formId,
+    formFiller: formFiller.id,
   };
   const [result] = await sql`insert into registration ${sql(
     registration
   )} returning id`;
 
   //format ticketIds
-  console.log(48, purchase);
-  const sortExtrasLastTickets = sortExtrasLast(
+  const sortExtrasTicketLast = ticketService.sortExtrasLast(
     purchase.ticketId,
+    purchase.ticketPrice,
     purchase.ticketType
   );
-  purchase.ticketId = sortExtrasLastTickets.map((item) => item.id);
-  console.log(81, purchase.ticketId);
+  purchase.ticketId = sortExtrasTicketLast.map((item) => item.id);
+  purchase.ticketPrice = sortExtrasTicketLast.map((item) => item.ticketPrice);
   purchase = { ...purchase, registrationId: result.id, createdAt: new Date() };
 
   const insertedPurchase = await purchaseService.savePurchase(purchase);
 
-  const nonExtrasTickets = sortExtrasLastTickets.filter(
+  const nonExtrasTickets = sortExtrasTicketLast.filter(
     (item) => item.type.toLowerCase() !== "extras"
   );
 
@@ -179,11 +179,8 @@ exports.submitUserForm = async ({
   const foundBadgeDesign = await badgeDesignService.getBadgeDesignByFormId(
     formId
   );
-  console.log(94, insertedUsers);
-  console.log(95, insertedPurchase);
   const badges = insertedUsers.map((user, index) => {
     //check user id serial is maintained after insert
-    console.log(20, user.id, user.firstname);
     return {
       badgeDesignId: foundBadgeDesign.id,
       userId: user.id,
@@ -191,11 +188,14 @@ exports.submitUserForm = async ({
       ticketId: nonExtrasTickets[index].id,
     };
   });
-    console.log(21, nonExtrasTickets);
-    console.log(22, badges);
   const insertedBadges = await badgeService.createBadge(badges);
-  console.log(95, insertedBadges);
-  //TODO: send invoice to user email
+  //TODO: send invoice to formFiller email, send ticket to all users
+  const invoiceContent = emailContentService.generateInvoice(
+    purchase.id,
+    formFiller.id,
+    eventId
+  );
+  await sendMailService.sendMailWAttachment(formFiller.email, "Invoice", "Invoice attached", invoiceContent)
 
   return insertedPurchase;
 };
@@ -208,11 +208,13 @@ exports.saveFormType = async ({ newFormType }) => {
 };
 
 exports.getAllFormTypes = async () => {
-  return await sql`select *
-                     from registration_form_type`;
+  return await sql`
+        select *
+        from registration_form_type`;
 };
 
 exports.getFields = async () => {
-  return await sql`select *
-                     from field`;
+  return await sql`
+        select *
+        from field`;
 };

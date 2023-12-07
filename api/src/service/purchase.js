@@ -4,7 +4,6 @@ const { sql } = require("../db");
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 exports.createPaymentIntent = async ({ payload: { amount, currency } }) => {
-  console.log(36, Number(amount), Math.round(Number(amount) * 100))
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(Number(amount) * 100),
     currency,
@@ -20,4 +19,12 @@ exports.savePurchase = async (purchase) => {
       purchase
   )} returning *`;
   return insertedPurchase;
+};
+
+exports.getPurchaseById = async (id) => {
+  return await sql`
+        select *
+        from purchase
+        where id = ${id}
+    `;
 };

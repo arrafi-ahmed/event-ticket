@@ -31,8 +31,8 @@ exports.getTickets = async ({ eventId, registrationFormId }) => {
            OR (t.ticket_type != 'Extras' AND t.registration_form_id = ${registrationFormId});`;
 };
 
-exports.sortExtrasLast = (ticketId, ticketType) => {
-  const tickets = ticketId.map((id, index) => ({id, type: ticketType[index].toLowerCase()}));
+exports.sortExtrasLast = (ticketId, ticketPrice, ticketType) => {
+  const tickets = ticketId.map((id, index) => ({id, ticketPrice: ticketPrice[index], type: ticketType[index].toLowerCase()}));
 
   const standardTickets = tickets.filter(item => item.type !== "extras");
   const extrasTickets = tickets.filter(item => item.type === "extras");
