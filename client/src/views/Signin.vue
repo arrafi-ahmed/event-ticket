@@ -12,7 +12,6 @@ const router = useRouter();
 
 const email = ref("admin@torch.com");
 const password = ref("asdfasdf1");
-const currentUser = computed(() => store.getters["user/getCurrentUser"]);
 const isAdmin = computed(() => store.getters["user/isAdmin"]);
 
 const form = ref(null);
@@ -28,14 +27,14 @@ const signinUser = async () => {
       password: password.value,
     })
     .then((result) => {
-      if (isAdmin) {
+      if (isAdmin.value) {
         router.push({
           name: "home",
         });
       }
     });
 };
-let dialog = ref(false);
+const dialog = ref(false);
 const resetEmail = ref(null);
 const resetForm = ref(null);
 const isResetFormValid = ref(true);
@@ -84,8 +83,6 @@ const handleSubmitResetPassword = async () => {
                 hide-details="auto"
                 label="Email Address"
                 prepend-inner-icon="mdi-account"
-                required
-                variant="solo"
               ></v-text-field>
 
               <!-- Password -->
@@ -98,9 +95,7 @@ const handleSubmitResetPassword = async () => {
                 hide-details="auto"
                 label="Password"
                 prepend-inner-icon="mdi-lock"
-                required
                 type="password"
-                variant="solo"
               ></v-text-field>
 
               <div class="d-flex align-center mt-3 mt-md-4">

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket</title>
+    <style>
+        .ticket,h1{text-align:center}body,html{font:16px/1 'Open Sans',sans-serif}body{height:5in;width:4in;padding:0;margin:0 auto;overflow:hidden;background:#fff}.ticket{border-radius:5px;box-shadow:0 10px 20px rgba(0,0,0,.1);padding:30px;transition:.3s}header h1{background:#000;color:#fff;padding:.5em 0;border-radius:.25em}h1{font:bold 100% sans-serif;letter-spacing:.5em;text-transform:uppercase}#event-name{color:#333;margin-bottom:10px}#ticket-name{color:#777;margin-bottom:20px}#email,#user-name{color:#999;margin-bottom:10px}.qr-code{margin-top:20px}.qr-code img{max-width:100%;height:auto;border-radius:10px}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Ticket</h1>
+</header>
+<article class="ticket">
+    <h2 id="event-name">${event.name}</h2>
+    <h3 id="ticket-name">${ticket.name}</h3>
+    <p id="user-name">${user.firstname} ${user.surname}</p>
+    <p id="email">${user.email}</p>
+    <div class="qr-code">
+        <!-- Replace 'data:image/png;base64,...' with your QR code data URL -->
+        <img id="qr-code" alt="QR Code" src="qr.png">
+    </div>
+</article>
+</body>
+</html>

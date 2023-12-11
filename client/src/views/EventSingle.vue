@@ -63,7 +63,14 @@ onMounted(async () => {
 
             <v-menu>
               <template v-slot:activator="{ props }">
-                <v-btn class="ml-5" color="primary" v-bind="props"> Add</v-btn>
+                <v-btn
+                  class="ml-5"
+                  color="primary"
+                  variant="tonal"
+                  v-bind="props"
+                >
+                  Add
+                </v-btn>
               </template>
               <v-list density="compact">
                 <v-list-item
@@ -100,11 +107,12 @@ onMounted(async () => {
       </v-col>
     </v-row>
 
-    <v-row justify="center">
-      <v-col col>
+    <v-row>
+      <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
             <span>Forms:</span>
+            <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
             <v-list v-if="forms.length > 0" density="compact">
@@ -129,13 +137,12 @@ onMounted(async () => {
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
 
-    <v-row justify="center">
-      <v-col col>
+      <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
             <span>Attendees:</span>
+            <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
             <v-list v-if="forms.length > 0" density="compact">
@@ -159,13 +166,12 @@ onMounted(async () => {
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
 
-    <v-row justify="center">
-      <v-col col>
+      <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
             <span>Badges:</span>
+            <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
             <v-list v-if="badgeDesigns.length > 0" density="compact">

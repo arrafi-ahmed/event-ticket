@@ -1,7 +1,7 @@
 import { toast } from "vuetify-sonner";
 import { countries } from "@/others/country-list";
 
-export const appName = "Torch Ticketing System";
+export const appName = "Torch Events";
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const clientBaseUrl = import.meta.env.VITE_BASE_URL;
 export const isProd = import.meta.env.PROD;
@@ -12,6 +12,15 @@ export const formatDate = (inputDate) => {
   const month = `0${date.getMonth() + 1}`.slice(-2);
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+};
+
+export const formatDateTime = (inputDateTime) => {
+  const formattedDate = formatDate(inputDateTime)
+  const date = new Date(inputDateTime);
+  const hours = `0${date.getHours()}`.slice(-2);
+  const minutes = `0${date.getMinutes()}`.slice(-2);
+  // const seconds = `0${date.getSeconds()}`.slice(-2);
+  return `${formattedDate} ${hours}:${minutes}`;
 };
 
 export const getClientPublicImgUrl = (imageName) =>

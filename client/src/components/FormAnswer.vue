@@ -1,31 +1,30 @@
 <script setup>
-import { defineEmits, defineProps, ref, watch } from "vue";
+import { defineProps, ref, watch } from "vue";
 
-const { items, overAllIndex, quantityIndex, type } = defineProps([
-  "items",
-  "overAllIndex",
-  "quantityIndex",
-  "type",
-]);
+const { items, type, answers } = defineProps(["items", "type", "answers"]);
 const inputResponses = ref([]);
 
-const emit = defineEmits(["update"]);
-
+const getAnswer = (item) => {
+  return answers.find((answer) => answer.questionId === item.id)?.answerText;
+};
 watch(
   items,
   (newVal) => {
     if (newVal) {
-      inputResponses.value = newVal.map((item) =>
-        item?.typeId == 3 ? [] : null
-      );
+      inputResponses.value = newVal.map((item) => {
+        if (item.typeId === 3) {
+          const answer = getAnswer(item);
+          return answer ? answer.split(",") : [];
+        } else if (item.typeId !== 3) {
+          return getAnswer(item);
+        } else {
+          return null;
+        }
+      });
     }
   },
   { immediate: true }
 );
-
-watch(inputResponses.value, (newVal) => {
-  emit("update", { newVal, overAllIndex, quantityIndex });
-});
 </script>
 
 <template>
@@ -33,12 +32,12 @@ watch(inputResponses.value, (newVal) => {
     <template v-for="(item, index) in items" :key="index">
       <v-text-field
         v-if="item.typeId == 0"
-        v-model="inputResponses[index]"
-        :label="item.text"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
         hide-details="auto"
+        :model-value="inputResponses[index]"
+        disabled
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -47,12 +46,12 @@ watch(inputResponses.value, (newVal) => {
       </v-text-field>
       <v-textarea
         v-else-if="item.typeId == 1"
-        v-model="inputResponses[index]"
-        :label="item.text"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
         hide-details="auto"
+        disabled
+        :model-value="inputResponses[index]"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -61,11 +60,11 @@ watch(inputResponses.value, (newVal) => {
       </v-textarea>
       <v-radio-group
         v-else-if="item.typeId == 2"
-        v-model="inputResponses[index]"
-        :label="item.text"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         hide-details="auto"
+        disabled
+        :model-value="inputResponses[index]"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -89,37 +88,39 @@ watch(inputResponses.value, (newVal) => {
         <v-checkbox
           v-for="(childItem, childIndex) in item.options"
           :key="childIndex"
-          v-model="inputResponses[index]"
           :label="childItem"
           :value="childItem"
           density="compact"
           hide-details="auto"
+          disabled
+          :model-value="inputResponses[index]"
         ></v-checkbox>
       </div>
       <v-select
         v-else-if="item.typeId == 4 && item.options?.length > 0"
-        v-model="inputResponses[index]"
         :items="item.options"
-        :label="item.text"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
         hide-details="auto"
+        disabled
+        :model-value="inputResponses[index]"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
           <span v-if="item.required" style="color: red">*</span>
         </template>
       </v-select>
-      <div v-if="item.instruction" class="text-caption font-italic pl-2">
-        {{ item.instruction }}
-      </div>
-      <v-divider
-        v-if="type === 'question' && index !== items.length - 1"
-        class="my-8"
-      ></v-divider>
+      <v-divider v-if="index !== items.length - 1" class="my-8"></v-divider>
     </template>
   </div>
 </template>
 
-<style scoped></style>
+<style>
+.v-field--disabled,
+.v-input--disabled,
+.v-selection-control--disabled {
+  opacity: 0.85;
+  pointer-events: none;
+}
+</style>

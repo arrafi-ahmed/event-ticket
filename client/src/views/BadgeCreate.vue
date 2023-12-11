@@ -228,11 +228,15 @@ onMounted(async () => {
 
               <v-row class="mt-2 mt-md-4" justify="end">
                 <v-col cols="auto">
-                  <v-btn color="primary" @click="dialog = !dialog"
+                  <v-btn
+                    color="primary"
+                    @click="dialog = !dialog"
+                    variant="tonal"
                     >Design Preview
                   </v-btn>
                   <v-btn
                     :density="mobile ? 'comfortable' : 'default'"
+                    variant="tonal"
                     class="ms-1"
                     color="primary"
                     type="submit"

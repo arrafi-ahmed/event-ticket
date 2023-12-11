@@ -58,7 +58,13 @@ const handleAddEvent = async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Add Event"></page-title>
+        <page-title title="Add Event">
+          <v-btn
+            icon="mdi-arrow-left"
+            variant="text"
+            @click="$router.back()"
+          ></v-btn>
+        </page-title>
       </v-col>
     </v-row>
 
@@ -182,6 +188,7 @@ const handleAddEvent = async () => {
               :density="mobile ? 'comfortable' : 'default'"
               color="primary"
               type="submit"
+              variant="tonal"
               >Add
             </v-btn>
           </div>

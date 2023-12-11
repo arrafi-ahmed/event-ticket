@@ -219,6 +219,7 @@ onMounted(() => {
                 :density="mobile ? 'compact' : 'default'"
                 color="primary"
                 type="submit"
+                variant="tonal"
                 >Publish
               </v-btn>
             </v-col>

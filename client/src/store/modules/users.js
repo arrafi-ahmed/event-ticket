@@ -10,6 +10,16 @@ export const mutations = {
   setUsers(state, payload) {
     state.users = payload;
   },
+  updateUser(state, payload) {
+    const foundIndex = state.users.findIndex((item) => item.uId == payload.uId);
+    if (foundIndex != -1)
+      state.users[foundIndex] = { ...state.users[foundIndex], ...payload };
+  },
+  deleteUser(state, payload) {
+    console.log(22, state.users, payload);
+    const foundIndex = state.users.findIndex((item) => item.uId == payload);
+    if (foundIndex != -1) state.users.splice(foundIndex, 1);
+  },
 };
 
 export const actions = {
@@ -22,6 +32,38 @@ export const actions = {
           resolve(response);
         })
         .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  updateUser({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .post("/api/users/updateUser", { payload: request })
+        .then((response) => {
+          commit("updateUser", request);
+          resolve(response.data?.payload);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  deleteUser({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/users/deleteUser", {
+          params: {
+            userId: request.userId,
+            registrationId: request.registrationId,
+          },
+        })
+        .then((response) => {
+          commit("deleteUser", request.userId);
+          resolve(response);
+        })
+        .catch((err) => {
+          console.log(err);
           reject(err);
         });
     });

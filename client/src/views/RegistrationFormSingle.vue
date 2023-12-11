@@ -82,14 +82,13 @@ const submitForm1 = ref(null);
 const isSubmitForm1Valid = ref(true);
 const handleSubmitStep1 = async () => {
   let sum = toRaw(quantities).reduce((total, item) => {
-    console.log(39, item, item.ticketType);
     if (item.ticketType.toLowerCase() !== "extras") {
       let quantity = Number(item.quantity);
       return total + (isNaN(quantity) ? 0 : quantity);
     }
     return total;
   }, 0);
-  console.log(40, sum);
+
   quantities = quantities.filter((item) => Number(item.quantity) !== 0);
 
   allStandardAnswers.value = Array(sum).fill(null);
@@ -116,12 +115,11 @@ const handleUpdateStandardAnswers = ({
 }) => {
   standardAnswers.value = [...newVal, quantities[quantityIndex].ticketId];
   allStandardAnswers.value[overAllIndex] = standardAnswers.value;
-  console.log(allStandardAnswers.value);
 };
 
 const additionalAnswers = ref([]);
-const handleUpdateAdditionalAnswers = (value) => {
-  additionalAnswers.value = value;
+const handleUpdateAdditionalAnswers = ({ newVal }) => {
+  additionalAnswers.value = newVal;
 };
 
 //step 2
@@ -157,7 +155,7 @@ const handleSubmitStep2 = async () => {
       formId: route.params.formId,
     }
   );
-  console.log(82, isEmailDuplicatedFound, areRegisteredUsersExist);
+
   if (isEmailDuplicatedFound || areRegisteredUsersExist) {
     toast("Duplicate Email found!", {
       cardProps: { color: "error" },
@@ -212,7 +210,6 @@ const handleSubmitStep3 = async () => {
 
 //step 4
 const handleSubmitStepLast = async () => {
-  console.log(96, "inside post-approval");
   store.commit("setProgress", true);
 
   let paymentStatus = "pending";
@@ -226,22 +223,21 @@ const handleSubmitStepLast = async () => {
 
   if (!total.value) paymentStatus = "succeeded";
 
-  let qustionIds = [];
+  let questionIds = [];
   if (form.value.questions.length > 0 && form.value.questions[0]) {
-    qustionIds = form.value.questions.map((item) => item.id);
+    questionIds = form.value.questions.map((item) => item.id);
   }
-  console.log(
-    34,
-    quantities.flatMap((item) =>
-      Array(Number(item.quantity)).fill(item.ticketId)
-    )
+  const extras = quantities.filter(
+    (item) => item.ticketType.toLowerCase() == "extras"
   );
+  console.log(91, quantities);
+  console.log(92, extras);
   store
     .dispatch("registrationForm/submitUserForm", {
       registrationForm: {
         formId: route.params.formId,
         allStandardAnswers: allStandardAnswers.value.filter((item) => item),
-        qustionIds,
+        questionIds,
         additionalAnswers: additionalAnswers.value,
         formFillerEmail: formFiller.value,
       },
@@ -249,24 +245,20 @@ const handleSubmitStepLast = async () => {
         paymentMethod: paymentTab.value,
         paymentStatus,
         totalAmount: Number(total.value),
-        ticketId: quantities.flatMap((item) =>
-          Array(Number(item.quantity)).fill(item.ticketId)
-        ),
-        ticketPrice: quantities.flatMap((item) =>
-          Array(Number(item.quantity)).fill(item.ticketPrice)
-        ),
-        ticketType: quantities.flatMap((item) =>
-          Array(Number(item.quantity)).fill(item.ticketType)
-        ),
+        tax: tax.value,
       },
+      tickets: toRaw(quantities),
       eventId: route.params.eventId,
+      currency: currency.value,
     })
     .then((result) => {
       currStep.value++;
-      router.push({ name: "home" });
+      store.commit("invoice/setInvoice", result.data.payload);
+      return router.push({ name: "invoice" });
     })
+    .then(() => {})
     .catch((err) => {
-      console.log(1, err);
+      console.log(err);
     })
     .finally(() => {
       store.commit("setProgress", false);
@@ -359,10 +351,11 @@ onMounted(async () => {
                 :key="'s-' + index"
                 :value="index + 1"
               >
-                {{ quantities }}<br /><br />{{ tickets }}<br /><br />
+                <!--                {{ quantities }}-->
                 <!--          tickets step-->
                 <v-card v-if="index === 0">
                   <v-form
+                    v-if="tickets.length > 0"
                     ref="submitForm1"
                     v-model="isSubmitForm1Valid"
                     @submit.prevent="handleSubmitStep1"
@@ -531,6 +524,9 @@ onMounted(async () => {
                       </v-col>
                     </v-row>
                   </v-form>
+                  <v-alert v-else border="start" closable density="compact"
+                    >No items found!
+                  </v-alert>
                 </v-card>
 
                 <!--                registration step-->
@@ -584,16 +580,20 @@ onMounted(async () => {
                         :thickness="2"
                         class="my-5 my-md-10"
                       ></v-divider>
-                      <h3>Who is the form filler?</h3>
+                      <h3>Form Filler:</h3>
                       <v-select
                         v-model="formFiller"
                         :items="formFillerOptions"
-                        label="Who is the form filler?"
                         :rules="[(v) => !!v || 'required']"
                         class="mt-2 mt-md-4"
                         density="compact"
                         hide-details="auto"
-                      ></v-select>
+                      >
+                        <template v-slot:label>
+                          <span>Select the form filler</span>
+                          <span style="color: red">*</span>
+                        </template>
+                      </v-select>
                     </div>
 
                     <v-row justify="end">

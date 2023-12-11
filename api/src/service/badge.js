@@ -4,12 +4,9 @@ const { v4: uuidv4 } = require("uuid");
 
 exports.createBadge = async (badges) => {
   const formattedBadges = badges.map((badge) => {
-    const qrcodeUuid = uuidv4();
-    return { ...badge, qrcodeUuid };
+    const qrUuid = uuidv4();
+    const badgeStatus = 0;
+    return { ...badge, qrUuid, badgeStatus };
   });
-  const insertedBadges = await sql`insert into badge ${sql(
-    formattedBadges
-  )} returning *`;
-  console.log(92, insertedBadges);
-  return insertedBadges;
+  return await sql`insert into badge ${sql(formattedBadges)} returning *`;
 };

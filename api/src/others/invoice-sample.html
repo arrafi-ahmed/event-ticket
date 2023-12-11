@@ -1,62 +1,3 @@
-const eventService = require("./event");
-const {
-  formatDate,
-  logoSvgString,
-  generateQrCode,
-  getCurrencySymbol,
-} = require("../others/util");
-
-exports.generateTickets = async (badge, event, tickets, users) => {
-  const qrCode = await generateQrCode(
-    JSON.stringify({ id: badge.id, qrUuid: badge.qrUuid })
-  );
-  const ticket = tickets.find((item) => item.ticketId == badge.ticketId);
-  const user = users.find((item) => item.id == badge.userId);
-
-  const ticketContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ticket</title>
-    <style>
-        .ticket,h1{text-align:center}body,html{font:16px/1 'Open Sans',sans-serif}body{height:5in;width:4in;padding:0;margin:0 auto;overflow:hidden;background:#fff}.ticket{border-radius:5px;box-shadow:0 10px 20px rgba(0,0,0,.1);padding:30px;transition:.3s}header h1{background:#000;color:#fff;padding:.5em 0;border-radius:.25em}h1{font:bold 100% sans-serif;letter-spacing:.5em;text-transform:uppercase}#event-name{color:#333;margin-bottom:10px}#ticket-name{color:#777;margin-bottom:20px}#email,#user-name{color:#999;margin-bottom:10px}.qr-code{margin-top:20px}.qr-code img{max-width:100%;height:auto;border-radius:10px}
-    </style>
-</head>
-<body>
-<header>
-    <h1>Ticket</h1>
-</header>
-<article class="ticket">
-    <h2 id="event-name">${event.name}</h2>
-    <h3 id="ticket-name">${ticket.name}</h3>
-    <p id="user-name">${user.firstname} ${user.surname}</p>
-    <p id="email">${user.email}</p>
-    <div class="qr-code">
-        <!-- Replace 'data:image/png;base64,...' with your QR code data URL -->
-        <img id="qr-code" alt="QR Code" src="${qrCode}">
-    </div>
-</article>
-</body>
-</html>
-`;
-
-  return { ticketContent, user };
-};
-
-exports.generateInvoice = async (
-  tickets,
-  users,
-  purchase,
-  formFillerId,
-  eventId,
-  eventCurrency
-) => {
-  const currency = getCurrencySymbol(eventCurrency, "symbol");
-  const user = users.find((item) => item.id == formFillerId);
-  const [event] = await eventService.getEventById(eventId);
-
-  const invoiceContent =
-    `
 <html xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="utf-8">
@@ -108,21 +49,21 @@ exports.generateInvoice = async (
         </tr>
         </thead>
         <tbody>` +
-    tickets
-      .map((ticket) => {
+        tickets
+        .map((ticket) => {
         return `<tr>
-                    <td><span>${ticket.name}</span></td>
-                    <td><span data-prefix>${currency}</span><span>${
-          ticket.ticketPrice
-        }</span></td>
-                    <td><span>${ticket.quantity}</span></td>
-                    <td><span data-prefix>${currency}</span><span>${
-          ticket.ticketPrice * ticket.quantity
-        }</span></td>
-                  </tr>`;
-      })
-      .join("") +
-    `</tbody>
+            <td><span>${ticket.name}</span></td>
+            <td><span data-prefix>${currency}</span><span>${
+                      ticket.ticketPrice
+                    }</span></td>
+            <td><span>${ticket.quantity}</span></td>
+            <td><span data-prefix>${currency}</span><span>${
+                      ticket.ticketPrice * ticket.quantity
+                    }</span></td>
+        </tr>`;
+        })
+        .join("") +
+        `</tbody>
     </table>
     <span>
         <small class="ml-auto">${event.taxPercentage}% tax included</small>
@@ -130,27 +71,25 @@ exports.generateInvoice = async (
     <table class="balance">
         <tr>
             <th><span>Tax</span></th>
-            <td><span data-prefix>${currency}</span><span>${
-      purchase.tax
-    }</span></td>
+            <td><span data-prefix>${currency}</span><span>${purchase.tax}</span></td>
         </tr>
         <tr>
             <th><span>Total</span></th>
             <td><span data-prefix>${currency}</span><span>${
-      purchase.totalAmount
-    }</span></td>
+              purchase.totalAmount
+            }</span></td>
         </tr>
         <tr>
             <th><span>Amount Paid</span></th>
             <td><span data-prefix>${currency}</span><span>${
-      purchase.paymentStatus == "succeeded" ? purchase.totalAmount : 0.0
-    }</span></td>
+              purchase.paymentStatus == "succeeded" ? purchase.totalAmount : 0.0
+            }</span></td>
         </tr>
         <tr>
             <th><span>Balance Due</span></th>
             <td><span data-prefix>${currency}</span><span>${
-      purchase.paymentStatus != "succeeded" ? purchase.totalAmount : 0.0
-    }</span></td>
+              purchase.paymentStatus != "succeeded" ? purchase.totalAmount : 0.0
+            }</span></td>
         </tr>
     </table>
 </article>
@@ -176,7 +115,4 @@ exports.generateInvoice = async (
     </div>
 </aside>
 </body>
-</html>`;
-
-  return { invoiceContent, user, event };
-};
+</html>

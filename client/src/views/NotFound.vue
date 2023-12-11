@@ -13,15 +13,6 @@ const message = ref(route.params.message || "Looks like you're lost!");
       <v-col class="bg page_404 text-center" cols="10">
         <h1>{{ status }}</h1>
         <div>{{ message }}</div>
-        <v-btn
-          :to="{ name: 'landing' }"
-          class="clickable"
-          color="primary"
-          size="small"
-          variant="text"
-        >
-          Go Home
-        </v-btn>
       </v-col>
     </v-row>
   </v-container>

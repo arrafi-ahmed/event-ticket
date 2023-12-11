@@ -1,5 +1,4 @@
-const jsPDF = require("jspdf");
-const html2canvas = require("html2canvas");
+const puppeteer = require("puppeteer");
 const nodeMailer = require("nodemailer");
 const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
@@ -15,7 +14,7 @@ const transporter = nodeMailer.createTransport({
 
 const sendMail = async (to, subject, html) => {
   return transporter.sendMail({
-    from: `QuickStarter <${SMTP_USER}>`,
+    from: `Torch Events <${SMTP_USER}>`,
     to,
     subject,
     html,
@@ -23,19 +22,20 @@ const sendMail = async (to, subject, html) => {
 };
 
 const sendMailWAttachment = async (to, subject, text, html) => {
-  const canvas = await html2canvas(html);
-  const doc = new jsPDF();
-  doc.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0);
-  const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+  const browser = await puppeteer.launch({ headless: "new" });
+  const page = await browser.newPage();
+  await page.setContent(html);
+  const pdfBuffer = await page.pdf({ format: "A4" });
+  await browser.close();
 
   return transporter.sendMail({
-    from: `QuickStarter <${SMTP_USER}>`,
+    from: `Torch Events <${SMTP_USER}>`,
     to,
     subject,
     text, //each reg form will have different text for email, save and load from db
     attachments: [
       {
-        filename: "invoice.pdf",
+        filename: "attachment.pdf",
         content: pdfBuffer,
       },
     ],

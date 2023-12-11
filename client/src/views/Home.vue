@@ -57,7 +57,7 @@ onMounted(() => {
         <page-title justify="space-between" title="All Events">
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props"> Add</v-btn>
+              <v-btn color="primary" variant="tonal" v-bind="props"> Add</v-btn>
             </template>
             <v-list density="compact">
               <v-list-item
@@ -75,7 +75,12 @@ onMounted(() => {
             </v-list>
           </v-menu>
         </page-title>
-        <v-list :items="events" item-props lines="three">
+        <v-list
+          v-if="events.length > 0"
+          :items="events"
+          item-props
+          lines="three"
+        >
           <template v-slot:prepend="{ item }">
             <v-avatar>
               <v-img :src="item.prependAvatar" />
@@ -85,6 +90,9 @@ onMounted(() => {
             <div v-html="subtitle"></div>
           </template>
         </v-list>
+        <v-alert v-else border="start" closable density="compact"
+          >No items found!
+        </v-alert>
       </v-col>
     </v-row>
   </v-container>
@@ -117,6 +125,7 @@ onMounted(() => {
             <v-btn
               :density="mobile ? 'compact' : 'default'"
               color="primary"
+              variant="tonal"
               type="submit"
               >Submit
             </v-btn>

@@ -6,6 +6,7 @@ import * as badgeDesign from "./modules/badgeDesign";
 import * as ticket from "./modules/ticket";
 import * as purchase from "./modules/purchase";
 import * as users from "./modules/users";
+import * as invoice from "./modules/invoice";
 
 const store = createStore({
   modules: {
@@ -16,6 +17,7 @@ const store = createStore({
     ticket,
     purchase,
     users,
+    invoice,
   },
   state: () => ({
     progress: null,

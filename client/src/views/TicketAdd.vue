@@ -171,6 +171,8 @@ onMounted(async () => {
                 label="Initial stock"
                 type="number"
               ></v-text-field>
+
+              <!--              early bird-->
               <v-switch
                 v-if="ticket.ticketType !== 'Free'"
                 v-model="isEarlyBird"
@@ -179,40 +181,42 @@ onMounted(async () => {
                 hide-details
                 inset
               ></v-switch>
-              <div
+              <v-card
                 v-if="isEarlyBird && ticket.ticketType !== 'Free'"
                 class="border rounded-sm pa-2"
               >
-                <v-text-field
-                  v-model="earlyBird.startDate"
-                  :rules="[(v) => !!v || 'Start Date is required!']"
-                  density="comfortable"
-                  hide-details="auto"
-                  input-mode="keyboard"
-                  label="Early Bird Start Date"
-                  type="date"
-                ></v-text-field>
-                <v-text-field
-                  v-model="earlyBird.endDate"
-                  :placeholder="new Date()"
-                  :rules="[(v) => !!v || 'End Date is required!']"
-                  class="mt-2 mt-md-4"
-                  density="comfortable"
-                  hide-details="auto"
-                  input-mode="keyboard"
-                  label="Early Bird End Date"
-                  type="date"
-                ></v-text-field>
-                <v-text-field
-                  v-model="earlyBird.earlyBirdPrice"
-                  :rules="[(v) => !!v || 'Price is required!']"
-                  class="mt-2 mt-md-4"
-                  density="comfortable"
-                  hide-details="auto"
-                  label="Early Bird Price"
-                  type="number"
-                ></v-text-field>
-              </div>
+                <v-card-text>
+                  <v-text-field
+                    v-model="earlyBird.startDate"
+                    :rules="[(v) => !!v || 'Start Date is required!']"
+                    density="comfortable"
+                    hide-details="auto"
+                    input-mode="keyboard"
+                    label="Early Bird Start Date"
+                    type="date"
+                  ></v-text-field>
+                  <v-text-field
+                    v-model="earlyBird.endDate"
+                    :placeholder="new Date()"
+                    :rules="[(v) => !!v || 'End Date is required!']"
+                    class="mt-2 mt-md-4"
+                    density="comfortable"
+                    hide-details="auto"
+                    input-mode="keyboard"
+                    label="Early Bird End Date"
+                    type="date"
+                  ></v-text-field>
+                  <v-text-field
+                    v-model="earlyBird.earlyBirdPrice"
+                    :rules="[(v) => !!v || 'Price is required!']"
+                    class="mt-2 mt-md-4"
+                    density="comfortable"
+                    hide-details="auto"
+                    label="Early Bird Price"
+                    type="number"
+                  ></v-text-field>
+                </v-card-text>
+              </v-card>
             </v-col>
           </v-row>
 
@@ -222,6 +226,7 @@ onMounted(async () => {
                 :density="mobile ? 'comfortable' : 'default'"
                 color="primary"
                 type="submit"
+                variant="tonal"
                 >Add
               </v-btn>
             </v-col>

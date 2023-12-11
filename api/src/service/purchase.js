@@ -14,11 +14,19 @@ exports.createPaymentIntent = async ({ payload: { amount, currency } }) => {
 };
 
 exports.savePurchase = async (purchase) => {
-  delete purchase.ticketType
+  delete purchase.ticketType;
   const [insertedPurchase] = await sql`insert into purchase ${sql(
-      purchase
+    purchase
   )} returning *`;
   return insertedPurchase;
+};
+
+exports.updatePurchase = async (purchase, columns) => {
+  console.log(33, purchase, columns);
+  return await sql`
+        update purchase
+        set ${sql(purchase, columns)}
+        where id = ${purchase.id}`;
 };
 
 exports.getPurchaseById = async (id) => {

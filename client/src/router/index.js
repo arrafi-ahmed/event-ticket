@@ -1,17 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Default from "@/layouts/default/Default.vue";
-import NotFound from "@/views/NotFound.vue";
-import Signout from "@/views/Signout.vue";
-import Signin from "@/views/Signin.vue";
-import Register from "@/views/Register.vue";
-import Home from "@/views/Home.vue";
-import EventAdd from "@/views/EventAdd.vue";
-import EventSingle from "@/views/EventSingle.vue";
-import RegistrationFormAdd from "@/views/RegistrationFormAdd.vue";
-import RegistrationFormSingle from "@/views/RegistrationFormSingle.vue";
-import BadgeCreate from "@/views/BadgeCreate.vue";
-import TicketAdd from "@/views/TicketAdd.vue";
-import Users from "@/views/Users.vue";
+
+const Default = () => import("@/layouts/default/Default.vue");
+const Headerless = () => import("@/layouts/headerless/Headerless.vue");
+const NotFound = () => import("@/views/NotFound.vue");
+const Signout = () => import("@/views/Signout.vue");
+const Signin = () => import("@/views/Signin.vue");
+const Register = () => import("@/views/Register.vue");
+const Home = () => import("@/views/Home.vue");
+const EventAdd = () => import("@/views/EventAdd.vue");
+const EventSingle = () => import("@/views/EventSingle.vue");
+const RegistrationFormAdd = () => import("@/views/RegistrationFormAdd.vue");
+const RegistrationFormSingle = () =>
+  import("@/views/RegistrationFormSingle.vue");
+const BadgeCreate = () => import("@/views/BadgeCreate.vue");
+const TicketAdd = () => import("@/views/TicketAdd.vue");
+const Users = () => import("@/views/Users.vue");
+const Invoice = () => import("@/views/Invoice.vue");
 
 const routes = [
   {
@@ -60,6 +64,14 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Add Event",
+        },
+      },
+      {
+        path: "invoice",
+        name: "invoice",
+        component: Invoice,
+        meta: {
+          title: "Invoice",
         },
       },
       {
@@ -118,12 +130,26 @@ const routes = [
     ],
   },
   {
+    path: "/invoice",
+    component: Headerless,
+    children: [
+      {
+        path: "invoice",
+        name: "invoice",
+        component: Invoice,
+        meta: {
+          title: "Invoice",
+        },
+      },
+    ],
+  },
+  {
     path: "",
     redirect: { name: "home" },
   },
   {
     path: "/not-found/:status?/:message?",
-    name: "notFound",
+    name: "not-found",
     component: NotFound,
     props: (route) => ({
       status: route.params.status || 404,
@@ -136,7 +162,7 @@ const routes = [
   {
     path: "/:catchAll(.*)",
     redirect: {
-      name: "notFound",
+      name: "not-found",
       params: { status: 404, message: "Looks like you're lost!" },
     },
   },

@@ -3,6 +3,8 @@ const { sql } = require("../db");
 
 exports.saveTicket = async ({ payload: { ticket, earlyBird } }) => {
   ticket.stockCurr = ticket.stockInit;
+  if (ticket.ticketType.toLowerCase() === "extras")
+    delete ticket.registrationFormId;
 
   const [insertedTicket] = await sql`insert into ticket ${sql(
     ticket
@@ -19,7 +21,7 @@ exports.saveTicket = async ({ payload: { ticket, earlyBird } }) => {
 };
 
 exports.getTickets = async ({ eventId, registrationFormId }) => {
-  return await sql`
+  const tickets = await sql`
         SELECT t.*,
                e.*,
                e.id as e_id,
@@ -29,13 +31,27 @@ exports.getTickets = async ({ eventId, registrationFormId }) => {
                            ON t.id = e.ticket_id AND CURRENT_DATE BETWEEN e.start_date AND e.end_date
         WHERE (t.ticket_type = 'Extras' AND t.event_id = ${eventId})
            OR (t.ticket_type != 'Extras' AND t.registration_form_id = ${registrationFormId});`;
+
+  console.log(18, tickets);
+  console.log(19, exports.sortExtrasLast(tickets));
+  return exports.sortExtrasLast(tickets);
 };
 
-exports.sortExtrasLast = (ticketId, ticketPrice, ticketType) => {
-  const tickets = ticketId.map((id, index) => ({id, ticketPrice: ticketPrice[index], type: ticketType[index].toLowerCase()}));
+exports.getTicketsByIds = async (ids) => {
+  const idsArray = `{${ids.join(",")}}`;
+  return await sql`
+        SELECT *
+        FROM ticket
+        WHERE id = ANY (${idsArray}::int[]);`;
+};
 
-  const standardTickets = tickets.filter(item => item.type !== "extras");
-  const extrasTickets = tickets.filter(item => item.type === "extras");
+exports.sortExtrasLast = (tickets) => {
+  const standardTickets = tickets.filter(
+    (item) => item.ticketType.toLowerCase() !== "extras"
+  );
+  const extrasTickets = tickets.filter(
+    (item) => item.ticketType.toLowerCase() === "extras"
+  );
 
   return standardTickets.concat(extrasTickets);
 };

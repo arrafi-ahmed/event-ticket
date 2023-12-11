@@ -19,7 +19,7 @@ app.use(express.json());
 
 const server = app.listen(port, (err) => {
   if (err) return console.error(err);
-  console.log(`Server started at ${port}`);
+  console.log(`Server started at ${port} - ${new Date().toISOString()}`);
 });
 uncaughtErrHandler();
 

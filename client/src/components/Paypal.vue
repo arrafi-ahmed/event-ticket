@@ -13,6 +13,7 @@ const paid = ref(false);
 onBeforeMount(() => {
   loadScript({
     "client-id": CLIENT_ID,
+    currency: currency,
     "disable-funding": ["paylater", "venmo", "card"],
   }).then((paypal) => {
     paypal

@@ -7,6 +7,7 @@ export const state = {
   forms: [],
   form: {},
   formWQuestion: {},
+  formWAnswer: {},
   fields: [],
 };
 
@@ -28,6 +29,9 @@ export const mutations = {
   },
   setFormWQuestion(state, payload) {
     state.formWQuestion = payload;
+  },
+  setFormWAnswer(state, payload) {
+    state.formWAnswer = payload;
   },
   addForm(state, payload) {
     state.forms.unshift(payload);
@@ -113,6 +117,20 @@ export const actions = {
         .then((response) => {
           commit("setFormWQuestion", response.data?.payload);
           resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  setFormWAnswer({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/registrationForm/getFormWAnswer", {
+          params: { formId: request.formId, formFiller: request.formFiller },
+        })
+        .then((response) => {
+          resolve(response.data?.payload);
         })
         .catch((err) => {
           reject(err);
