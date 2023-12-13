@@ -28,7 +28,7 @@ export const getClientPublicImgUrl = (imageName) =>
 
 export const getApiPublicImgUrl = (imageName, type) =>
   isProd
-    ? `${apiBaseUrl}/public/${type}/${imageName}`
+    ? `${apiBaseUrl}/api/public/${type}/${imageName}`
     : `${apiBaseUrl}/${type}/${imageName}`;
 
 export const getUserImageUrl = (imageName) => {

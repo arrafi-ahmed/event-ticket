@@ -113,7 +113,17 @@ onMounted(() => {
               <td>{{ item.email }}</td>
               <td>{{ item.ticketName }}</td>
               <td class="text-capitalize">{{ item.paymentMethod }}</td>
-              <td class="text-capitalize">{{ item.paymentStatus }}</td>
+              <td class="text-capitalize">
+                <v-chip
+                  variant="flat"
+                  :color="
+                    item.paymentStatus.toLowerCase() === 'succeeded'
+                      ? 'success'
+                      : 'yellow'
+                  "
+                  >{{ item.paymentStatus }}
+                </v-chip>
+              </td>
               <td>
                 {{ getCurrencySymbol(item.ticketCurrency, "symbol") }}
                 {{ item.totalAmount }}

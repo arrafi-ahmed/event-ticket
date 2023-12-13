@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
@@ -27,12 +27,26 @@ const openBadge = async (badgeDesignId) => {
   dialog.value = !dialog.value;
 };
 
-onMounted(async () => {
+const fetchData = async () => {
   await Promise.all([
     store.dispatch("event/setEvent", route.params.eventId),
     store.dispatch("registrationForm/setForms", route.params.eventId),
     store.dispatch("badgeDesign/setBadgeDesigns", route.params.eventId),
   ]);
+};
+
+watch(
+  () => route.params.eventId,
+  (newItem, oldItem) => {
+    if (route.name === "event-single" && newItem && newItem !== oldItem) {
+      fetchData();
+    }
+  },
+  { flush: "pre", immediate: true, deep: true }
+);
+
+onMounted(() => {
+  fetchData();
 });
 </script>
 

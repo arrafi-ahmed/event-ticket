@@ -8,7 +8,6 @@ import { useDate, useDisplay } from "vuetify";
 const { mobile } = useDisplay();
 
 const store = useStore();
-const date = useDate();
 
 const events_init = computed(() => store.state.event.events);
 

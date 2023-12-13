@@ -109,6 +109,7 @@ onMounted(async () => {
           <v-row>
             <v-col class="mt-2 mt-md-0" cols="12" md="6">
               <h4 class="pb-2">Badge Field Visibility</h4>
+              <small><i>QR code will be displayed on back of badge</i></small>
               <v-table density="compact">
                 <thead>
                   <tr>

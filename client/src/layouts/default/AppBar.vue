@@ -2,8 +2,8 @@
 import Logo from "@/components/Logo.vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed, ref } from "vue";
-import { getToLink } from "@/others/util";
+import { computed, onMounted, ref } from "vue";
+import { formatDate, getEventLogoUrl, getToLink } from "@/others/util";
 import { useDisplay } from "vuetify";
 import UserAvatar from "@/components/UserAvatar.vue";
 
@@ -15,11 +15,26 @@ const currentUser = computed(() => store.getters["user/getCurrentUser"]);
 
 const drawer = ref(false);
 
-const items = [{ title: "Home", to: { name: "home" } }];
 const getFirstName = computed(() => currentUser.value.name.split(" ")[0]);
 const getGreetings = computed(() => {
   const hour = new Date().getHours();
   return `Good ${hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"}!`;
+});
+
+const events_init = computed(() => store.state.event.events);
+const events = computed(() => {
+  return events_init.value.map((event) => ({
+    title: event.name,
+    link: "true",
+    to: { name: "event-single", params: { eventId: event.id } },
+  }));
+});
+const items = computed(() => {
+  return [{ title: "Home", to: { name: "home" } }, ...events.value];
+});
+
+onMounted(() => {
+  store.dispatch("event/setEvents");
 });
 </script>
 
@@ -31,9 +46,6 @@ const getGreetings = computed(() => {
     dense
     flat
   >
-    <logo custom-class="clickable" @click="router.push({ name: 'signin' })" />
-
-    <template v-slot:append>
       <v-btn
         v-if="isSignedin"
         :size="mobile ? 'default' : 'large'"
@@ -45,13 +57,15 @@ const getGreetings = computed(() => {
           @click-avatar="drawer = !drawer"
         ></user-avatar>
       </v-btn>
-    </template>
+    <v-row justify="center">
+      <logo custom-class="clickable" @click="router.push({ name: 'signin' })" />
+    </v-row>
   </v-app-bar>
   <v-navigation-drawer
     v-if="isSignedin"
     v-model="drawer"
-    :width="200"
-    location="end"
+    :width="300"
+    location="start"
     temporary
   >
     <v-list>

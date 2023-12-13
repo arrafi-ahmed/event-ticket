@@ -116,6 +116,7 @@ const handleAddEvent = async () => {
             hide-details="auto"
             label="Tax Percentage"
             prepend-inner-icon="mdi-cash"
+            type="Number"
           ></v-text-field>
 
           <v-file-input
