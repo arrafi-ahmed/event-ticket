@@ -19,8 +19,9 @@ const formItemTypes = reactive([...input_fields]);
 const findFormItemTypeIndex = (id) =>
   formItemTypes.findIndex((item) => item.id == id);
 
-const selectedFormItemType = reactive({ id: null, title: null });
 const dialog = ref(false);
+const selectedFormItemType = reactive({ id: null, title: null });
+const terms = ref(null);
 
 const questionInit = {
   typeId: null,
@@ -71,6 +72,7 @@ const handleSubmitPublishForm = async () => {
     .dispatch("registrationForm/addForm", {
       formTypeId: selectedFormType.value,
       eventId: route.params.eventId,
+      terms: terms.value,
       formItems: toRaw(formItems),
     })
     .then((result) => {
@@ -78,11 +80,10 @@ const handleSubmitPublishForm = async () => {
         name: "event-single",
         params: { eventId: route.params.eventId },
       });
-    })
-    .catch((err) => {});
+    });
 };
 onMounted(() => {
-  Promise.all([store.dispatch("registrationForm/setFormTypes")]);
+  store.dispatch("registrationForm/setFormTypes", route.params.eventId);
 });
 </script>
 
@@ -122,12 +123,19 @@ onMounted(() => {
                 required
               ></v-select>
             </v-col>
+
             <v-col cols="auto">
               <div class="d-flex justify-end">
                 <v-spacer></v-spacer>
                 <v-menu>
                   <template v-slot:activator="{ props }">
-                    <v-btn icon="mdi-plus" v-bind="props"></v-btn>
+                    <v-btn
+                      prepend-icon="mdi-plus"
+                      size="small"
+                      stacked
+                      v-bind="props"
+                      >Question
+                    </v-btn>
                   </template>
                   <v-list density="compact">
                     <v-list-item
@@ -213,6 +221,17 @@ onMounted(() => {
               ></v-divider>
             </template>
           </div>
+          <v-textarea
+            v-model="terms"
+            :rules="[(v) => !!v || 'Terms & Condition is required!']"
+            class="mt-2 mt-md-4 text-pre-wrap"
+            clearable
+            density="compact"
+            hide-details="auto"
+            label="Registration Terms & Condition"
+            prepend-inner-icon="mdi-text-box-edit-outline"
+          >
+          </v-textarea>
           <v-row class="mt-2 mt-md-4" justify="end">
             <v-col cols="auto">
               <v-btn

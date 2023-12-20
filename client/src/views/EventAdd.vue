@@ -13,11 +13,11 @@ const store = useStore();
 
 const newEventInit = {
   name: null,
-  date: new Date(),
+  startDate: new Date(),
+  endDate: new Date(),
   location: null,
   taxPercentage: null,
   logos: [null, null],
-  terms: null,
 };
 const newEvent = reactive({ ...newEventInit });
 
@@ -34,7 +34,8 @@ const handleAddEvent = async () => {
 
   const formData = new FormData();
   formData.append("name", newEvent.name);
-  formData.append("date", newEvent.date);
+  formData.append("startDate", newEvent.startDate);
+  formData.append("endDate", newEvent.endDate);
   formData.append("location", newEvent.location);
   formData.append("taxPercentage", newEvent.taxPercentage);
   newEvent.logos.forEach((item, index) => {
@@ -42,7 +43,6 @@ const handleAddEvent = async () => {
     newEvent.logos[index] = item?.name;
   });
   formData.append("logos", JSON.stringify(newEvent.logos));
-  formData.append("terms", newEvent.terms);
 
   store.dispatch("event/addEvent", formData).then((result) => {
     // newEvent = {...newEvent, ...newEventInit}
@@ -89,10 +89,17 @@ const handleAddEvent = async () => {
           ></v-text-field>
 
           <date-picker
-            v-model="newEvent.date"
+            v-model="newEvent.startDate"
             color="primary"
             custom-class="mt-2 mt-md-4"
-            label="Date"
+            label="Start Date"
+          ></date-picker>
+
+          <date-picker
+            v-model="newEvent.endDate"
+            color="primary"
+            custom-class="mt-2 mt-md-4"
+            label="End Date"
           ></date-picker>
 
           <v-text-field
@@ -170,18 +177,6 @@ const handleAddEvent = async () => {
               </template>
             </template>
           </v-file-input>
-
-          <v-textarea
-            v-model="newEvent.terms"
-            :rules="[(v) => !!v || 'Terms & Condition is required!']"
-            class="mt-2 mt-md-4 text-pre-wrap"
-            clearable
-            density="compact"
-            hide-details="auto"
-            label="Registration Terms & Condition"
-            prepend-inner-icon="mdi-text-box-edit-outline"
-          >
-          </v-textarea>
 
           <div class="d-flex align-center mt-3 mt-md-4">
             <v-spacer></v-spacer>

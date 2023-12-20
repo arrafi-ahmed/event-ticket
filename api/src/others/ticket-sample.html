@@ -1,9 +1,73 @@
-<!DOCTYPE html>
 <html>
 <head>
     <title>Ticket</title>
     <style>
-        .ticket,h1{text-align:center}body,html{font:16px/1 'Open Sans',sans-serif}body{height:5in;width:4in;padding:0;margin:0 auto;overflow:hidden;background:#fff}.ticket{border-radius:5px;box-shadow:0 10px 20px rgba(0,0,0,.1);padding:30px;transition:.3s}header h1{background:#000;color:#fff;padding:.5em 0;border-radius:.25em}h1{font:bold 100% sans-serif;letter-spacing:.5em;text-transform:uppercase}#event-name{color:#333;margin-bottom:10px}#ticket-name{color:#777;margin-bottom:20px}#email,#user-name{color:#999;margin-bottom:10px}.qr-code{margin-top:20px}.qr-code img{max-width:100%;height:auto;border-radius:10px}
+        html {
+            -webkit-print-color-adjust: exact
+        }
+
+        body {
+            height: 5in;
+            width: 4in;
+            padding: 0;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #fff;
+            box-sizing: border-box;
+            box-shadow: 0 0 1px 1px rgba(0, 0, 0, .1)
+        }
+
+        body, html {
+            font: 16px/1 'Open Sans', sans-serif
+        }
+
+        header h1 {
+            background-color: #000;
+            color: #fff;
+            padding: .5em 0;
+            margin: 0
+        }
+
+        h1 {
+            font: bold 100% sans-serif;
+            letter-spacing: .5em;
+            text-transform: uppercase
+        }
+
+        #event-name {
+            color: #333;
+            margin-bottom: 10px
+        }
+
+        #ticket-name {
+            color: #777;
+            margin-bottom: 20px
+        }
+
+        #email, #user-name {
+            color: #999;
+            margin-bottom: 10px
+        }
+
+        .ticket {
+            border-radius: 5px;
+            padding: 30px;
+            transition: .3s
+        }
+
+        .ticket, h1 {
+            text-align: center
+        }
+
+        .qr-code {
+            margin-top: 20px
+        }
+
+        .qr-code img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px
+        }
     </style>
 </head>
 <body>
@@ -16,8 +80,7 @@
     <p id="user-name">${user.firstname} ${user.surname}</p>
     <p id="email">${user.email}</p>
     <div class="qr-code">
-        <!-- Replace 'data:image/png;base64,...' with your QR code data URL -->
-        <img id="qr-code" alt="QR Code" src="qr.png">
+        <img alt="QR Code" id="qr-code" src="${qrCode}">
     </div>
 </article>
 </body>

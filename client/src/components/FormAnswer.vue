@@ -32,12 +32,12 @@ watch(
     <template v-for="(item, index) in items" :key="index">
       <v-text-field
         v-if="item.typeId == 0"
+        :model-value="inputResponses[index]"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
-        hide-details="auto"
-        :model-value="inputResponses[index]"
         disabled
+        hide-details="auto"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -46,12 +46,12 @@ watch(
       </v-text-field>
       <v-textarea
         v-else-if="item.typeId == 1"
+        :model-value="inputResponses[index]"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
-        hide-details="auto"
         disabled
-        :model-value="inputResponses[index]"
+        hide-details="auto"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -60,11 +60,11 @@ watch(
       </v-textarea>
       <v-radio-group
         v-else-if="item.typeId == 2"
+        :model-value="inputResponses[index]"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
-        hide-details="auto"
         disabled
-        :model-value="inputResponses[index]"
+        hide-details="auto"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>
@@ -89,22 +89,22 @@ watch(
           v-for="(childItem, childIndex) in item.options"
           :key="childIndex"
           :label="childItem"
+          :model-value="inputResponses[index]"
           :value="childItem"
           density="compact"
-          hide-details="auto"
           disabled
-          :model-value="inputResponses[index]"
+          hide-details="auto"
         ></v-checkbox>
       </div>
       <v-select
         v-else-if="item.typeId == 4 && item.options?.length > 0"
         :items="item.options"
+        :model-value="inputResponses[index]"
         :rules="[(v) => !!v || !item.required || 'required']"
         class="mt-2 mt-md-4"
         density="compact"
-        hide-details="auto"
         disabled
-        :model-value="inputResponses[index]"
+        hide-details="auto"
       >
         <template v-slot:label>
           <span>{{ item.text }}</span>

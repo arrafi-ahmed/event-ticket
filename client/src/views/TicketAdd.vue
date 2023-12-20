@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
+import DatePicker from "@/components/DatePicker.vue";
 
 const { mobile } = useDisplay();
 const route = useRoute();
@@ -36,22 +37,11 @@ const handleAddTicket = async () => {
   await form.value.validate();
   if (!isFormValid.value) return;
 
-  ticket.eventId = ticket.event?.id;
-  if (ticket.ticketType === "Extras") {
-    ticket.eventId = route.params.eventId;
-  } else {
-    ticket.registrationFormId = ticket.registrationForm;
-  }
-  if (ticket.ticketType === "Free") {
-    ticket.price = 0;
-  }
-
-  ticket.event = undefined;
-  ticket.registrationForm = undefined;
+  ticket.eventId = event.value.id;
+  ticket.registrationFormId = ticket.registrationForm;
+  delete ticket.registrationForm;
 
   store.dispatch("ticket/addTicket", { ticket, earlyBird }).then((result) => {
-    // newEvent = { ...newEvent, ...newEventInit };
-    // Object.assign(newEvent, { ...newEventInit, logos: [null, null] });
     router.push({
       name: "event-single",
       params: { eventId: ticket.eventId },
@@ -65,7 +55,6 @@ onMounted(async () => {
       store.dispatch("event/setEvent", route.params.eventId),
       store.dispatch("registrationForm/setForms", route.params.eventId),
     ]);
-    ticket.event = event.value;
   }
 });
 </script>
@@ -94,7 +83,7 @@ onMounted(async () => {
           <v-row>
             <v-col>
               <v-select
-                v-model="ticket.event"
+                v-model="event"
                 :rules="[(v) => !!v || 'Event is required!']"
                 density="comfortable"
                 disabled
@@ -186,26 +175,18 @@ onMounted(async () => {
                 class="border rounded-sm pa-2"
               >
                 <v-card-text>
-                  <v-text-field
+                  <date-picker
                     v-model="earlyBird.startDate"
-                    :rules="[(v) => !!v || 'Start Date is required!']"
-                    density="comfortable"
-                    hide-details="auto"
-                    input-mode="keyboard"
+                    color="primary"
+                    custom-class="mt-2 mt-md-4"
                     label="Early Bird Start Date"
-                    type="date"
-                  ></v-text-field>
-                  <v-text-field
+                  ></date-picker>
+                  <date-picker
                     v-model="earlyBird.endDate"
-                    :placeholder="new Date()"
-                    :rules="[(v) => !!v || 'End Date is required!']"
-                    class="mt-2 mt-md-4"
-                    density="comfortable"
-                    hide-details="auto"
-                    input-mode="keyboard"
+                    color="primary"
+                    custom-class="mt-2 mt-md-4"
                     label="Early Bird End Date"
-                    type="date"
-                  ></v-text-field>
+                  ></date-picker>
                   <v-text-field
                     v-model="earlyBird.earlyBirdPrice"
                     :rules="[(v) => !!v || 'Price is required!']"

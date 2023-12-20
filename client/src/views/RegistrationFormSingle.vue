@@ -11,6 +11,7 @@ import {
   watch,
 } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
+import SummaryPrice from "@/components/SummaryPrice.vue";
 import { useDisplay } from "vuetify";
 import FormItems from "@/components/FormItems.vue";
 import { getCountryList, getCurrencySymbol } from "@/others/util";
@@ -43,6 +44,8 @@ const formattedFields = computed(() =>
     options:
       item.fieldName.toLowerCase() === "country"
         ? getCountryList("name")
+        : item.fieldName.toLowerCase() === "phone"
+        ? getCountryList("all")
         : undefined,
   }))
 );
@@ -76,24 +79,26 @@ const tax = computed(() =>
   Number(subtotal.value * (event.value.taxPercentage / 100)).toFixed(2)
 );
 const total = computed(() => Number(subtotal.value) + Number(tax.value));
-
-//step 1
-const submitForm1 = ref(null);
-const isSubmitForm1Valid = ref(true);
-const handleSubmitStep1 = async () => {
-  let sum = toRaw(quantities).reduce((total, item) => {
+const sum = computed(() => {
+  return quantities.reduce((total, item) => {
     if (item.ticketType.toLowerCase() !== "extras") {
       let quantity = Number(item.quantity);
       return total + (isNaN(quantity) ? 0 : quantity);
     }
     return total;
   }, 0);
+});
 
+//step 1
+const submitForm1 = ref(null);
+const isSubmitForm1Valid = ref(true);
+
+const handleSubmitStep1 = async () => {
   quantities = quantities.filter((item) => Number(item.quantity) !== 0);
 
-  allStandardAnswers.value = Array(sum).fill(null);
+  allStandardAnswers.value = Array(sum.value).fill(null);
   await submitForm1.value[0].validate();
-  if (sum === 0) isSubmitForm1Valid.value = false;
+  if (sum.value === 0) isSubmitForm1Valid.value = false;
   if (!isSubmitForm1Valid.value) return;
 
   currStep.value++;
@@ -227,11 +232,6 @@ const handleSubmitStepLast = async () => {
   if (form.value.questions.length > 0 && form.value.questions[0]) {
     questionIds = form.value.questions.map((item) => item.id);
   }
-  const extras = quantities.filter(
-    (item) => item.ticketType.toLowerCase() == "extras"
-  );
-  console.log(91, quantities);
-  console.log(92, extras);
   store
     .dispatch("registrationForm/submitUserForm", {
       registrationForm: {
@@ -256,22 +256,10 @@ const handleSubmitStepLast = async () => {
       store.commit("invoice/setInvoice", result.data.payload);
       return router.push({ name: "invoice" });
     })
-    .then(() => {})
-    .catch((err) => {
-      console.log(err);
-    })
     .finally(() => {
       store.commit("setProgress", false);
     });
 };
-
-const disable = computed(() => {
-  return currStep.value === 1
-    ? "prev"
-    : currStep.value === steps.value
-    ? "next"
-    : undefined;
-});
 
 const isPaymentBtnDisabled = computed(() => {
   if (!stripe) return true;
@@ -289,7 +277,6 @@ onMounted(async () => {
     store.dispatch("registrationForm/setFields"),
     store.dispatch("registrationForm/setFormWQuestion", route.params.formId),
     store.dispatch("ticket/setTickets", {
-      eventId: route.params.eventId,
       registrationFormId: route.params.formId,
     }),
   ]);
@@ -351,7 +338,6 @@ onMounted(async () => {
                 :key="'s-' + index"
                 :value="index + 1"
               >
-                <!--                {{ quantities }}-->
                 <!--          tickets step-->
                 <v-card v-if="index === 0">
                   <v-form
@@ -460,63 +446,20 @@ onMounted(async () => {
                       </tbody>
                     </v-table>
 
-                    <v-row
-                      align="center"
-                      class="mt-2 mt-md-4"
-                      justify="end"
-                      no-gutters
-                    >
-                      <v-col cols="auto">
-                        <span>Sub Total: </span>
-                      </v-col>
-                      <v-col class="ml-2" cols="auto">
-                        <v-chip
-                          v-if="tickets[0]"
-                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
-                          class="chip-currency"
-                          size="large"
-                        >
-                          <span class="chip-currency-font">{{ subtotal }}</span>
-                        </v-chip>
-                      </v-col>
-                    </v-row>
-
-                    <v-row align="center" class="mt-2" justify="end" no-gutters>
-                      <v-col cols="auto">
-                        <span>Tax: ({{ event.taxPercentage }}%)</span>
-                      </v-col>
-                      <v-col class="ml-2" cols="auto">
-                        <v-chip
-                          v-if="tickets[0]"
-                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
-                          class="chip-currency"
-                          size="large"
-                        >
-                          <span class="chip-currency-font">{{ tax }}</span>
-                        </v-chip>
-                      </v-col>
-                    </v-row>
-
-                    <v-row align="center" class="mt-2" justify="end" no-gutters>
-                      <v-col cols="auto">
-                        <span class="text-h6">Total: </span>
-                      </v-col>
-                      <v-col class="ml-2" cols="auto">
-                        <v-chip
-                          v-if="tickets[0]"
-                          :prepend-icon="getCurrencySymbol(currency, 'icon')"
-                          class="chip-currency"
-                          size="x-large"
-                        >
-                          <span class="chip-currency-font">{{ total }}</span>
-                        </v-chip>
-                      </v-col>
-                    </v-row>
+                    <summary-price
+                      v-if="tickets[0]"
+                      :currency="currency"
+                      :subtotal="subtotal"
+                      :tax="tax"
+                      :taxPercentage="event.taxPercentage"
+                      :total="total"
+                    />
 
                     <v-row class="mt-2" justify="end">
                       <v-col cols="auto">
                         <v-btn
                           :density="mobile ? 'compact' : 'default'"
+                          :disabled="sum < 1"
                           color="primary"
                           type="submit"
                           >Continue
@@ -563,7 +506,13 @@ onMounted(async () => {
                       </template>
                     </template>
 
-                    <div v-if="form.questions && form.questions.length > 0">
+                    <div
+                      v-if="
+                        form.questions &&
+                        form.questions.length > 0 &&
+                        form.questions[0]
+                      "
+                    >
                       <v-divider
                         :thickness="2"
                         class="my-5 my-md-10"
@@ -574,27 +523,24 @@ onMounted(async () => {
                         type="question"
                         @update="handleUpdateAdditionalAnswers"
                       />
-
-                      <!--                      form filler-->
-                      <v-divider
-                        :thickness="2"
-                        class="my-5 my-md-10"
-                      ></v-divider>
-                      <h3>Form Filler:</h3>
-                      <v-select
-                        v-model="formFiller"
-                        :items="formFillerOptions"
-                        :rules="[(v) => !!v || 'required']"
-                        class="mt-2 mt-md-4"
-                        density="compact"
-                        hide-details="auto"
-                      >
-                        <template v-slot:label>
-                          <span>Select the form filler</span>
-                          <span style="color: red">*</span>
-                        </template>
-                      </v-select>
                     </div>
+
+                    <!--                      form filler-->
+                    <v-divider :thickness="2" class="my-5 my-md-10"></v-divider>
+                    <h3>Form Filler:</h3>
+                    <v-select
+                      v-model="formFiller"
+                      :items="formFillerOptions"
+                      :rules="[(v) => !!v || 'required']"
+                      class="mt-2 mt-md-4"
+                      density="compact"
+                      hide-details="auto"
+                    >
+                      <template v-slot:label>
+                        <span>Select the form filler</span>
+                        <span style="color: red">*</span>
+                      </template>
+                    </v-select>
 
                     <v-row justify="end">
                       <v-col cols="auto">
@@ -614,11 +560,15 @@ onMounted(async () => {
                 <v-card v-if="index === 2">
                   <div>
                     <h3>Registration Terms & Condition</h3>
-                    <p class="text-pre-wrap">
-                      {{ event.terms }}
+                    <p class="text-pre-wrap pt-2">
+                      <span v-if="form.terms">
+                        {{ form.terms }}
+                      </span>
+                      <span v-else> Not available for this form. </span>
                     </p>
                   </div>
                   <v-checkbox
+                    v-if="form.terms"
                     v-model="acceptTerms"
                     label="I accept Registration Terms & Condition of the event."
                   ></v-checkbox>
@@ -626,7 +576,7 @@ onMounted(async () => {
                     <v-col cols="auto">
                       <v-btn
                         :density="mobile ? 'compact' : 'default'"
-                        :disabled="!acceptTerms"
+                        :disabled="form.terms ? !acceptTerms : false"
                         class="mt-2 mt-md-4"
                         color="primary"
                         type="submit"
@@ -640,8 +590,45 @@ onMounted(async () => {
                 <!--                payment step-->
                 <v-card v-if="index === 3">
                   <template v-if="total">
-                    <h3 class="pb-5">Payment Methods</h3>
+                    <h3 class="pb-5">Order Summary</h3>
+                    <v-table density="compact">
+                      <thead>
+                        <tr>
+                          <th class="text-start">Ticket Name</th>
+                          <th class="text-center">
+                            <span class="me-3">Price</span>
+                          </th>
+                          <th class="text-center">Quantity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(item, index) in quantities"
+                          :key="'t-' + index"
+                        >
+                          <td>
+                            {{ item.name }}
+                          </td>
+                          <td class="w-25 text-center">
+                            {{ item.ticketPrice }}
+                          </td>
+                          <td class="w-25 text-center">
+                            {{ item.quantity }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </v-table>
 
+                    <summary-price
+                      v-if="tickets[0]"
+                      :currency="currency"
+                      :subtotal="subtotal"
+                      :tax="tax"
+                      :taxPercentage="event.taxPercentage"
+                      :total="total"
+                    />
+
+                    <h3 class="pb-5">Payment Methods</h3>
                     <v-tabs v-model="paymentTab" bg-color="primary">
                       <v-tab value="stripe">Stripe</v-tab>
                       <v-tab value="paypal">Paypal</v-tab>

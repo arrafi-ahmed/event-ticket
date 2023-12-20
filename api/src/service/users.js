@@ -3,7 +3,7 @@ const { sql } = require("../db");
 const registrationService = require("./registration");
 
 exports.getUsers = async (formId) => {
-  return await sql`
+  return sql`
         SELECT u.*,
                u.id       as u_id,
                p.payment_method,
@@ -24,7 +24,7 @@ exports.getUsers = async (formId) => {
 };
 
 exports.getUserByEmail = async (email) => {
-  return await sql`
+  return sql`
         select *
         from users
         where email = ${email}
@@ -32,7 +32,7 @@ exports.getUserByEmail = async (email) => {
 };
 
 exports.getUserById = async (id) => {
-  return await sql`
+  return sql`
         select *
         from users
         where id = ${id}
@@ -57,10 +57,17 @@ exports.deleteUser = async (userId, registrationId) => {
         update registration
         set ${sql(registration, ["registeredUserId"])}
         where id = ${registrationId}`;
-  console.log(88, registration);
-  return await sql`
+  return sql`
         delete
         from users
         where id = ${userId}
     `;
+};
+
+exports.getExhibitorsByFormId = async (formId) => {
+  return sql`
+        select *
+        from users
+        WHERE registration_form_id = ${formId}
+        ORDER BY created_at DESC;`;
 };

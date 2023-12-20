@@ -1,50 +1,65 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
 import BadgePreview from "@/components/BadgePreview.vue";
-import { getEventLogoUrl } from "../others/util";
+import { getEventLogoUrl } from "@/others/util";
 
 const { mobile } = useDisplay();
 
 const route = useRoute();
 const store = useStore();
 
+const formTypes = computed(() => store.state.registrationForm.formTypes);
 const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
 const badgeDesigns = computed(() => store.state.badgeDesign.badgeDesigns);
 const badgeDesign = computed(() => store.state.badgeDesign.badgeDesign);
 
-const dialog = ref(false);
+const badgePreviewDialog = ref(false);
 
 const openBadge = async (badgeDesignId) => {
   await store.dispatch("badgeDesign/setBadgeDesign", {
     badgeDesignId,
   });
-  console.log("badgeDesign", badgeDesign.value);
-  dialog.value = !dialog.value;
+  badgePreviewDialog.value = !badgePreviewDialog.value;
+};
+const newFormTypeInit = { name: null, eventId: null };
+const newFormType = reactive({ ...newFormTypeInit });
+
+const formTypeDialog = ref(false);
+
+const formTypeForm = ref(null);
+const isFormTypeFormValid = ref(true);
+
+const handleSubmitFormType = async () => {
+  await formTypeForm.value.validate();
+  if (!isFormTypeFormValid.value) return;
+
+  newFormType.eventId = route.params.eventId;
+  store.dispatch("registrationForm/addFormType", newFormType).then(() => {
+    formTypeDialog.value = !formTypeDialog.value;
+  });
 };
 
 const fetchData = async () => {
-  await Promise.all([
+  return Promise.all([
+    store.dispatch("registrationForm/setFormTypes", route.params.eventId),
     store.dispatch("event/setEvent", route.params.eventId),
     store.dispatch("registrationForm/setForms", route.params.eventId),
     store.dispatch("badgeDesign/setBadgeDesigns", route.params.eventId),
   ]);
 };
-
 watch(
   () => route.params.eventId,
-  (newItem, oldItem) => {
+  async (newItem, oldItem) => {
     if (route.name === "event-single" && newItem && newItem !== oldItem) {
-      fetchData();
+      await fetchData();
     }
-  },
-  { flush: "pre", immediate: true, deep: true }
+  }
 );
-
 onMounted(() => {
   fetchData();
 });
@@ -80,13 +95,19 @@ onMounted(() => {
                 <v-btn
                   class="ml-5"
                   color="primary"
-                  variant="tonal"
                   v-bind="props"
+                  variant="tonal"
                 >
                   Add
                 </v-btn>
               </template>
               <v-list density="compact">
+                <v-list-item
+                  density="compact"
+                  link
+                  title="Form Type"
+                  @click="formTypeDialog = true"
+                ></v-list-item>
                 <v-list-item
                   :to="{
                     name: 'registration-form-add',
@@ -122,6 +143,29 @@ onMounted(() => {
     </v-row>
 
     <v-row>
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
+            <span>Forms Types:</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list v-if="formTypes.length > 0" density="compact">
+              <template v-for="(item, index) in formTypes">
+                <v-list-item
+                  v-if="item"
+                  :key="index"
+                  :title="`${item?.name}`"
+                ></v-list-item>
+              </template>
+            </v-list>
+            <v-alert v-else border="start" closable density="compact"
+              >No items found!
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
@@ -205,16 +249,72 @@ onMounted(() => {
           </v-card-text>
         </v-card>
       </v-col>
+
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
+            <span>Credentials:</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list density="compact">
+              <v-list-item
+                :to="{ name: 'credential-generate' }"
+                link
+                title="View Credentials"
+              ></v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 
-  <v-dialog v-model="dialog" width="700">
+  <v-dialog v-model="badgePreviewDialog" width="700">
     <badge-preview
       :badge-data="badgeDesign.badgeData"
       :badge-visibility="badgeDesign.badgeVisibility"
       :event="event"
       card-title="Badge Design Preview"
     ></badge-preview>
+  </v-dialog>
+
+  <v-dialog v-model="formTypeDialog" width="350">
+    <v-card>
+      <v-card-title>
+        <span>Add Registration Form Type</span>
+      </v-card-title>
+      <v-card-text>
+        <v-form
+          ref="formTypeForm"
+          v-model="isFormTypeFormValid"
+          fast-fail
+          @submit.prevent="handleSubmitFormType"
+        >
+          <v-text-field
+            v-model="newFormType.name"
+            :rules="[(v) => !!v || 'Form Type is required!']"
+            class="mt-2"
+            clearable
+            density="compact"
+            hide-details="auto"
+            label="Form Type"
+            variant="solo"
+          ></v-text-field>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              :density="mobile ? 'compact' : 'default'"
+              color="primary"
+              type="submit"
+              variant="tonal"
+              >Submit
+            </v-btn>
+          </v-card-actions>
+        </v-form>
+      </v-card-text>
+    </v-card>
   </v-dialog>
 </template>
 

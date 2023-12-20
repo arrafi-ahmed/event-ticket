@@ -16,6 +16,7 @@ const BadgeCreate = () => import("@/views/BadgeCreate.vue");
 const TicketAdd = () => import("@/views/TicketAdd.vue");
 const Users = () => import("@/views/Users.vue");
 const Invoice = () => import("@/views/Invoice.vue");
+const CredentialGenerate = () => import("@/views/CredentialGenerate.vue");
 
 const routes = [
   {
@@ -116,6 +117,15 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Add Ticket",
+        },
+      },
+      {
+        path: "event/:eventId/credential-generate",
+        name: "credential-generate",
+        component: CredentialGenerate,
+        meta: {
+          requiresAuth: true,
+          title: "Credential Generate",
         },
       },
       {

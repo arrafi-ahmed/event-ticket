@@ -1,49 +1,54 @@
 const eventService = require("./event");
 const {
   formatDate,
-  logoSvgString,
   generateQrCode,
   getCurrencySymbol,
 } = require("../others/util");
+const { jsPDF } = require("jspdf");
+const { join } = require("path");
+const { readFileSync } = require("fs");
 
-exports.generateTickets = async (badge, event, tickets, users) => {
+exports.generateTicketContent = async (badge, event, tickets, users) => {
   const qrCode = await generateQrCode(
     JSON.stringify({ id: badge.id, qrUuid: badge.qrUuid })
   );
   const ticket = tickets.find((item) => item.ticketId == badge.ticketId);
   const user = users.find((item) => item.id == badge.userId);
 
-  const ticketContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ticket</title>
-    <style>
-        .ticket,h1{text-align:center}body,html{font:16px/1 'Open Sans',sans-serif}body{height:5in;width:4in;padding:0;margin:0 auto;overflow:hidden;background:#fff}.ticket{border-radius:5px;box-shadow:0 10px 20px rgba(0,0,0,.1);padding:30px;transition:.3s}header h1{background:#000;color:#fff;padding:.5em 0;border-radius:.25em}h1{font:bold 100% sans-serif;letter-spacing:.5em;text-transform:uppercase}#event-name{color:#333;margin-bottom:10px}#ticket-name{color:#777;margin-bottom:20px}#email,#user-name{color:#999;margin-bottom:10px}.qr-code{margin-top:20px}.qr-code img{max-width:100%;height:auto;border-radius:10px}
-    </style>
-</head>
-<body>
-<header>
-    <h1>Ticket</h1>
-</header>
-<article class="ticket">
-    <h2 id="event-name">${event.name}</h2>
-    <h3 id="ticket-name">${ticket.name}</h3>
-    <p id="user-name">${user.firstname} ${user.surname}</p>
-    <p id="email">${user.email}</p>
-    <div class="qr-code">
-        <!-- Replace 'data:image/png;base64,...' with your QR code data URL -->
-        <img id="qr-code" alt="QR Code" src="${qrCode}">
-    </div>
-</article>
-</body>
-</html>
-`;
+  const doc = new jsPDF();
 
-  return { ticketContent, user };
+  // Header
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Ticket", 105, 20, { align: "center" });
+
+  // Ticket content
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+
+  // Event name
+  doc.text(`Event: ${event.name}`, 105, 30, { align: "center" });
+
+  // Ticket name
+  doc.text(`Ticket: ${ticket.name}`, 105, 35, { align: "center" });
+
+  // User name and email
+  doc.text(`Name: ${user.firstname} ${user.surname}`, 105, 50, {
+    align: "center",
+  });
+  doc.text(`Email: ${user.email}`, 105, 55, { align: "center" });
+
+  // QR Code
+  const qrCodeData = qrCode.split(",")[1]; // Extract base64 data
+  doc.addImage(qrCodeData, "JPEG", 77, 65, 60, 60);
+
+  doc.setLineWidth(0); // Set line width
+  doc.rect(45, 10, 120, 120); // Draw border
+
+  return { ticketContent: doc, user };
 };
 
-exports.generateInvoice = async (
+exports.generateInvoiceContent = async (
   tickets,
   users,
   purchase,
@@ -55,128 +60,109 @@ exports.generateInvoice = async (
   const user = users.find((item) => item.id == formFillerId);
   const [event] = await eventService.getEventById(eventId);
 
-  const invoiceContent =
-    `
-<html xmlns="http://www.w3.org/1999/html">
-<head>
-    <meta charset="utf-8">
-    <title>Invoice</title>
-    <style>
-        body,html{padding:.5in}header h1,td,th{border-radius:.25em}article,article address,header,header h1,table.inventory,table.meta{margin:0 0 1em}header span,td,th{position:relative}span[]{display:inline-block}.pt-15{padding-top:15px}h1{font:bold 100% sans-serif;letter-spacing:.5em;text-align:center;text-transform:uppercase}table{font-size:75%;table-layout:fixed;width:100%;border-collapse:separate;border-spacing:2px}td,th{border-width:1px;padding:.5em;text-align:left;border-style:solid}th{background:#eee;border-color:#bbb}td{border-color:#ddd}html{font:16px/1 'Open Sans',sans-serif;overflow:auto;background:#999;cursor:default}body{box-sizing:border-box;height:11in;margin:0 auto;overflow:hidden;width:8.5in;background:#fff;border-radius:1px;box-shadow:0 0 1in -.25in rgba(0,0,0,.5)}article:after,header:after,table.balance:after,table.meta:after{clear:both;content:"";display:table}header h1{background:#000;color:#fff;padding:.5em 0}header address{float:left;font-size:75%;font-style:normal;line-height:1.25;margin:0 1em 1em 0}header address p{margin:0 0 .25em}header img,header span{display:block;float:right}header .logo{width:150px;margin:1em}article h1{clip:rect(0 0 0 0);text-align:left}article address{float:left;line-height:1.2rem!important}.event-title{clear:both;font-size:80%;padding-bottom:6px}.footer{clear:both}.float-left{float:left}.float-right{float:right}table.balance,table.meta{float:right;width:36%}table.meta th{width:40%}table.meta td{width:60%}table.inventory{clear:both;width:100%}table.inventory th{font-weight:700;text-align:center}table.inventory td:first-child{width:26%}table.inventory td:nth-child(2){width:38%}table.inventory td:nth-child(3),table.inventory td:nth-child(4),table.inventory td:nth-child(5){text-align:right;width:12%}table.balance td,table.balance th{width:50%}table.balance td{text-align:right}aside h1{border:#999;border-width:0 0 1px;border-bottom-style:solid}aside p{line-height:.6rem;font-size:.8rem}@media print{*{-webkit-print-color-adjust:exact}html{background:0 0;padding:0}body{box-shadow:none;margin:0}.add,.cut,span:empty{display:none}}@page{margin:0}
-    </style>
-</head>
-<body>
-<header>
-    <h1>Invoice</h1>
-    <address>
-        <p><strong>Torch Marketing Co Ltd</strong></p>
-        <p>200 Ware Road</p>
-        <p>Hoddesdon</p>
-        <p>Herts EN11 9EY</p>
-        <p>United Kingdom</p>
-    </address>
-    <span class="logo">
-        ${logoSvgString}
-    </span>
-</header>
-<article>
-    <address>
-        <p><strong>Recipient</strong></p>
-        <p>${user.organization}<br>${user.firstname} ${user.surname}</p>
-    </address>
-    <table class="meta">
-        <tr>
-            <th><span>Invoice #</span></th>
-            <td><span>${String(purchase.id).padStart(8, "0")}</span></td>
-        </tr>
-        <tr>
-            <th><span>Date</span></th>
-            <td><span>${formatDate(purchase.createdAt)}</span></td>
-        </tr>
-    </table>
-    <div class="event-title">
-        <strong>Event: </strong>
-        <span>${event.name}</span>
-    </div>
-    <table class="inventory">
-        <thead>
-        <tr>
-            <th><span>Item</span></th>
-            <th><span>Rate</span></th>
-            <th><span>Quantity</span></th>
-            <th><span>Price</span></th>
-        </tr>
-        </thead>
-        <tbody>` +
-    tickets
-      .map((ticket) => {
-        return `<tr>
-                    <td><span>${ticket.name}</span></td>
-                    <td><span data-prefix>${currency}</span><span>${
-          ticket.ticketPrice
-        }</span></td>
-                    <td><span>${ticket.quantity}</span></td>
-                    <td><span data-prefix>${currency}</span><span>${
-          ticket.ticketPrice * ticket.quantity
-        }</span></td>
-                  </tr>`;
-      })
-      .join("") +
-    `</tbody>
-    </table>
-    <span>
-        <small class="ml-auto">${event.taxPercentage}% tax included</small>
-    </span>
-    <table class="balance">
-        <tr>
-            <th><span>Tax</span></th>
-            <td><span data-prefix>${currency}</span><span>${
-      purchase.tax
-    }</span></td>
-        </tr>
-        <tr>
-            <th><span>Total</span></th>
-            <td><span data-prefix>${currency}</span><span>${
-      purchase.totalAmount
-    }</span></td>
-        </tr>
-        <tr>
-            <th><span>Amount Paid</span></th>
-            <td><span data-prefix>${currency}</span><span>${
+  const doc = new jsPDF();
+  //header
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Invoice", 105, 20, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  // Torch Marketing Co Ltd address and logo
+  doc.text("Torch Marketing Co Ltd", 15, 30);
+  doc.text("200 Ware Road", 15, 35);
+  doc.text("Hoddesdon", 15, 40);
+  doc.text("Herts EN11 9EY", 15, 45);
+  doc.text("United Kingdom", 15, 50);
+
+  // Load logo image
+  const logoPath = join(__dirname, "..", "others", "logo.jpg");
+  const logoImgData = readFileSync(logoPath).toString("base64");
+  doc.addImage(logoImgData, "JPEG", 130, 30, 60, 20);
+
+  // Recipient address and Invoice details
+  doc.setFont("helvetica", "bold");
+  doc.text("Recipient", 15, 65);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${user.organization}\n${user.firstname} ${user.surname}`, 15, 70);
+
+  doc.text("Invoice #", 130, 70);
+  doc.text(`${String(purchase.id).padStart(8, "0")}`, 160, 70);
+  doc.text("Date", 130, 75);
+  doc.text(`${formatDate(purchase.createdAt)}`, 160, 75);
+
+  // Table header
+  doc.setFillColor(200, 200, 200);
+  doc.rect(15, 90, 180, 10, "F");
+  doc.text("Item", 20, 95);
+  doc.text("Rate", 145, 95);
+  doc.text("Quantity", 160, 95);
+  doc.text("Price", 180, 95);
+
+  // Table rows
+  let yPos = 105;
+  tickets.forEach((ticket) => {
+    doc.text(ticket.name, 20, yPos);
+    doc.text(`${currency}${ticket.ticketPrice}`, 145, yPos);
+    doc.text(`${ticket.quantity}`, 160, yPos);
+    doc.text(`${currency}${ticket.ticketPrice * ticket.quantity}`, 180, yPos);
+    yPos += 7;
+  });
+
+  // Tax and Total
+  doc.text(`${event.taxPercentage}% tax included`, 15, yPos + 10);
+  doc.text("Tax", 145, yPos + 15);
+  doc.text(`${currency}${purchase.tax}`, 175, yPos + 15);
+  doc.text("Total", 145, yPos + 20);
+  doc.text(`${currency}${purchase.totalAmount}`, 175, yPos + 20);
+  doc.text("Amount Paid", 145, yPos + 25);
+  doc.text(
+    `${currency}${
       purchase.paymentStatus == "succeeded" ? purchase.totalAmount : 0.0
-    }</span></td>
-        </tr>
-        <tr>
-            <th><span>Balance Due</span></th>
-            <td><span data-prefix>${currency}</span><span>${
+    }`,
+    175,
+    yPos + 25
+  );
+  doc.text("Balance Due", 145, yPos + 30);
+  doc.text(
+    `${currency}${
       purchase.paymentStatus != "succeeded" ? purchase.totalAmount : 0.0
-    }</span></td>
-        </tr>
-    </table>
-</article>
-<aside>
-    <h1><span>Notes</span></h1>
-    <div>
-        <div class="float-left">
-            <p>Payment required before entry allowed.</p>
-            <p>Payment terms: Full payment is due within 28 days of invoice date.</p>
-        </div>
+    }`,
+    175,
+    yPos + 30
+  );
 
-        <div class="float-right">
-            <p>Paying in US$:</p>
-            <p>Bank: Natwest Bank PLC</p>
-            <p>Account Name: Torch Marketing Co. Ltd.</p>
-            <p>IBAN: GB03NWBK60730120628943</p>
-            <p>SWIFT/BIC: NWBKGB2L</p>
-        </div>
+  // Notes
+  doc.setFont("helvetica", "bold");
+  doc.text("Notes", 15, yPos + 40);
+  doc.setFont("helvetica", "normal");
+  doc.text("Payment required before entry allowed.", 15, yPos + 45);
+  doc.text(
+    "Payment terms: \nFull payment is due within 28 days of invoice date.",
+    15,
+    yPos + 50
+  );
 
+  doc.text("Paying in US$:", 130, yPos + 45);
+  doc.text("Bank: Natwest Bank PLC", 130, yPos + 50);
+  doc.text("Account Name: Torch Marketing Co. Ltd.", 130, yPos + 55);
+  doc.text("IBAN: GB03NWBK60730120628943", 130, yPos + 60);
+  doc.text("SWIFT/BIC: NWBKGB2L", 130, yPos + 65);
 
-        <p class="footer pt-15">Torch Marketing Co. Ltd. Registered in England: 7849677 | Registered in US: EIN:
-            98-1405444</p>
-    </div>
-</aside>
-</body>
-</html>`;
+  // Footer
+  doc.text(
+    "Torch Marketing Co. Ltd. Registered in England: 7849677 | Registered in US: EIN: 98-1405444",
+    15,
+    yPos + 80
+  );
 
-  return { invoiceContent, user, event };
+  return { invoiceContent: doc, user, event };
+};
+
+exports.generatePassResetContent = (token, CLIENT_BASE_URL) => {
+  return `
+    <p>Hello</p>
+    <p>Click the button to reset password, will be valid for 1 hour.</p>
+    <a href="${CLIENT_BASE_URL}/reset-password/?token=${token}"><button style="background-color: #e40046; color: white; border: none; padding: 10px;">Reset Password</button></a>
+    <p>Best wishes,<br>QuickStarter</p>`;
 };

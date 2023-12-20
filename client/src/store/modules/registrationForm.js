@@ -55,7 +55,9 @@ export const actions = {
   setFormTypes({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .get("/api/registrationForm/getAllFormTypes")
+        .get("/api/registrationForm/getFormTypesByEventId", {
+          params: { eventId: request },
+        })
         .then((response) => {
           commit("setFormTypes", response.data?.payload);
           resolve(response);

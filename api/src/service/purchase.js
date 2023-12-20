@@ -22,7 +22,6 @@ exports.savePurchase = async (purchase) => {
 };
 
 exports.updatePurchase = async (purchase, columns) => {
-  console.log(33, purchase, columns);
   return await sql`
         update purchase
         set ${sql(purchase, columns)}

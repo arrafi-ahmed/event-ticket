@@ -9,12 +9,10 @@ let sql = postgres({
   database: DB_DATABASE,
   password: DB_PASSWORD,
   transform: postgres.camel,
+  ssl: false,
   // waitForConnections: true,
   // connectionLimit: 10,
   // queueLimit: 0,
-  ssl: {
-    rejectUnauthorized: false, // For "ssl-mode=REQUIRED," set the "rejectUnauthorized" option to true
-  },
 });
 
 module.exports = { sql };

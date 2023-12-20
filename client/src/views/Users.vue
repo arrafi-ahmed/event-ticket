@@ -13,10 +13,10 @@ const users = computed(() => store.state.users.users);
 const surveyInit = reactive({});
 let survey = reactive({});
 let attendee = reactive({});
-const dialog = ref(false);
 const accordion = ref(["details"]);
 
-const openDialog = (userId) => {
+const userDetailsDialog = ref(false);
+const openUserDetailsDialog = (userId) => {
   const user = users.value.find((item) => item.uId == userId);
   Object.assign(attendee, { ...attendee, ...user });
   if (userId == user.formFiller) {
@@ -34,9 +34,7 @@ const openDialog = (userId) => {
     }
     Object.assign(survey, surveyInit);
   }
-  console.log(2, attendee);
-
-  dialog.value = !dialog.value;
+  userDetailsDialog.value = !userDetailsDialog.value;
 };
 
 const updateUser = (userId) => {
@@ -57,16 +55,17 @@ const updateUser = (userId) => {
       });
     })
     .finally(() => {
-      dialog.value = !dialog.value;
+      userDetailsDialog.value = !userDetailsDialog.value;
     });
 };
 
 const deleteUser = (userId, registrationId) => {
   store.dispatch("users/deleteUser", { userId, registrationId }).finally(() => {
-    dialog.value = !dialog.value;
+    userDetailsDialog.value = !userDetailsDialog.value;
   });
 };
 
+store.commit("users/resetUsers");
 onMounted(() => {
   store.dispatch("users/setUsers", route.params.formId);
 });
@@ -94,6 +93,7 @@ onMounted(() => {
               <th class="text-start">Invoice</th>
               <th class="text-start">Name</th>
               <th class="text-start">Email</th>
+              <th class="text-start">Organization</th>
               <th class="text-start">Ticket</th>
               <th class="text-start">Payment Method</th>
               <th class="text-start">Status</th>
@@ -106,21 +106,22 @@ onMounted(() => {
               v-for="(item, index) in users"
               :key="'u-' + index"
               class="clickable"
-              @click="openDialog(item.uId)"
+              @click="openUserDetailsDialog(item.uId)"
             >
               <td>{{ item.pId }}</td>
               <td>{{ item.firstname }} {{ item.surname }}</td>
               <td>{{ item.email }}</td>
+              <td>{{ item.organization }}</td>
               <td>{{ item.ticketName }}</td>
               <td class="text-capitalize">{{ item.paymentMethod }}</td>
               <td class="text-capitalize">
                 <v-chip
-                  variant="flat"
                   :color="
                     item.paymentStatus.toLowerCase() === 'succeeded'
                       ? 'success'
                       : 'yellow'
                   "
+                  variant="flat"
                   >{{ item.paymentStatus }}
                 </v-chip>
               </td>
@@ -128,7 +129,28 @@ onMounted(() => {
                 {{ getCurrencySymbol(item.ticketCurrency, "symbol") }}
                 {{ item.totalAmount }}
               </td>
-              <td>{{ formatDateTime(item.createdAt) }}</td>
+              <td>
+                <span>{{ formatDateTime(item.createdAt) }}</span>
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      class="ms-2"
+                      icon="mdi-dots-vertical"
+                      v-bind="props"
+                      variant="text"
+                    >
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item
+                      density="compact"
+                      link
+                      title="Modify"
+                      @click="openUserDetailsDialog(item.uId)"
+                    ></v-list-item>
+                  </v-list>
+                </v-menu>
+              </td>
             </tr>
           </tbody>
         </v-table>
@@ -139,14 +161,14 @@ onMounted(() => {
     </v-alert>
   </v-container>
 
-  <v-dialog v-model="dialog" width="600">
-    <v-card>
+  <v-dialog v-model="userDetailsDialog" width="600">
+    <v-card density="compact">
       <v-card-text>
         <v-expansion-panels v-model="accordion" multiple>
           <v-expansion-panel value="details">
             <v-expansion-panel-title>Attendee Details</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-table density="comfortable">
+              <v-table density="compact">
                 <tbody>
                   <tr>
                     <td class="rowTitle">Invoice ID</td>
@@ -216,9 +238,9 @@ onMounted(() => {
                     <td class="rowTitle">Payment Status</td>
                     <td class="text-capitalize">
                       <v-select
-                        class="text-capitalize"
                         v-model="attendee.paymentStatus"
                         :items="['Pending', 'Succeeded']"
+                        class="text-capitalize"
                         density="compact"
                         hide-details="auto"
                       ></v-select>
@@ -234,8 +256,8 @@ onMounted(() => {
               <div v-if="survey && survey.questions?.length > 0">
                 <!--                {{ survey }}-->
                 <form-answer
-                  :items="survey.questions"
                   :answers="survey.answers"
+                  :items="survey.questions"
                 />
               </div>
               <v-alert v-else border="start" closable density="compact"
@@ -257,6 +279,11 @@ onMounted(() => {
           >Update
         </v-btn>
       </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="credentialsDialog" width="400">
+    <v-card>
+      <v-card-text></v-card-text>
     </v-card>
   </v-dialog>
 </template>

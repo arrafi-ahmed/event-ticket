@@ -17,6 +17,7 @@
     "core-js": "^3.29.0",
     "roboto-fontface": "*",
     "vue": "^3.2.0",
+    "vue-i18n": "^9.8.0",
     "vue-router": "^4.0.0",
     "vuetify": "^3.4.0",
     "vuetify-sonner": "^0.3.2",

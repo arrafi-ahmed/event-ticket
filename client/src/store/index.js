@@ -5,12 +5,14 @@ import * as registrationForm from "./modules/registrationForm";
 import * as badgeDesign from "./modules/badgeDesign";
 import * as ticket from "./modules/ticket";
 import * as purchase from "./modules/purchase";
+import * as appUser from "./modules/appUser";
 import * as users from "./modules/users";
 import * as invoice from "./modules/invoice";
 
 const store = createStore({
   modules: {
     user,
+    appUser,
     event,
     registrationForm,
     badgeDesign,

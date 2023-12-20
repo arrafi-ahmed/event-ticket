@@ -26,7 +26,6 @@ onBeforeMount(() => {
 });
 
 const createOrder = (data, actions) => {
-  console.log("Creating order...");
   return actions.order.create({
     purchase_units: [
       {
@@ -40,7 +39,6 @@ const createOrder = (data, actions) => {
 };
 
 const onApprove = (data, actions) => {
-  console.log("Order approved...");
   return actions.order.capture().then(() => {
     paid.value = true;
     let msg = "Payment succeeded!";

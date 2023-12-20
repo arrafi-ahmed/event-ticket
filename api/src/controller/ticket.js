@@ -16,7 +16,7 @@ router.post("/save", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
-router.get("/getTickets", auth, (req, res, next) => {
+router.get("/getTickets", (req, res, next) => {
   ticketService
     .getTickets(req.query.payload)
     .then((results) => {

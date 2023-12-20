@@ -3,7 +3,7 @@ import Logo from "@/components/Logo.vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { computed, onMounted, ref } from "vue";
-import { formatDate, getEventLogoUrl, getToLink } from "@/others/util";
+import { getToLink } from "@/others/util";
 import { useDisplay } from "vuetify";
 import UserAvatar from "@/components/UserAvatar.vue";
 
@@ -46,17 +46,17 @@ onMounted(() => {
     dense
     flat
   >
-      <v-btn
-        v-if="isSignedin"
-        :size="mobile ? 'default' : 'large'"
-        icon
-        v-bind="props"
-      >
-        <user-avatar
-          :imgSrc="currentUser.image"
-          @click-avatar="drawer = !drawer"
-        ></user-avatar>
-      </v-btn>
+    <v-btn
+      v-if="isSignedin"
+      :size="mobile ? 'default' : 'large'"
+      icon
+      v-bind="props"
+    >
+      <user-avatar
+        :imgSrc="currentUser.image"
+        @click-avatar="drawer = !drawer"
+      ></user-avatar>
+    </v-btn>
     <v-row justify="center">
       <logo custom-class="clickable" @click="router.push({ name: 'signin' })" />
     </v-row>

@@ -1,5 +1,6 @@
 <script setup>
 import { defineEmits, defineProps, ref, watch } from "vue";
+import Phone from "@/components/Phone.vue";
 
 const { items, overAllIndex, quantityIndex, type } = defineProps([
   "items",
@@ -10,6 +11,10 @@ const { items, overAllIndex, quantityIndex, type } = defineProps([
 const inputResponses = ref([]);
 
 const emit = defineEmits(["update"]);
+
+const handleUpdatePhone = ({ formattedPhone, index }) => {
+  inputResponses.value[index] = formattedPhone;
+};
 
 watch(
   items,
@@ -22,7 +27,6 @@ watch(
   },
   { immediate: true }
 );
-
 watch(inputResponses.value, (newVal) => {
   emit("update", { newVal, overAllIndex, quantityIndex });
 });
@@ -111,6 +115,13 @@ watch(inputResponses.value, (newVal) => {
           <span v-if="item.required" style="color: red">*</span>
         </template>
       </v-select>
+
+      <phone
+        v-else-if="item.typeId == 5 && item.options?.length > 0"
+        :index="index"
+        :item="item"
+        @update-phone="handleUpdatePhone"
+      ></phone>
       <div v-if="item.instruction" class="text-caption font-italic pl-2">
         {{ item.instruction }}
       </div>

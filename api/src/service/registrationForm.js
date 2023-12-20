@@ -57,7 +57,12 @@ exports.saveForm = async ({ payload }) => {
   }
 
   const [insertedForm] = await sql`
-        insert into registration_form ${sql(payload, "formTypeId", "eventId")}
+        insert into registration_form ${sql(
+          payload,
+          "formTypeId",
+          "eventId",
+          "terms"
+        )}
             returning *`;
 
   if (payload.formItems.length > 0) {
@@ -112,6 +117,13 @@ exports.submitUserForm = async ({
     currency,
   },
 }) => {
+  //check if badgeDesign exist, otherwise throw error
+  const foundBadgeDesign = await badgeDesignService.getBadgeDesignByFormId(
+    formId
+  );
+  if (!foundBadgeDesign?.id)
+    throw new CustomError("Badge design for the form doesn't exist!", 404);
+
   const [formType] = await exports.getFormTypeByFormId(formId);
   //insert users
   const users = allStandardAnswers.map((parentItem, parentIndex) => {
@@ -146,8 +158,6 @@ exports.submitUserForm = async ({
   let insertedAnswers = [];
   if (additionalAnswers.length > 0) {
     const answers = additionalAnswers.reduce((acc, item, index) => {
-      console.log(1, item);
-      console.log(2, questionIds, index);
       if (item) {
         acc.push({
           answerText: item,
@@ -158,12 +168,9 @@ exports.submitUserForm = async ({
       return acc;
     }, []);
 
-    console.log(82, answers);
-
     insertedAnswers = await sql`insert into answer ${sql(answers)} returning *`;
-    console.log(83, insertedAnswers);
   }
-  console.log(84, additionalAnswers);
+
   //insert registration
   const registration = {
     createdAt: new Date(),
@@ -198,9 +205,6 @@ exports.submitUserForm = async ({
   const insertedPurchase = await purchaseService.savePurchase(purchase);
 
   //create badge
-  const foundBadgeDesign = await badgeDesignService.getBadgeDesignByFormId(
-    formId
-  );
   const badges = insertedUsers.map((user, index) => {
     //check user id serial is maintained after insert
     return {
@@ -213,20 +217,22 @@ exports.submitUserForm = async ({
   const insertedBadges = await badgeService.createBadge(badges);
 
   //insert into surveyFiller
-  const surveyFiller = {
-    ...formFiller,
-    registrationId: insertedRegistration.id,
-    purchaseId: insertedPurchase.id,
-    answerId: insertedAnswers.map((item) => item.id),
-  };
-  delete surveyFiller.ticketId;
+  if (additionalAnswers.length > 0) {
+    const surveyFiller = {
+      ...formFiller,
+      registrationId: insertedRegistration.id,
+      purchaseId: insertedPurchase.id,
+      answerId: insertedAnswers.map((item) => item.id),
+    };
+    delete surveyFiller.ticketId;
 
-  const [insertedSurveyFiller] = await sql`insert into survey_filler ${sql(
-    surveyFiller
-  )} returning id`;
+    const [insertedSurveyFiller] = await sql`insert into survey_filler ${sql(
+      surveyFiller
+    )} returning id`;
+  }
 
   const { invoiceContent, user, event } =
-    await emailContentService.generateInvoice(
+    await emailContentService.generateInvoiceContent(
       tickets,
       insertedUsers,
       insertedPurchase,
@@ -237,12 +243,13 @@ exports.submitUserForm = async ({
 
   // Generate tickets and send emails in parallel
   const sendTicketPromises = insertedBadges.map(async (badge) => {
-    const { ticketContent, user } = await emailContentService.generateTickets(
-      badge,
-      event,
-      tickets,
-      insertedUsers
-    );
+    const { ticketContent, user } =
+      await emailContentService.generateTicketContent(
+        badge,
+        event,
+        tickets,
+        insertedUsers
+      );
     return sendMailService.sendMailWAttachment(
       user.email,
       "Ticket",
@@ -266,20 +273,21 @@ exports.submitUserForm = async ({
 };
 
 exports.saveFormType = async ({ newFormType }) => {
-  return await sql`
-        insert into registration_form_type (name)
-        values (${newFormType})
-        returning *`;
+  return sql`
+        insert into registration_form_type ${sql(newFormType)}
+            returning *`;
 };
 
-exports.getAllFormTypes = async () => {
-  return await sql`
+exports.getFormTypesByEventId = async (eventId) => {
+  return sql`
         select *
-        from registration_form_type`;
+        from registration_form_type
+        where event_id = ${eventId}`;
 };
 
 exports.getFields = async () => {
-  return await sql`
+  return sql`
         select *
-        from field`;
+        from field
+        order by id`;
 };

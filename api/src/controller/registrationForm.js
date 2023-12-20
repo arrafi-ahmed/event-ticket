@@ -29,9 +29,9 @@ router.post("/saveFormType", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
-router.get("/getAllFormTypes", auth, (req, res, next) => {
+router.get("/getFormTypesByEventId", auth, (req, res, next) => {
   registrationFormService
-    .getAllFormTypes()
+    .getFormTypesByEventId(req.query.eventId)
     .then((results) => res.status(200).json(new ApiResponse(null, results)))
     .catch((err) => next(err));
 });
@@ -93,8 +93,6 @@ router.post("/areRegisteredUsersExist", (req, res, next) => {
   const {
     payload: { allStandardAnswers, formId },
   } = req.body;
-
-  console.log(49, allStandardAnswers);
 
   const users = allStandardAnswers.map((parentItem) => {
     const [, , , , , , email] = parentItem; // Use array destructuring to get the element at index 6

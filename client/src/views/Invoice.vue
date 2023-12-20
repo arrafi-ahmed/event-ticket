@@ -7,12 +7,26 @@ const store = useStore();
 const invoice = computed(() => store.state.invoice.invoice);
 const currency = ref("$");
 
+const printInvoice = () => {
+  window.print();
+};
+
 onMounted(() => {
   currency.value = getCurrencySymbol(invoice.value.currency, "symbol");
 });
 </script>
 
 <template>
+  <v-container class="d-print-none">
+    <v-row justify="end">
+      <v-btn color="primary" variant="tonal" @click="$router.back()"
+        >Go Back
+      </v-btn>
+      <v-btn class="ml-1" color="primary" variant="tonal" @click="printInvoice"
+        >Print
+      </v-btn>
+    </v-row>
+  </v-container>
   <div v-if="invoice" class="invoice-wrapper">
     <header>
       <h1>Invoice</h1>
@@ -151,7 +165,7 @@ onMounted(() => {
       </div>
     </aside>
   </div>
-  <v-alert class="ma-5" v-else border="start" closable density="compact"
+  <v-alert v-else border="start" class="ma-5" closable density="compact"
     >Invoice sent to your email!
   </v-alert>
 </template>
@@ -165,7 +179,6 @@ onMounted(() => {
   width: 8.5in !important;
   background: #fff;
   border-radius: 1px;
-  box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);
   padding: 15px;
 }
 

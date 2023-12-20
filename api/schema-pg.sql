@@ -1,11 +1,72 @@
--- App User Information
-CREATE TABLE app_user
+-- Event Information
+CREATE TABLE event
 (
-    id        serial PRIMARY KEY,
-    email     varchar(255) NOT NULL UNIQUE,
-    password  varchar(255) NOT NULL,
-    role      smallint     NOT NULL,
-    full_name varchar(255) NOT NULL
+    id             serial PRIMARY KEY,
+    name           varchar(255)  NOT NULL,
+    location       varchar(255)  NOT NULL,
+    start_date     date,
+    end_date       date,
+    tax_percentage numeric(4, 2) NOT NULL,
+    logo_left      varchar(255),
+    logo_right     varchar(255)
+);
+ALTER TABLE event
+    ADD COLUMN start_date date;
+ALTER TABLE event
+    ADD COLUMN end_date date;
+
+-- Registration Form Type
+CREATE TABLE registration_form_type
+(
+    id       serial PRIMARY KEY,
+    name     varchar(50) NOT NULL,
+    event_id integer REFERENCES event --added
+);
+--temp
+ALTER TABLE registration_form_type
+    ADD COLUMN event_id integer REFERENCES event;
+
+-- Registration Form Information
+CREATE TABLE registration_form
+(
+    id           serial PRIMARY KEY,
+    form_type_id integer REFERENCES registration_form_type NOT NULL, --changed from smallint to int
+    event_id     integer REFERENCES event,
+    terms        text                                                --added
+);
+--temp
+ALTER TABLE registration_form
+    ADD COLUMN terms text;
+ALTER TABLE registration_form
+    ALTER COLUMN form_type_id TYPE integer;
+
+-- Badge Design Information
+CREATE TABLE badge_design
+(
+    id                   serial PRIMARY KEY,
+    title                varchar(255) NOT NULL,
+    color_scheme         varchar(50)  NOT NULL,
+    text_top_left        varchar(255),
+    text_top_right       varchar(255),
+    text_bottom_left     varchar(255),
+    text_bottom_right    varchar(255),
+    registration_form_id integer REFERENCES registration_form,
+    event_id             integer REFERENCES event
+);
+
+-- Ticket Information
+CREATE TABLE ticket
+(
+    id                   serial PRIMARY KEY,
+    name                 varchar(255) NOT NULL,
+    stock_init           integer      NOT NULL,
+    stock_curr           integer,
+    price                numeric      NOT NULL,
+    currency             CHAR(3)      NOT NULL,
+    ticket_type          varchar(50)  NOT NULL, --standard, free, extras
+    registration_form_id integer REFERENCES registration_form,
+    badge_design_id      integer REFERENCES badge_design,
+    event_id             integer REFERENCES event
 );
 
 -- Users Information -- user is safe to delete while deleting from registration
@@ -25,47 +86,28 @@ CREATE TABLE users
     ticket_id            integer REFERENCES ticket
 );
 
--- Event Information
-CREATE TABLE event
-(
-    id             serial PRIMARY KEY,
-    name           varchar(255)  NOT NULL,
-    date           date          NOT NULL,
-    location       varchar(255)  NOT NULL,
-    tax_percentage numeric(4, 2) NOT NULL,
-    logo_left      varchar(255),
-    logo_right     varchar(255),
-    terms          text          NOT NULL
-);
-
--- Badge Design Information
-CREATE TABLE badge_design
+-- Registration Information
+CREATE TABLE registration
 (
     id                   serial PRIMARY KEY,
-    title                varchar(255) NOT NULL,
-    color_scheme         varchar(50)  NOT NULL,
-    text_top_left        varchar(255),
-    text_top_right       varchar(255),
-    text_bottom_left     varchar(255),
-    text_bottom_right    varchar(255),
-    registration_form_id integer REFERENCES registration_form,
-    event_id             integer REFERENCES event
+    created_at           date                                 NOT NULL,
+    status               varchar(50),
+    registered_user_id   integer[]                            NOT NULL,
+    form_filler          integer REFERENCES users (id)        NOT NULL,
+    registration_form_id integer REFERENCES registration_form NOT NULL
 );
 
--- Registration Form Type
-CREATE TABLE registration_form_type
+-- App User Information
+CREATE TABLE app_user
 (
-    id   serial PRIMARY KEY,
-    name varchar(50) NOT NULL
+    id       serial PRIMARY KEY,
+    username varchar(255) NOT NULL,    --modified -- changed name and removed unique constraint
+    password varchar(255) NOT NULL,
+    role     smallint     NOT NULL,    -- 10 -> admin, 20 -> checkin staff, 30 -> exhibitor
+    event_id integer REFERENCES event, -- added
+    user_id  integer REFERENCES users  -- added
 );
-
--- Registration Form Information
-CREATE TABLE registration_form
-(
-    id           serial PRIMARY KEY,
-    form_type_id smallint REFERENCES registration_form_type NOT NULL,
-    event_id     integer REFERENCES event
-);
+GRANT SELECT, INSERT, UPDATE, DELETE ON app_user TO torchevents_user;
 
 -- Question Information
 CREATE TABLE question
@@ -86,32 +128,6 @@ CREATE TABLE answer
     answer_text text                          NOT NULL,
     question_id integer REFERENCES question,
     form_filler integer REFERENCES users (id) NOT NULL
-);
-
--- Registration Information
-CREATE TABLE registration
-(
-    id                   serial PRIMARY KEY,
-    created_at           date                                 NOT NULL,
-    status               varchar(50),
-    registered_user_id   integer[]                            NOT NULL,
-    form_filler          integer REFERENCES users (id)        NOT NULL,
-    registration_form_id integer REFERENCES registration_form NOT NULL
-);
-
--- Ticket Information
-CREATE TABLE ticket
-(
-    id                   serial PRIMARY KEY,
-    name                 varchar(255) NOT NULL,
-    stock_init           integer      NOT NULL,
-    stock_curr           integer,
-    price                numeric      NOT NULL,
-    currency             CHAR(3)      NOT NULL,
-    ticket_type          varchar(50)  NOT NULL,                --standard, free, extras
-    registration_form_id integer REFERENCES registration_form, --NULL for 'extras'
-    badge_design_id      integer REFERENCES badge_design,
-    event_id             integer REFERENCES event
 );
 
 -- Early Bird Ticket Information
@@ -193,6 +209,13 @@ CREATE TABLE field
     required   boolean
 );
 
+-- 0 -> v-text-field
+-- 1 -> v-textarea
+-- 2 -> v-radio-group
+-- 3 -> v-checkbox
+-- 4 -> v-select (standard)
+-- 5 -> v-select (custom)
+
 -- Sample Data for Fields
 INSERT INTO field (id, field_name, type, required)
 VALUES (1, 'Firstname', 0, true),
@@ -200,7 +223,7 @@ VALUES (1, 'Firstname', 0, true),
        (3, 'Job Title', 0, true),
        (4, 'Organization', 0, true),
        (5, 'Country', 4, true),
-       (6, 'Phone', 0, true),
+       (6, 'Phone', 5, true), --changed from 4 to 5
        (7, 'Email', 0, true);
 
 -- Field Registration Form

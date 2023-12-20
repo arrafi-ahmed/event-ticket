@@ -45,7 +45,8 @@ const compressAndRotateImage = async (file) => {
   file.destination = undefined;
   file.filename = parsedPath.base;
   file.path = newDestFilePath;
-  file.size = fs.statSync(newDestFilePath).size;
+  const stats = await fs.promises.stat(newDestFilePath);
+  file.size = stats.size;
 
   return file;
 };
@@ -57,14 +58,13 @@ const compressImages = async (req, res, next) => {
   }
 
   try {
-    if (req.files.length > 0) {
-      req.files = await Promise.all(
-        req.files.map(async (file) => {
-          file = await compressAndRotateImage(file);
-          return file;
-        })
-      );
-    }
+    req.files = await Promise.all(
+      req.files.map(async (file) => {
+        file = await compressAndRotateImage(file);
+        return file;
+      })
+    );
+
     next();
   } catch (err) {
     next(err);

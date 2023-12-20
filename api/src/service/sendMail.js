@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer");
 const nodeMailer = require("nodemailer");
 const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
@@ -21,12 +20,8 @@ const sendMail = async (to, subject, html) => {
   });
 };
 
-const sendMailWAttachment = async (to, subject, text, html) => {
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
-  await page.setContent(html);
-  const pdfBuffer = await page.pdf({ format: "A4" });
-  await browser.close();
+const sendMailWAttachment = async (to, subject, text, pdf) => {
+  const pdfBuffer = Buffer.from(pdf.output(), "binary");
 
   return transporter.sendMail({
     from: `Torch Events <${SMTP_USER}>`,

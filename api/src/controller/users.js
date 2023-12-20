@@ -16,7 +16,6 @@ router.get("/getUsers", auth, (req, res, next) => {
 });
 
 router.post("/updateUser", auth, (req, res, next) => {
-  console.log(43, req.body);
   const user = req.body.payload;
   const userColumns = [
     "firstname",
@@ -54,6 +53,17 @@ router.get("/deleteUser", auth, (req, res, next) => {
         res
           .status(200)
           .json(new ApiResponse("Attendee deleted!", req.query.userId));
+      }
+    })
+    .catch((err) => next(err));
+});
+
+router.get("/getExhibitorsByFormId", auth, (req, res, next) => {
+  usersService
+    .getExhibitorsByFormId(req.query.formId)
+    .then((results) => {
+      if (results) {
+        res.status(200).json(new ApiResponse("", results));
       }
     })
     .catch((err) => next(err));

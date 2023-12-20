@@ -15,7 +15,7 @@ export const formatDate = (inputDate) => {
 };
 
 export const formatDateTime = (inputDateTime) => {
-  const formattedDate = formatDate(inputDateTime)
+  const formattedDate = formatDate(inputDateTime);
   const date = new Date(inputDateTime);
   const hours = `0${date.getHours()}`.slice(-2);
   const minutes = `0${date.getMinutes()}`.slice(-2);
@@ -119,7 +119,7 @@ export const input_fields = [
 ];
 
 export const getCountryList = (filterName) => {
-  if (filterName === "both") return countries;
+  if (filterName === "all") return countries;
   return countries.map((item) => item[filterName]);
 };
 

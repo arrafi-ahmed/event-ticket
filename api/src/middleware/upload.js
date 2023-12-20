@@ -2,11 +2,12 @@ const Busboy = require("busboy");
 const path = require("path");
 const fs = require("fs");
 const CustomError = require("../model/CustomError");
+const { getDirPath } = require("../others/util");
 
 const maxSize = 25 * 1024 * 1024; // 25 MB
-const tempDir = path.join(__dirname, "..", "..", "public", "tmp");
+const tempDir = getDirPath("tmp");
 
-function createUpload(prefix) {
+const createUpload = (prefix) => {
   return (req, res, next) => {
     // If the request is not multipart/form-data, skip file processing
     if (!req.is("multipart/form-data")) {
@@ -41,31 +42,58 @@ function createUpload(prefix) {
         path.extname(info.filename);
       const saveTo = path.join(tempDir, newName);
 
-      file.pipe(fs.createWriteStream(saveTo));
+      const writeStream = fs.createWriteStream(saveTo);
+      try {
+        file.pipe(writeStream);
+      } catch (err) {
+        next(err);
+      }
 
-      file.on("end", () => {
-        files.push({
-          destination: tempDir,
-          filename: newName,
-          path: saveTo,
-          size: fs.statSync(saveTo).size,
+      const filePromise = new Promise((resolve, reject) => {
+        writeStream.on("finish", async () => {
+          try {
+            const stats = await fs.promises.stat(saveTo);
+            const fileData = {
+              destination: tempDir,
+              filename: newName,
+              path: saveTo,
+              size: stats.size,
+            };
+            resolve(fileData);
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        writeStream.on("error", (err) => {
+          reject(err);
         });
       });
+
+      files.push(filePromise);
     });
 
     busboy.on("field", function (fieldname, val) {
       req.body[fieldname] = val;
     });
 
-    busboy.on("finish", () => {
-      if (files.length > 0) {
-        req.files = files;
+    busboy.on("finish", async () => {
+      try {
+        if (files.length > 0) {
+          req.files = await Promise.all(files);
+        }
+        next();
+      } catch (err) {
+        next(err);
       }
-      next();
+    });
+
+    busboy.on("error", (err) => {
+      return next(err);
     });
     return req.pipe(busboy);
   };
-}
+};
 
 const uploadUser = createUpload("user");
 const uploadEventLogo = createUpload("eventLogo");

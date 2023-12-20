@@ -15,20 +15,22 @@ exports.save = async ({ body, files }) => {
     });
   }
   const [logoLeft, logoRight] = body.logos;
-  body.logoLeft = logoLeft;
-  body.logoRight = logoRight;
 
-  return await sql`
-        insert into event
-            (name, date, location, logo_left, logo_right, tax_percentage, terms)
-        values (${body.name}, ${body.date}, ${body.location}, ${logoLeft}, ${logoRight}, ${body.taxPercentage},
-                ${body.terms})
-        returning *`;
+  const event = {
+    name: body.name,
+    startDate: body.startDate,
+    endDate: body.endDate,
+    location: body.location,
+    taxPercentage: body.taxPercentage,
+    logoLeft,
+    logoRight,
+  };
+  return sql`insert into event ${sql(event)} returning *`;
 };
 
 exports.getAllEvents = async () => {
-  return await sql`select *
-                     from event`;
+  return sql`select *
+               from event`;
 };
 
 exports.getEventById = async (id) => {

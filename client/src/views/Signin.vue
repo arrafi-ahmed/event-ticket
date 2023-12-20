@@ -10,7 +10,7 @@ const { mobile } = useDisplay();
 const store = useStore();
 const router = useRouter();
 
-const email = ref("admin@torch.com");
+const username = ref("admin@torch.com");
 const password = ref("asdfasdf1");
 const isAdmin = computed(() => store.getters["user/isAdmin"]);
 
@@ -23,7 +23,7 @@ const signinUser = async () => {
 
   store
     .dispatch("user/signin", {
-      email: email.value,
+      username: username.value,
       password: password.value,
     })
     .then((result) => {
@@ -72,7 +72,7 @@ const handleSubmitResetPassword = async () => {
             >
               <!-- Email Address -->
               <v-text-field
-                v-model="email"
+                v-model="username"
                 :rules="[
                   (v) => !!v || 'Email is required!',
                   (v) => isValidEmail(v) || 'Invalid Email',
