@@ -59,6 +59,19 @@ export const actions = {
         });
     });
   },
+  setEventByAppUserId({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/event/getEventByAppUserId", { params: { userId: request } })
+        .then((response) => {
+          commit("setEvent", response.data?.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
 };
 
 export const getters = {};

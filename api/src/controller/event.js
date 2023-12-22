@@ -37,4 +37,11 @@ router.get("/getEvent", (req, res, next) => {
     .then((results) => res.status(200).json(new ApiResponse(null, results[0])))
     .catch((err) => next(err));
 });
+
+router.get("/getEventByAppUserId", (req, res, next) => {
+  eventService
+    .getEventByAppUserId(req.query.userId)
+    .then((result) => res.status(200).json(new ApiResponse(null, result)))
+    .catch((err) => next(err));
+});
 module.exports = router;

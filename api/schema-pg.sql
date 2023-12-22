@@ -10,10 +10,10 @@ CREATE TABLE event
     logo_left      varchar(255),
     logo_right     varchar(255)
 );
-ALTER TABLE event
-    ADD COLUMN start_date date;
-ALTER TABLE event
-    ADD COLUMN end_date date;
+-- ALTER TABLE event
+--     ADD COLUMN start_date date;
+-- ALTER TABLE event
+--     ADD COLUMN end_date date;
 
 -- Registration Form Type
 CREATE TABLE registration_form_type
@@ -22,9 +22,8 @@ CREATE TABLE registration_form_type
     name     varchar(50) NOT NULL,
     event_id integer REFERENCES event --added
 );
---temp
-ALTER TABLE registration_form_type
-    ADD COLUMN event_id integer REFERENCES event;
+-- ALTER TABLE registration_form_type
+--     ADD COLUMN event_id integer REFERENCES event;
 
 -- Registration Form Information
 CREATE TABLE registration_form
@@ -34,11 +33,10 @@ CREATE TABLE registration_form
     event_id     integer REFERENCES event,
     terms        text                                                --added
 );
---temp
-ALTER TABLE registration_form
-    ADD COLUMN terms text;
-ALTER TABLE registration_form
-    ALTER COLUMN form_type_id TYPE integer;
+-- ALTER TABLE registration_form
+--     ADD COLUMN terms text;
+-- ALTER TABLE registration_form
+--     ALTER COLUMN form_type_id TYPE integer;
 
 -- Badge Design Information
 CREATE TABLE badge_design
@@ -83,8 +81,12 @@ CREATE TABLE users
     role                 varchar(50),
     created_at           timestamp with time zone NOT NULL,
     registration_form_id integer REFERENCES registration_form,
-    ticket_id            integer REFERENCES ticket
+    ticket_id            integer REFERENCES ticket,
+    event_id             integer REFERENCES event --added
+    --purchase_id          integer REFERENCES purchase --added
 );
+-- ALTER TABLE users
+--     ADD COLUMN event_id integer REFERENCES event;
 
 -- Registration Information
 CREATE TABLE registration
@@ -107,7 +109,7 @@ CREATE TABLE app_user
     event_id integer REFERENCES event, -- added
     user_id  integer REFERENCES users  -- added
 );
-GRANT SELECT, INSERT, UPDATE, DELETE ON app_user TO torchevents_user;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON app_user TO torchevents_user;
 
 -- Question Information
 CREATE TABLE question
@@ -170,6 +172,9 @@ CREATE TABLE purchase
     promo_code_id       integer                  REFERENCES promo_code ON DELETE SET NULL
 );
 
+ALTER TABLE users
+    ADD COLUMN purchase_id integer REFERENCES purchase;
+
 -- Badge Information
 CREATE TABLE badge
 (
@@ -179,7 +184,8 @@ CREATE TABLE badge
     badge_design_id integer REFERENCES badge_design,
     user_id         integer REFERENCES users,
     ticket_id       integer REFERENCES ticket NOT NULL,
-    purchase_id     integer REFERENCES purchase
+    purchase_id     integer REFERENCES purchase,
+    event_id        integer REFERENCES event
 );
 
 -- Badge Scan Information
@@ -247,9 +253,12 @@ CREATE TABLE survey_filler
     country              varchar(255),
     role                 varchar(50),
     created_at           timestamp with time zone NOT NULL,
-    user_id              integer REFERENCES users,
-    registration_form_id integer REFERENCES registration_form,
-    registration_id      integer REFERENCES registration,
-    purchase_id          integer REFERENCES purchase,
-    answer_id            integer[]
+    user_id              integer                  REFERENCES users ON DELETE set null,
+    registration_form_id integer                  REFERENCES registration_form ON DELETE set null,
+    registration_id      integer                  REFERENCES registration ON DELETE set null,
+    purchase_id          integer                  REFERENCES purchase ON DELETE set null,
+    answer_id            integer[],
+    event_id             integer                  REFERENCES event ON DELETE set null --added
 );
+-- ALTER TABLE survey_filler
+--     ADD COLUMN event_id integer REFERENCES event;

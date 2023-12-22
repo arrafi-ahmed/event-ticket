@@ -38,6 +38,21 @@ export const actions = {
         });
     });
   },
+  setUsersByNameNEventId({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/users/getUsersByNameNEventId", {
+          params: { name: request.name, eventId: request.eventId },
+        })
+        .then((response) => {
+          commit("setUsers", response.data?.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
   getExhibitorsByFormId({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
@@ -57,6 +72,19 @@ export const actions = {
     return new Promise((resolve, reject) => {
       $axios
         .post("/api/users/updateUser", { payload: request })
+        .then((response) => {
+          commit("updateUser", request);
+          resolve(response.data?.payload);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  updatePaymentStatus({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .post("/api/users/updatePaymentStatus", { payload: request })
         .then((response) => {
           commit("updateUser", request);
           resolve(response.data?.payload);

@@ -146,29 +146,6 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Forms Types:</span>
-            <v-divider class="my-2"></v-divider>
-          </v-card-title>
-          <v-card-text>
-            <v-list v-if="formTypes.length > 0" density="compact">
-              <template v-for="(item, index) in formTypes">
-                <v-list-item
-                  v-if="item"
-                  :key="index"
-                  :title="`${item?.name}`"
-                ></v-list-item>
-              </template>
-            </v-list>
-            <v-alert v-else border="start" closable density="compact"
-              >No items found!
-            </v-alert>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6">
-        <v-card density="compact">
-          <v-card-title>
             <span>Forms:</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
@@ -267,13 +244,35 @@ onMounted(() => {
           </v-card-text>
         </v-card>
       </v-col>
+
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
+            <span>Forms Types:</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list v-if="formTypes.length > 0" density="compact">
+              <template v-for="(item, index) in formTypes">
+                <v-list-item
+                  v-if="item"
+                  :key="index"
+                  :title="`${item?.name}`"
+                ></v-list-item>
+              </template>
+            </v-list>
+            <v-alert v-else border="start" closable density="compact"
+              >No items found!
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 
   <v-dialog v-model="badgePreviewDialog" width="700">
     <badge-preview
-      :badge-data="badgeDesign.badgeData"
-      :badge-visibility="badgeDesign.badgeVisibility"
+      :badge="badgeDesign"
       :event="event"
       card-title="Badge Design Preview"
     ></badge-preview>

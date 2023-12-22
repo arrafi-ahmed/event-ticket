@@ -1,146 +1,182 @@
 <script setup>
 import { getApiPublicImgUrl, getClientPublicImgUrl } from "@/others/util";
 import BadgeDetails from "@/components/BadgeDetails.vue";
+import { computed, onMounted } from "vue";
+import QRCodeVue3 from "qrcode-vue3";
 
-const { cardTitle, badgeData, badgeVisibility, event } = defineProps([
+const { cardTitle, badge, event } = defineProps([
   "cardTitle",
-  "badgeData",
-  "badgeVisibility",
+  "badge",
   "event",
 ]);
+
+const sortedFieldIdFront = computed(() => {
+  return [...badge.fieldIdFront].sort();
+});
+
+const sortedFieldIdRear = computed(() => {
+  return [...badge.fieldIdRear].sort();
+});
+
+const qrCode = computed(() =>
+  JSON.stringify({ id: badge.bId, qrUuid: badge.qrUuid })
+);
+
+const qrOptions = {
+  type: "square",
+  color: "#000",
+};
+
+onMounted(() => {
+  console.log(10, badge);
+});
 </script>
 
 <template>
-  <v-card>
-    <v-card-title>
-      <span>{{ cardTitle }}</span>
-    </v-card-title>
-    <v-card-text>
-      <v-row align="stretch">
+  <div class="badge-wrapper mx-auto">
+    <div class="badge">
+      <div v-if="cardTitle" class="pa-2">
+        <b>{{ cardTitle }}</b>
+      </div>
+      <div class="fill-height d-flex">
         <!--        front-->
-        <v-col
-          class="mt-4 text-center border d-flex flex-column pt-0"
-          cols="12"
-          md="6"
-        >
-          <v-row class="mx-n3" justify="center" no-gutters>
-            <v-col v-if="event.logoLeft" class="pa-0" cols="6">
-              <small class="text-caption">{{ badgeData.textTopLeft }}</small>
+        <div class="text-center border d-flex flex-column w-50">
+          <div class="d-flex justify-center" style="height: 60px">
+            <div v-if="event.logoLeft" class="w-50">
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textTopLeft }}</i>
+              </div>
               <v-img
                 :aspect-ratio="2"
                 :src="getApiPublicImgUrl(event.logoLeft, 'event-logo')"
               ></v-img>
-              <small class="text-caption">{{ badgeData.textBottomLeft }}</small>
-            </v-col>
-            <v-col v-if="event.logoRight" class="pa-0" cols="6">
-              <small class="text-caption">{{ badgeData.textTopRight }}</small>
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textBottomLeft }}</i>
+              </div>
+            </div>
+            <div v-if="event.logoRight" class="w-50">
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textTopRight }}</i>
+              </div>
               <v-img
                 :aspect-ratio="2"
                 :src="getApiPublicImgUrl(event.logoRight, 'event-logo')"
               ></v-img>
-              <small class="text-caption">{{
-                badgeData.textBottomRight
-              }}</small>
-            </v-col>
-          </v-row>
-          <v-row class="pb-5" justify="center">
-            <v-col cols="auto">
-              <template
-                v-for="(id, index) in badgeVisibility.fieldIdFront.sort()"
-                :key="index"
-              >
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textBottomRight }}</i>
+              </div>
+            </div>
+          </div>
+          <div class="my-auto d-flex justify-center align-center">
+            <div>
+              <template v-for="(id, index) in sortedFieldIdFront" :key="index">
                 <badge-details
                   :id="id"
-                  :badge-data="badgeData"
+                  :badge-data="badge"
                   :index="index"
                 ></badge-details>
               </template>
-            </v-col>
-          </v-row>
+            </div>
+          </div>
 
-          <v-row
+          <div
             :style="{
-              'background-color': badgeData.colorScheme,
-              'max-height': '72px',
+              'background-color': badge.colorScheme,
+              height: '70px',
             }"
-            class="mt-auto"
-            justify="center"
+            class="d-flex justify-center align-center"
           >
-            <v-col cols="auto">
-              <h1 style="color: white">{{ badgeData.title }}</h1>
-            </v-col>
-          </v-row>
-        </v-col>
+            <div>
+              <h1 style="color: white">{{ badge.title }}</h1>
+            </div>
+          </div>
+        </div>
 
         <!--          rear-->
-        <v-col
-          class="mt-4 text-center border d-flex flex-column pt-0"
-          cols="12"
-          md="6"
-        >
-          <v-row class="mx-n3" justify="center" no-gutters>
-            <v-col v-if="event.logoLeft" class="pa-0" cols="6">
-              <small class="text-caption">{{ badgeData.textTopLeft }}</small>
+        <div class="text-center border d-flex flex-column w-50">
+          <div class="d-flex justify-center" style="height: 60px">
+            <div v-if="event.logoLeft" class="w-50">
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textTopLeft }}</i>
+              </div>
               <v-img
                 :aspect-ratio="2"
                 :src="getApiPublicImgUrl(event.logoLeft, 'event-logo')"
               ></v-img>
-              <small class="text-caption">{{ badgeData.textBottomLeft }}</small>
-            </v-col>
-            <v-col v-if="event.logoRight" class="pa-0" cols="6">
-              <small class="text-caption">{{ badgeData.textTopRight }}</small>
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textBottomLeft }}</i>
+              </div>
+            </div>
+            <div v-if="event.logoRight" class="w-50">
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textTopRight }}</i>
+              </div>
               <v-img
                 :aspect-ratio="2"
                 :src="getApiPublicImgUrl(event.logoRight, 'event-logo')"
               ></v-img>
-              <small class="text-caption">{{
-                badgeData.textBottomRight
-              }}</small>
-            </v-col>
-          </v-row>
-          <v-row class="pb-5" justify="center">
-            <v-col cols="auto">
-              <div v-if="badgeVisibility.fieldIdRear.length == 0">
-                <v-img
-                  :aspect-ratio="1"
-                  :src="getClientPublicImgUrl('qr.png')"
-                  width="150"
-                ></v-img>
+              <div class="text-caption" style="height: 18px">
+                <i>{{ badge.textBottomRight }}</i>
               </div>
-              <template
-                v-for="(id, index) in badgeVisibility.fieldIdRear.sort()"
-                :key="index"
-              >
-                <v-img
+            </div>
+          </div>
+          <div class="my-auto d-flex justify-center">
+            <div>
+              <div v-if="badge.fieldIdRear.length == 0">
+                <QRCodeVue3
+                  :value="qrCode"
+                  :width="125"
+                  :height="125"
+                  :dotsOptions="qrOptions"
+                  :cornersSquareOptions="qrOptions"
+                />
+              </div>
+              <template v-for="(id, index) in sortedFieldIdRear" :key="index">
+                <QRCodeVue3
                   v-if="index === 0"
-                  :aspect-ratio="1"
-                  :src="getClientPublicImgUrl('qr.png')"
-                  :width="150"
-                ></v-img>
+                  :value="qrCode"
+                  :width="125"
+                  :height="125"
+                  :dotsOptions="qrOptions"
+                  :cornersSquareOptions="qrOptions"
+                />
                 <badge-details
                   :id="id"
-                  :data="badgeData"
+                  :badge-data="badge"
                   :index="index"
                 ></badge-details>
               </template>
-            </v-col>
-          </v-row>
-          <v-row
+            </div>
+          </div>
+          <div
             :style="{
-              'background-color': badgeData.colorScheme,
-              'max-height': '72px',
+              'background-color': badge.colorScheme,
+              height: '70px',
             }"
-            class="mt-auto"
-            justify="center"
+            class="d-flex justify-center align-center"
           >
-            <v-col cols="auto">
-              <h1 style="color: white">{{ badgeData.title }}</h1>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+            <div>
+              <h1 style="color: white">{{ badge.title }}</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-<style scoped></style>
+<style>
+/*
+*/
+.badge-wrapper {
+  width: 210mm;
+  height: auto;
+}
+
+.badge {
+  margin: 21mm 10mm 7mm 10mm;
+  width: 190mm;
+  height: 120mm;
+  background: #fff;
+}
+</style>

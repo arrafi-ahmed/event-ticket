@@ -17,6 +17,8 @@ const TicketAdd = () => import("@/views/TicketAdd.vue");
 const Users = () => import("@/views/Users.vue");
 const Invoice = () => import("@/views/Invoice.vue");
 const CredentialGenerate = () => import("@/views/CredentialGenerate.vue");
+const DashboardCheckinStaff = () => import("@/views/DashboardCheckinStaff.vue");
+const DashboardExhibitor = () => import("@/views/DashboardExhibitor.vue");
 
 const routes = [
   {
@@ -132,6 +134,24 @@ const routes = [
         path: "users/:formId",
         name: "users",
         component: Users,
+        meta: {
+          requiresAuth: true,
+          title: "View Attendees",
+        },
+      },
+      {
+        path: "dashboard/checkin-staff",
+        name: "dashboard-checkin-staff",
+        component: DashboardCheckinStaff,
+        meta: {
+          requiresAuth: true,
+          title: "View Attendees",
+        },
+      },
+      {
+        path: "dashboard/exhibitor",
+        name: "dashboard-exhibitor",
+        component: DashboardExhibitor,
         meta: {
           requiresAuth: true,
           title: "View Attendees",

@@ -45,12 +45,22 @@ const handleSubmitCredential = async (type) => {
 
   user.type = type;
   user.eventId = route.params.eventId;
-  store.dispatch("appUser/saveAppUser", user).then((result) => {
-    type == "exhibitor"
-      ? (exhibitorDialog.value = !exhibitorDialog.value)
-      : (checkinDialog.value = !checkinDialog.value);
-    Object.assign(user, { ...userInit });
-  });
+
+  let additionalExhibitorData = {};
+  if (type == "exhibitor") {
+    additionalExhibitorData = users.value.find(
+      (item) => item.id == user.userId
+    );
+  }
+
+  store
+    .dispatch("appUser/saveAppUser", { user, additionalExhibitorData })
+    .then((result) => {
+      type == "exhibitor"
+        ? (exhibitorDialog.value = !exhibitorDialog.value)
+        : (checkinDialog.value = !checkinDialog.value);
+      Object.assign(user, { ...userInit });
+    });
 };
 
 // used in exhibitor dialog -> v-select
@@ -164,6 +174,8 @@ watch(
                 <tr>
                   <th class="text-start">Username</th>
                   <th class="text-center">Password</th>
+                  <th class="text-center">Name</th>
+                  <th class="text-center">Organization</th>
                   <th class="text-end"></th>
                 </tr>
               </thead>
@@ -171,6 +183,10 @@ watch(
                 <tr v-for="(item, index) in exhibitors" :key="'e-' + index">
                   <td>{{ item.username }}</td>
                   <td class="text-center">{{ item.password }}</td>
+                  <td class="text-center">
+                    {{ item.firstname }} {{ item.surname }}
+                  </td>
+                  <td class="text-center">{{ item.organization }}</td>
                   <td class="text-end">
                     <v-btn
                       icon="mdi-content-copy"

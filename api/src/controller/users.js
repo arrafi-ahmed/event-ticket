@@ -15,6 +15,17 @@ router.get("/getUsers", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
+router.get("/getUsersByNameNEventId", auth, (req, res, next) => {
+  usersService
+    .getUsersByNameNEventId(req.query.name, req.query.eventId)
+    .then((results) => {
+      if (results) {
+        res.status(200).json(new ApiResponse("", results));
+      }
+    })
+    .catch((err) => next(err));
+});
+
 router.post("/updateUser", auth, (req, res, next) => {
   const user = req.body.payload;
   const userColumns = [
@@ -30,7 +41,7 @@ router.post("/updateUser", auth, (req, res, next) => {
   usersService
     .updateUser(user, userColumns)
     .then(() => {
-      if (user.paymentStatus)
+      if (user.paymentStatus) {
         return purchaseService.updatePurchase(
           {
             id: user.pId,
@@ -38,9 +49,27 @@ router.post("/updateUser", auth, (req, res, next) => {
           },
           purchaseColumns
         );
+      }
     })
     .then((result) => {
       res.status(200).json(new ApiResponse("Attendee updated!", result));
+    })
+    .catch((err) => next(err));
+});
+
+router.post("/updatePaymentStatus", auth, (req, res, next) => {
+  const user = req.body.payload;
+  const purchaseColumns = ["paymentStatus"];
+  purchaseService
+    .updatePurchase(
+      {
+        id: user.pId,
+        paymentStatus: user.paymentStatus,
+      },
+      purchaseColumns
+    )
+    .then((result) => {
+      res.status(200).json(new ApiResponse("Payment status updated!", result));
     })
     .catch((err) => next(err));
 });

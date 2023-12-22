@@ -1,5 +1,6 @@
 const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
+const appUserService = require("./appUser");
 
 exports.save = async ({ body, files }) => {
   body.logos = JSON.parse(body.logos);
@@ -37,4 +38,13 @@ exports.getEventById = async (id) => {
   return await sql`select *
                      from event
                      where id = ${id}`;
+};
+
+exports.getEventByAppUserId = async (userId) => {
+  const appUser = await appUserService.getAppUserById(userId);
+  const [event] = await sql`
+        select *
+        from event
+        where id = ${appUser.eventId}`;
+  return event;
 };

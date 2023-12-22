@@ -2,6 +2,7 @@ const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
 const badgeService = require("./badge");
 const badgeDesignService = require("./badgeDesign");
+const usersService = require("./users");
 const purchaseService = require("./purchase");
 const emailContentService = require("./emailContent");
 const sendMailService = require("./sendMail");
@@ -142,18 +143,20 @@ exports.submitUserForm = async ({
         role: Number.parseInt(formType?.formTypeId),
         createdAt: new Date(),
         registrationFormId: formId,
+        eventId,
       };
       return user;
     });
     return user;
   });
 
-  const insertedUsers = await sql`insert into users ${sql(users)} returning *`;
+  const insertedUsers = await usersService.saveUsers(users);
 
   // find formFiller userId by email
   const formFiller = insertedUsers.find(
     (item) => item.email === formFillerEmail
   );
+
   //insert answers
   let insertedAnswers = [];
   if (additionalAnswers.length > 0) {
@@ -204,6 +207,14 @@ exports.submitUserForm = async ({
 
   const insertedPurchase = await purchaseService.savePurchase(purchase);
 
+  //update users with purchaseId
+  const updatedUsers = insertedUsers.map((user) => ({
+    id: user.id,
+    purchaseId: insertedPurchase.id,
+  }));
+
+  await usersService.updateUsersPurchaseId(updatedUsers);
+
   //create badge
   const badges = insertedUsers.map((user, index) => {
     //check user id serial is maintained after insert
@@ -212,6 +223,7 @@ exports.submitUserForm = async ({
       userId: user.id,
       ticketId: user.ticketId,
       purchaseId: insertedPurchase.id,
+      eventId,
     };
   });
   const insertedBadges = await badgeService.createBadge(badges);

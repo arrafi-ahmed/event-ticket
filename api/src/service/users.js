@@ -1,6 +1,10 @@
 const CustomError = require("../model/CustomError");
-const { sql } = require("../db");
+const { sql, raw } = require("../db");
 const registrationService = require("./registration");
+
+exports.saveUsers = async (users) => {
+  return sql`insert into users ${sql(users)} returning *`;
+};
 
 exports.getUsers = async (formId) => {
   return sql`
@@ -31,6 +35,21 @@ exports.getUserByEmail = async (email) => {
     `;
 };
 
+exports.getUsersByNameNEventId = async (name, eventId) => {
+  const [firstName, lastName] = name.split(' ');
+
+  return await sql`
+        SELECT u.*, p.payment_status, u.id as u_id, p.id as p_id
+        FROM users u
+                 join purchase p on u.purchase_id = p.id
+        WHERE event_id = ${eventId}
+          AND ((firstname ILIKE ${"%" + firstName + "%"} AND surname ILIKE ${"%" + lastName + "%"})
+               OR firstname ILIKE ${"%" + name + "%"}
+               OR surname ILIKE ${"%" + name + "%"})
+    `;
+};
+
+
 exports.getUserById = async (id) => {
   return sql`
         select *
@@ -47,6 +66,17 @@ exports.updateUser = async (user, columns) => {
   return updatedUser;
 };
 
+exports.updateUsersPurchaseId = async (users) => {
+  const formattedUsers = users.map((obj) => Object.values(obj));
+  console.log(32, formattedUsers);
+  return sql`
+        update users
+        set purchase_id = (update_data.purchaseId)::int
+        from (values ${sql(formattedUsers)}) as update_data (id, purchaseId)
+        where users.id = (update_data.id)::int
+    `;
+};
+
 exports.deleteUser = async (userId, registrationId) => {
   //del from reg
   let registration = await registrationService.findById(registrationId);
@@ -57,13 +87,18 @@ exports.deleteUser = async (userId, registrationId) => {
         update registration
         set ${sql(registration, ["registeredUserId"])}
         where id = ${registrationId}`;
+
+  await sql`delete
+              from badge
+              where user_id = ${userId}`;
+
   return sql`
         delete
         from users
         where id = ${userId}
     `;
 };
-
+//getUsersByFormId
 exports.getExhibitorsByFormId = async (formId) => {
   return sql`
         select *

@@ -4,22 +4,22 @@ const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
 
 exports.register = (payload) => {};
-const generateAuthData = (result) => {
+const generateAuthData = ({ id, role, username, image }) => {
   let token = "";
   let currentUser = {};
-  if (result) {
+  if (id) {
     currentUser = {
-      id: result.id,
+      id,
       role:
-        result.role === 10
+        role === 10
           ? "admin"
-          : result.role === 20
+          : role === 20
           ? "checkin"
-          : result.role === 30
+          : role === 30
           ? "exhibitor"
           : "user",
-      name: result.fullname,
-      image: result.image,
+      username,
+      image,
     };
     token = jwt.sign({ currentUser }, process.env.TOKEN_SECRET);
   }
@@ -27,12 +27,12 @@ const generateAuthData = (result) => {
 };
 
 exports.signin = async ({ username, password }) => {
-  const results = await sql`select *
-                              from app_user
-                              where username = ${username}
-                                and password = ${password}`;
-  if (results.length > 0) {
-    return generateAuthData(results[0]);
+  const [result] = await sql`select *
+                               from app_user
+                               where username = ${username}
+                                 and password = ${password}`;
+  if (result) {
+    return generateAuthData(result);
   } else {
     throw new CustomError("Incorrect email/password!", 401);
   }

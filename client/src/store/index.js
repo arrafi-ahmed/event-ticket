@@ -3,6 +3,7 @@ import * as user from "./modules/user";
 import * as event from "./modules/event";
 import * as registrationForm from "./modules/registrationForm";
 import * as badgeDesign from "./modules/badgeDesign";
+import * as badge from "./modules/badge";
 import * as ticket from "./modules/ticket";
 import * as purchase from "./modules/purchase";
 import * as appUser from "./modules/appUser";
@@ -15,6 +16,7 @@ const store = createStore({
     appUser,
     event,
     registrationForm,
+    badge,
     badgeDesign,
     ticket,
     purchase,

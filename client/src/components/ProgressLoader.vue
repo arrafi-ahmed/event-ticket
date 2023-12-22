@@ -12,7 +12,7 @@ const progress = computed(() => store.state.progress);
       :active="progress"
       :height="5"
       absolute
-      class="position-fixed"
+      class="position-fixed d-print-none"
       color="primary"
       indeterminate
       reverse

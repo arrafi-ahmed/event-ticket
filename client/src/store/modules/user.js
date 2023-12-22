@@ -76,6 +76,12 @@ export const getters = {
   isAdmin(state) {
     return state.currentUser.role === "admin";
   },
+  isChckinStaff(state) {
+    return state.currentUser.role === "checkin";
+  },
+  isExhibitor(state) {
+    return state.currentUser.role === "exhibitor";
+  },
   isSignedin(state) {
     return !!state.token;
   },

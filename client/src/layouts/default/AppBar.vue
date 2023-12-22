@@ -15,7 +15,7 @@ const currentUser = computed(() => store.getters["user/getCurrentUser"]);
 
 const drawer = ref(false);
 
-const getFirstName = computed(() => currentUser.value.name.split(" ")[0]);
+const getUsername = computed(() => currentUser.value.username);
 const getGreetings = computed(() => {
   const hour = new Date().getHours();
   return `Good ${hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"}!`;
@@ -41,7 +41,7 @@ onMounted(() => {
 <template>
   <v-app-bar
     :order="1"
-    class="px-2 px-md-5 border-b-sm"
+    class="px-2 px-md-5 border-b-sm d-print-none"
     color="white"
     dense
     flat
@@ -80,7 +80,7 @@ onMounted(() => {
               {{ getGreetings }}
             </small>
             <div>
-              {{ getFirstName }}
+              {{ getUsername }}
             </div>
           </div>
         </div>

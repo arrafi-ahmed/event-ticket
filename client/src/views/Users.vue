@@ -12,7 +12,7 @@ const route = useRoute();
 const users = computed(() => store.state.users.users);
 const surveyInit = reactive({});
 let survey = reactive({});
-let attendee = reactive({});
+const attendee = reactive({});
 const accordion = ref(["details"]);
 
 const userDetailsDialog = ref(false);
@@ -131,25 +131,25 @@ onMounted(() => {
               </td>
               <td>
                 <span>{{ formatDateTime(item.createdAt) }}</span>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      class="ms-2"
-                      icon="mdi-dots-vertical"
-                      v-bind="props"
-                      variant="text"
-                    >
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item
-                      density="compact"
-                      link
-                      title="Modify"
-                      @click="openUserDetailsDialog(item.uId)"
-                    ></v-list-item>
-                  </v-list>
-                </v-menu>
+                <!--                <v-menu>-->
+                <!--                  <template v-slot:activator="{ props }">-->
+                <!--                    <v-btn-->
+                <!--                      class="ms-2"-->
+                <!--                      icon="mdi-dots-vertical"-->
+                <!--                      v-bind="props"-->
+                <!--                      variant="text"-->
+                <!--                    >-->
+                <!--                    </v-btn>-->
+                <!--                  </template>-->
+                <!--                  <v-list density="compact">-->
+                <!--                    <v-list-item-->
+                <!--                      density="compact"-->
+                <!--                      link-->
+                <!--                      title="Modify"-->
+                <!--                      @click="openUserDetailsDialog(item.uId)"-->
+                <!--                    ></v-list-item>-->
+                <!--                  </v-list>-->
+                <!--                </v-menu>-->
               </td>
             </tr>
           </tbody>
@@ -279,11 +279,6 @@ onMounted(() => {
           >Update
         </v-btn>
       </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <v-dialog v-model="credentialsDialog" width="400">
-    <v-card>
-      <v-card-text></v-card-text>
     </v-card>
   </v-dialog>
 </template>

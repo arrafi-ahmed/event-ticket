@@ -3,11 +3,12 @@ const { sql } = require("../db");
 
 exports.getAppUser = async (eventId) => {
   const appUsers = await sql`
-        SELECT *
-        FROM app_user
-        WHERE role IN (20, 30)
-          and event_id = ${eventId}
-        ORDER BY id DESC;`;
+        SELECT a.*, u.*, a.role as role, u.role as uRole
+        FROM app_user a
+                 LEFT JOIN users u ON a.user_id = u.id
+        WHERE a.role IN (20, 30)
+          AND a.event_id = ${eventId}
+        ORDER BY a.id DESC;`;
 
   const checkinStuffs = appUsers.filter((item) => item.role == 20);
   const exhibitors = appUsers.filter((item) => item.role == 30);
@@ -41,4 +42,12 @@ exports.saveAppUser = async ({ payload }) => {
   }
   payload.password = exports.generatePassword();
   return sql`insert into app_user ${sql(payload)} returning *`;
+};
+
+exports.getAppUserById = async (id) => {
+  const [result] = await sql`
+        SELECT *
+        FROM app_user
+        WHERE id = ${id}`;
+  return result;
 };

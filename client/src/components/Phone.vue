@@ -1,8 +1,9 @@
 <script setup>
 import { defineEmits, defineProps, onMounted, reactive, ref } from "vue";
+import { useDisplay } from "vuetify";
 
 const { item, index } = defineProps(["item", "index", "quantityIndex", "type"]);
-
+const { mobile } = useDisplay();
 const emit = defineEmits(["updatePhone"]);
 
 // phone input
@@ -47,21 +48,29 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-row no-gutters>
+  <v-row class="phone" no-gutters>
     <v-col cols="auto">
       <v-select
         v-model="code"
         :item-title="formatItem5Title"
-        item-value="code"
         :items="item.options"
+        :menu-props="
+          mobile
+            ? { maxHeight: '300px', width: '100%' }
+            : { maxHeight: '300px', width: '300px' }
+        "
         :rules="[(v) => !!v || !item.required || 'required']"
-        class="mt-2 mt-md-4"
+        class="mt-2 mt-md-4 dialCode"
         density="compact"
         hide-details="auto"
+        item-value="code"
         @update:modelValue="formatSelectedDialCode"
       >
         <template v-slot:selection="{ item }">
-          {{ selectedCountry.flag }} {{ selectedCountry.dialCode }}
+          <div class="d-flex justify-space-between" style="width: 70px">
+            <span>{{ selectedCountry.flag }}</span>
+            <span>{{ selectedCountry.dialCode }}</span>
+          </div>
         </template>
       </v-select>
     </v-col>
@@ -84,4 +93,12 @@ onMounted(() => {
   </v-row>
 </template>
 
-<style scoped></style>
+<style>
+.phone .dialCode .v-field__input {
+  padding: 5px 0 5px 10px !important;
+}
+
+.phone .dialCode .v-field--appended {
+  padding-inline-end: 2px;
+}
+</style>

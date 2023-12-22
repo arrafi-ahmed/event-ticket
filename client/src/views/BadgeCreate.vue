@@ -254,7 +254,7 @@ onMounted(async () => {
 
   <v-dialog v-model="dialog" width="700">
     <badge-preview
-      :badge-data="badgeDesign"
+      :badge="{ ...badgeDesign, ...badgeVisibility }"
       :badge-visibility="badgeVisibility"
       :event="event"
       card-title="Badge Design Preview"

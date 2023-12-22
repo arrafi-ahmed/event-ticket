@@ -223,7 +223,6 @@ onMounted(() => {
           </div>
           <v-textarea
             v-model="terms"
-            :rules="[(v) => !!v || 'Terms & Condition is required!']"
             class="mt-2 mt-md-4 text-pre-wrap"
             clearable
             density="compact"

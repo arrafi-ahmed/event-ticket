@@ -9,9 +9,6 @@ const { join } = require("path");
 const { readFileSync } = require("fs");
 
 exports.generateTicketContent = async (badge, event, tickets, users) => {
-  const qrCode = await generateQrCode(
-    JSON.stringify({ id: badge.id, qrUuid: badge.qrUuid })
-  );
   const ticket = tickets.find((item) => item.ticketId == badge.ticketId);
   const user = users.find((item) => item.id == badge.userId);
 
@@ -39,8 +36,8 @@ exports.generateTicketContent = async (badge, event, tickets, users) => {
   doc.text(`Email: ${user.email}`, 105, 55, { align: "center" });
 
   // QR Code
-  const qrCodeData = qrCode.split(",")[1]; // Extract base64 data
-  doc.addImage(qrCodeData, "JPEG", 77, 65, 60, 60);
+  const qrCode = await generateQrCode({ id: badge.id, qrUuid: badge.qrUuid });
+  doc.addImage(qrCode, "JPEG", 77, 65, 60, 60);
 
   doc.setLineWidth(0); // Set line width
   doc.rect(45, 10, 120, 120); // Draw border

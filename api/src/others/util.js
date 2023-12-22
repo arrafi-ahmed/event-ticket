@@ -64,7 +64,11 @@ const getCurrencySymbol = (currencyCode, type) => {
   return currencyMap[currencyCodeLower][type];
 };
 
-const generateQrCode = async (data) => qr.toDataURL(data);
+const generateQrCode = async ({ id, qrUuid }) => {
+  const data = JSON.stringify({ id, qrUuid });
+  const qrCode = await qr.toDataURL(data);
+  return qrCode.split(",")[1]; // Extract base64 data
+};
 
 module.exports = {
   API_BASE_URL,

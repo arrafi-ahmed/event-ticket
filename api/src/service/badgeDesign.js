@@ -44,10 +44,11 @@ exports.getAllBadgeDesigns = async (eventId) => {
 };
 
 exports.getBadgeDesignWVisibility = async (badgeDesignId) => {
-  const badgeData = await exports.getBadgeDesign(badgeDesignId);
-  const [badgeVisibility] = await sql`select *
-                                        from badge_visibility
-                                        where badge_design_id = ${badgeDesignId}`;
+  const [result] = await sql`
+        select bd.*, bv.*
+        from badge_design bd
+                 join badge_visibility bv on bd.id = bv.badge_design_id
+        where bd.id = ${badgeDesignId}`;
 
-  return { badgeData, badgeVisibility };
+  return result;
 };

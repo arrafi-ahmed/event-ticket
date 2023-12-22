@@ -10,9 +10,11 @@ const { mobile } = useDisplay();
 const store = useStore();
 const router = useRouter();
 
-const username = ref("admin@torch.com");
-const password = ref("asdfasdf1");
+const username = ref(null);
+const password = ref(null);
 const isAdmin = computed(() => store.getters["user/isAdmin"]);
+const isChckinStaff = computed(() => store.getters["user/isChckinStaff"]);
+const isExhibitor = computed(() => store.getters["user/isExhibitor"]);
 
 const form = ref(null);
 const isFormValid = ref(true);
@@ -27,12 +29,22 @@ const signinUser = async () => {
       password: password.value,
     })
     .then((result) => {
+      console.log(22, isAdmin.value);
       if (isAdmin.value) {
         router.push({
           name: "home",
         });
+      } else if (isChckinStaff.value) {
+        router.push({
+          name: "dashboard-checkin-staff",
+        });
+      } else if (isExhibitor.value) {
+        router.push({
+          name: "dashboard-exhibitor",
+        });
       }
-    });
+    })
+    .catch((err) => console.log(err));
 };
 const dialog = ref(false);
 const resetEmail = ref(null);
@@ -70,18 +82,15 @@ const handleSubmitResetPassword = async () => {
               fast-fail
               @submit.prevent="signinUser"
             >
-              <!-- Email Address -->
+              <!-- username -->
               <v-text-field
                 v-model="username"
-                :rules="[
-                  (v) => !!v || 'Email is required!',
-                  (v) => isValidEmail(v) || 'Invalid Email',
-                ]"
+                :rules="[(v) => !!v || 'Username is required!']"
                 class="mt-2"
                 clearable
                 density="compact"
                 hide-details="auto"
-                label="Email Address"
+                label="Username"
                 prepend-inner-icon="mdi-account"
               ></v-text-field>
 

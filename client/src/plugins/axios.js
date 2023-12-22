@@ -27,7 +27,7 @@ $axios.interceptors.response.use(
         color = "error";
       }
       toast(response.data.msg, {
-        cardProps: { color },
+        cardProps: { color, class: "d-print-none" },
         action: {
           label: "Close",
           buttonProps: {
@@ -43,7 +43,7 @@ $axios.interceptors.response.use(
     store.commit("setProgress", false);
     if (err.response?.data?.msg) {
       toast(err.response?.data?.msg, {
-        cardProps: { color: "error" },
+        cardProps: { color: "error", class: "d-print-none" },
         action: {
           label: "Close",
           buttonProps: {
