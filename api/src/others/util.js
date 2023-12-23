@@ -70,6 +70,13 @@ const generateQrCode = async ({ id, qrUuid }) => {
   return qrCode.split(",")[1]; // Extract base64 data
 };
 
+const toCamelCase = (str) => {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+    if (+match === 0) return "";
+    return index === 0 ? match.toLowerCase() : match.toUpperCase();
+  });
+}
+
 module.exports = {
   API_BASE_URL,
   VUE_BASE_URL,
@@ -83,5 +90,6 @@ module.exports = {
   getFilePath,
   removeImages,
   formatDate,
+  toCamelCase,
   logoSvgString,
 };

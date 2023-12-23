@@ -2,6 +2,14 @@ const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
 const { v4: uuidv4 } = require("uuid");
 const purchaseService = require("./purchase");
+const registrationFormService = require("./registrationForm");
+const usersService = require("./users");
+const {
+  textCapitalize,
+  textCamelize,
+  removeSpaces,
+  toCamelCase,
+} = require("../others/util");
 
 exports.createBadge = async (badges) => {
   const formattedBadges = badges.map((badge) => {
@@ -65,4 +73,91 @@ exports.getBadgeWDesignWVisibility = async (badgeId) => {
         where b.id = ${badgeId}`;
   console.log(90, result);
   return result;
+};
+
+exports.addExhibitorVisibility = async (exhibitorVisibility) => {
+  const [foundVisibility] = await sql`
+        select *
+        from exhibitor_visibility
+        where registration_form_id = ${exhibitorVisibility.registrationFormId}`;
+
+  if (foundVisibility)
+    throw new CustomError(
+      "Exhibitor visibility already exist for selected form",
+      409
+    );
+
+  const [insertedVisibility] = await sql`
+        insert into exhibitor_visibility ${sql(
+          exhibitorVisibility
+        )} returning *`;
+
+  return insertedVisibility;
+};
+
+exports.getBadgeWExhibitorVisibilityById = async (badgeId) => {
+  const [badge] = await sql`
+        select b.*, ev.*, b.id as b_id, ev.id as ev_id
+        from badge b
+                 join exhibitor_visibility ev on b.registration_form_id = ev.registration_form_id
+        where b.id = ${badgeId}`;
+  return badge;
+};
+
+exports.scanBadgeByExhibitor = async (badgeId) => {
+  const badgeWVisibility = await exports.getBadgeWExhibitorVisibilityById(
+    badgeId
+  );
+  console.log(45, badgeId, badgeWVisibility);
+  if (!badgeWVisibility) throw new CustomError("No data available!", 404);
+
+  const user = await usersService.getUserById(badgeWVisibility.userId);
+
+  const formWAnswer = await registrationFormService.getFormWAnswer(
+    badgeWVisibility.registrationFormId,
+    badgeWVisibility.userId
+  );
+
+  const fields = await registrationFormService.getFields();
+
+  const filteredFieldStandard = badgeWVisibility.fieldIdStandard.reduce(
+    (acc, parentItem) => {
+      return acc.concat(
+        fields.filter((childItem) => parentItem == childItem.id)
+      );
+    },
+    []
+  );
+  const filteredFieldQuestions = badgeWVisibility.fieldIdQuestion.reduce(
+    (acc, parentItem) => {
+      return acc.concat(
+        formWAnswer.questions.filter((childItem) => parentItem == childItem.id)
+      );
+    },
+    []
+  );
+  const filteredAnswers = filteredFieldQuestions.reduce((acc, parentItem) => {
+    return acc.concat(
+      formWAnswer.answers.filter(
+        (childItem) => parentItem.id == childItem.questionId
+      )
+    );
+  }, []);
+
+  const userWFieldStandard = filteredFieldStandard.reduce((obj, field) => {
+    let camelCaseFieldName = toCamelCase(field.fieldName);
+    if (user[camelCaseFieldName] !== undefined) {
+      return { ...obj, [camelCaseFieldName]: user[camelCaseFieldName] };
+    }
+    return obj;
+  }, {});
+
+  console.log(47, toCamelCase(filteredFieldStandard[0].fieldName));
+  console.log(48, user, filteredFieldStandard, userWFieldStandard);
+
+  return {
+    standards: userWFieldStandard,
+    questions: filteredFieldQuestions,
+    answers: filteredAnswers,
+  };
 };

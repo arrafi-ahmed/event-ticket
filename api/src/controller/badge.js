@@ -17,9 +17,7 @@ router.get("/checkin", auth, (req, res, next) => {
 });
 
 router.get("/scanBadge", auth, (req, res, next) => {
-  console.log(2, req.query);
   const { id, qrUuid } = JSON.parse(req.query.qrCodeData);
-
   badgeService
     .validateQrCode(id, qrUuid, req.query.eventId)
     .then((result) => {
@@ -30,6 +28,30 @@ router.get("/scanBadge", auth, (req, res, next) => {
     })
     .then((result) => {
       res.status(200).json(new ApiResponse(null, result));
+    })
+    .catch((err) => next(err));
+});
+
+router.get("/scanBadgeByExhibitor", auth, (req, res, next) => {
+  const { id, qrUuid } = JSON.parse(req.query.qrCodeData);
+  badgeService
+    .scanBadgeByExhibitor(id, qrUuid)
+    .then((result) => {
+      res.status(200).json(new ApiResponse(null, result));
+    })
+    .catch((err) => next(err));
+});
+
+router.post("/addExhibitorVisibility", auth, (req, res, next) => {
+  badgeService
+    .addExhibitorVisibility(req.body)
+    .then((updatedBadge) => {
+      return badgeService.getBadgeWDesignWVisibility(updatedBadge.id);
+    })
+    .then((result) => {
+      res
+        .status(200)
+        .json(new ApiResponse("Exhibitor visibility added", result));
     })
     .catch((err) => next(err));
 });

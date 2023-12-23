@@ -67,7 +67,7 @@ router.get("/getFormWQuestion", (req, res, next) => {
 router.get("/getFormWAnswer", (req, res, next) => {
   registrationFormService
     .getFormWAnswer(req.query.formId, req.query.formFiller)
-    .then((results) => res.status(200).json(new ApiResponse(null, results[0])))
+    .then((result) => res.status(200).json(new ApiResponse(null, result)))
     .catch((err) => next(err));
 });
 

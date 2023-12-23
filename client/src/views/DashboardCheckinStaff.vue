@@ -72,14 +72,11 @@ onMounted(() => {
   store.commit("badge/resetBadge");
   store.commit("users/resetUsers");
   store.dispatch("event/setEventByAppUserId", currentUser.value.id);
-  //   .then(() => {
-  //   store.dispatch("users/setUsersByEventId", event.value.id);
-  // });
 });
 </script>
 
 <template>
-  <v-dialog v-model="qrScannerDialog">
+  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
     <v-card>
       <v-card-title>Scan QR Code</v-card-title>
       <v-card-text>
@@ -291,5 +288,4 @@ onMounted(() => {
     page-break-after: auto;
   }
 }
-
 </style>

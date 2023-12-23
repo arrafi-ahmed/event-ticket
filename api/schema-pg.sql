@@ -10,10 +10,6 @@ CREATE TABLE event
     logo_left      varchar(255),
     logo_right     varchar(255)
 );
--- ALTER TABLE event
---     ADD COLUMN start_date date;
--- ALTER TABLE event
---     ADD COLUMN end_date date;
 
 -- Registration Form Type
 CREATE TABLE registration_form_type
@@ -22,8 +18,6 @@ CREATE TABLE registration_form_type
     name     varchar(50) NOT NULL,
     event_id integer REFERENCES event --added
 );
--- ALTER TABLE registration_form_type
---     ADD COLUMN event_id integer REFERENCES event;
 
 -- Registration Form Information
 CREATE TABLE registration_form
@@ -33,10 +27,6 @@ CREATE TABLE registration_form
     event_id     integer REFERENCES event,
     terms        text                                                --added
 );
--- ALTER TABLE registration_form
---     ADD COLUMN terms text;
--- ALTER TABLE registration_form
---     ALTER COLUMN form_type_id TYPE integer;
 
 -- Badge Design Information
 CREATE TABLE badge_design
@@ -85,8 +75,6 @@ CREATE TABLE users
     event_id             integer REFERENCES event --added
     --purchase_id          integer REFERENCES purchase --added
 );
--- ALTER TABLE users
---     ADD COLUMN event_id integer REFERENCES event;
 
 -- Registration Information
 CREATE TABLE registration
@@ -109,7 +97,6 @@ CREATE TABLE app_user
     event_id integer REFERENCES event, -- added
     user_id  integer REFERENCES users  -- added
 );
--- GRANT SELECT, INSERT, UPDATE, DELETE ON app_user TO torchevents_user;
 
 -- Question Information
 CREATE TABLE question
@@ -178,14 +165,15 @@ ALTER TABLE users
 -- Badge Information
 CREATE TABLE badge
 (
-    id              serial PRIMARY KEY,
-    qr_uuid         uuid                      NOT NULL,
-    badge_status    integer, -- 1 -> scanned/ 0 -> not scanned
-    badge_design_id integer REFERENCES badge_design,
-    user_id         integer REFERENCES users,
-    ticket_id       integer REFERENCES ticket NOT NULL,
-    purchase_id     integer REFERENCES purchase,
-    event_id        integer REFERENCES event
+    id                   serial PRIMARY KEY,
+    qr_uuid              uuid                      NOT NULL,
+    badge_status         integer, -- 1 -> scanned/ 0 -> not scanned
+    badge_design_id      integer REFERENCES badge_design,
+    user_id              integer REFERENCES users,
+    ticket_id            integer REFERENCES ticket NOT NULL,
+    purchase_id          integer REFERENCES purchase,
+    event_id             integer REFERENCES event,
+    registration_form_id integer REFERENCES registration_form
 );
 
 -- Badge Scan Information
@@ -204,6 +192,15 @@ CREATE TABLE badge_visibility
     field_id_front  integer[] NOT NULL,
     field_id_rear   integer[] NOT NULL,
     badge_design_id integer REFERENCES badge_design
+);
+
+-- exhibitor Visibility Information
+CREATE TABLE exhibitor_visibility
+(
+    id                   serial PRIMARY KEY,
+    field_id_standard    integer[] NOT NULL,
+    field_id_question    integer[] NOT NULL,
+    registration_form_id integer REFERENCES registration_form
 );
 
 -- Fields Information
@@ -260,5 +257,3 @@ CREATE TABLE survey_filler
     answer_id            integer[],
     event_id             integer                  REFERENCES event ON DELETE set null --added
 );
--- ALTER TABLE survey_filler
---     ADD COLUMN event_id integer REFERENCES event;

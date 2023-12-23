@@ -8,51 +8,62 @@ const emailContentService = require("./emailContent");
 const sendMailService = require("./sendMail");
 
 exports.getAllForms = async (eventId) => {
-  return await sql`select *, rf.id as rf_id, ft.id as ft_id
-                     from registration_form rf
-                              join registration_form_type ft on rf.form_type_id = ft.id
-                     where rf.event_id = ${eventId}`;
+  return await sql`
+        select *, rf.id as rf_id, ft.id as ft_id
+        from registration_form rf
+                 join registration_form_type ft on rf.form_type_id = ft.id
+        where rf.event_id = ${eventId}`;
 };
 // for admin
 exports.getFormSubmission = async (formId) => {
-  return await sql`select *
-                     from registration_form rf
-                              join registration_form_type ft on rf.form_type_id = ft.id
-                              join registration r on r.registration_form_id = rf.id
-                              join users u on r.registered_user_id = u.id
-                              join question q on q.registration_form_id = rf.id
-                              join answer a on q.id = a.question_id
-                     where rf.id = ${formId}`;
+  return await sql`
+        select *
+        from registration_form rf
+                 join registration_form_type ft on rf.form_type_id = ft.id
+                 join registration r on r.registration_form_id = rf.id
+                 join users u on r.registered_user_id = u.id
+                 join question q on q.registration_form_id = rf.id
+                 join answer a on q.id = a.question_id
+        where rf.id = ${formId}`;
 };
+
 exports.getForm = async (formId) => {
-  return await sql`select rf.*, ft.*, rf.id as rf_id, ft.id as ft_id
-                     from registration_form rf
-                              join registration_form_type ft on rf.form_type_id = ft.id
-                     where rf.id = ${formId}`;
+  return await sql`
+        select rf.*, ft.*, rf.id as rf_id, ft.id as ft_id
+        from registration_form rf
+                 join registration_form_type ft on rf.form_type_id = ft.id
+        where rf.id = ${formId}`;
 };
+
 exports.getFormWQuestion = async (formId) => {
-  return await sql`select rf.*, ft.*, json_agg(q) as questions
-                     from registration_form rf
-                              join registration_form_type ft on rf.form_type_id = ft.id
-                              left join question q on q.registration_form_id = rf.id
-                     where rf.id = ${formId}
-                     group by rf.id, ft.id`;
+  return await sql`
+        select rf.*, ft.*, json_agg(q) as questions
+        from registration_form rf
+                 join registration_form_type ft on rf.form_type_id = ft.id
+                 left join question q on q.registration_form_id = rf.id
+        where rf.id = ${formId}
+        group by rf.id, ft.id`;
 };
+
 exports.getFormWAnswer = async (formId, formFiller) => {
-  return await sql`select rf.*, ft.*, json_agg(q) as questions, json_agg(a) as answers
-                     from registration_form rf
-                              join registration_form_type ft on rf.form_type_id = ft.id
-                              left join question q on q.registration_form_id = rf.id
-                              left join answer a on a.question_id = q.id
-                     where rf.id = ${formId}
-                       and a.form_filler = ${formFiller}
-                     group by rf.id, ft.id`;
+  const [formWAnswer] = await sql`
+        select rf.*, ft.*, json_agg(q) as questions, json_agg(a) as answers
+        from registration_form rf
+                 join registration_form_type ft on rf.form_type_id = ft.id
+                 left join question q on q.registration_form_id = rf.id
+                 left join answer a on a.question_id = q.id
+        where rf.id = ${formId}
+          and a.form_filler = ${formFiller}
+        group by rf.id, ft.id`;
+  return formWAnswer;
 };
+
 exports.saveForm = async ({ payload }) => {
-  const [existingForm] = await sql`select *
-                                     from registration_form
-                                     where event_id = ${payload.eventId}
-                                       and form_type_id = ${payload.formTypeId}`;
+  const [existingForm] = await sql`
+        select *
+        from registration_form
+        where event_id = ${payload.eventId}
+          and form_type_id = ${payload.formTypeId}`;
   if (existingForm) {
     throw new CustomError("Registration Form already exists!", 409);
   }
@@ -79,13 +90,15 @@ exports.saveForm = async ({ payload }) => {
       formattedFormItems
     )}`;
   }
+
   return insertedForm;
 };
 
 exports.getFormTypeByFormId = async (formId) => {
-  return await sql`select form_type_id
-                     from registration_form
-                     where id = ${formId}`;
+  return await sql`
+        select form_type_id
+        from registration_form
+        where id = ${formId}`;
 };
 
 exports.areRegisteredUsersExist = async (users, formId) => {
@@ -224,6 +237,7 @@ exports.submitUserForm = async ({
       ticketId: user.ticketId,
       purchaseId: insertedPurchase.id,
       eventId,
+      registrationFormId: formId,
     };
   });
   const insertedBadges = await badgeService.createBadge(badges);
@@ -232,10 +246,12 @@ exports.submitUserForm = async ({
   if (additionalAnswers.length > 0) {
     const surveyFiller = {
       ...formFiller,
+      userId: formFiller.id,
       registrationId: insertedRegistration.id,
       purchaseId: insertedPurchase.id,
       answerId: insertedAnswers.map((item) => item.id),
     };
+    delete surveyFiller.id;
     delete surveyFiller.ticketId;
 
     const [insertedSurveyFiller] = await sql`insert into survey_filler ${sql(

@@ -36,26 +36,28 @@ exports.getUserByEmail = async (email) => {
 };
 
 exports.getUsersByNameNEventId = async (name, eventId) => {
-  const [firstName, lastName] = name.split(' ');
+  const [firstName, lastName] = name.split(" ");
 
   return await sql`
         SELECT u.*, p.payment_status, u.id as u_id, p.id as p_id
         FROM users u
                  join purchase p on u.purchase_id = p.id
         WHERE event_id = ${eventId}
-          AND ((firstname ILIKE ${"%" + firstName + "%"} AND surname ILIKE ${"%" + lastName + "%"})
-               OR firstname ILIKE ${"%" + name + "%"}
-               OR surname ILIKE ${"%" + name + "%"})
+          AND ((firstname ILIKE ${"%" + firstName + "%"} AND surname ILIKE ${
+    "%" + lastName + "%"
+  })
+            OR firstname ILIKE ${"%" + name + "%"}
+            OR surname ILIKE ${"%" + name + "%"})
     `;
 };
 
-
 exports.getUserById = async (id) => {
-  return sql`
+  const [user] = await sql`
         select *
         from users
         where id = ${id}
     `;
+  return user;
 };
 
 exports.updateUser = async (user, columns) => {

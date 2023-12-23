@@ -4,6 +4,7 @@ export const namespaced = true;
 
 export const state = {
   badge: {},
+  userScannedByExhibitor: {},
 };
 
 export const mutations = {
@@ -12,6 +13,12 @@ export const mutations = {
   },
   resetBadge(state) {
     state.badge = {};
+  },
+  setUserScannedByExhibitor(state, payload) {
+    state.userScannedByExhibitor = payload;
+  },
+  resetUserScannedByExhibitor(state) {
+    state.userScannedByExhibitor = {};
   },
 };
 
@@ -39,6 +46,33 @@ export const actions = {
         })
         .then((response) => {
           commit("setBadge", response.data?.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  setUserScannedByExhibitor({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/badge/scanBadgeByExhibitor", {
+          params: { qrCodeData: request.qrCodeData, eventId: request.eventId },
+        })
+        .then((response) => {
+          commit("setUserScannedByExhibitor", response.data?.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  addExhibitorVisibility({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .post("/api/badge/addExhibitorVisibility", request)
+        .then((response) => {
           resolve(response);
         })
         .catch((err) => {

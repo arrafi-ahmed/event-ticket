@@ -9,9 +9,9 @@ import vuetify from "./vuetify";
 import router from "../router";
 import store from "../store";
 import $axios from "@/plugins/axios";
-import {appear} from "@/directive/appear";
-import {getQueryParam, removeQueryParams} from "@/others/util";
-import {createI18n} from "vue-i18n";
+import { appear } from "@/directive/appear";
+import { getQueryParam, removeQueryParams } from "@/others/util";
+import { createI18n } from "vue-i18n";
 
 const i18n = createI18n({
   locale: "en-GB", // set locale
@@ -29,7 +29,8 @@ function handleApiQueryMsg() {
   }
 }
 
-function handleAuthRoutes(to, isSignedin) {
+function handleAuthRoutes(to, isSignedin, userRole) {
+  console.log(24, userRole);
   if (to.matched.some((record) => record.meta.requiresNoAuth) && isSignedin) {
     return { name: "home" };
   } else if (
@@ -37,6 +38,15 @@ function handleAuthRoutes(to, isSignedin) {
     !isSignedin
   ) {
     return { name: "signin" };
+  } else if (
+    to.matched.some((record) => record.meta.requiresAdmin) &&
+    userRole !== "admin"
+  ) {
+    return userRole === "checkin"
+      ? { name: "dashboard-checkin-staff" }
+      : userRole === "exhibitor"
+      ? { name: "dashboard-exhibitor" }
+      : { name: "signin" };
   }
   return null;
 }
@@ -44,7 +54,8 @@ function handleAuthRoutes(to, isSignedin) {
 export function registerPlugins(app) {
   router.beforeEach((to, from, next) => {
     const isSignedin = store.getters["user/isSignedin"];
-    const redirectRoute = handleAuthRoutes(to, isSignedin);
+    const currentUser = store.getters["user/getCurrentUser"];
+    const redirectRoute = handleAuthRoutes(to, isSignedin, currentUser.role);
     if (redirectRoute) {
       next(redirectRoute);
     }

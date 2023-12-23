@@ -30,6 +30,9 @@ export const mutations = {
   setFormWQuestion(state, payload) {
     state.formWQuestion = payload;
   },
+  resetFormWQuestion(state) {
+    state.formWQuestion = {};
+  },
   setFormWAnswer(state, payload) {
     state.formWAnswer = payload;
   },

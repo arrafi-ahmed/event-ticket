@@ -230,6 +230,28 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
+            <span>Forms Types:</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list v-if="formTypes.length > 0" density="compact">
+              <template v-for="(item, index) in formTypes">
+                <v-list-item
+                  v-if="item"
+                  :key="index"
+                  :title="`${item?.name}`"
+                ></v-list-item>
+              </template>
+            </v-list>
+            <v-alert v-else border="start" closable density="compact"
+              >No items found!
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
             <span>Credentials:</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
@@ -248,22 +270,17 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Forms Types:</span>
+            <span>Exhibitor Visibility:</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
-            <v-list v-if="formTypes.length > 0" density="compact">
-              <template v-for="(item, index) in formTypes">
-                <v-list-item
-                  v-if="item"
-                  :key="index"
-                  :title="`${item?.name}`"
-                ></v-list-item>
-              </template>
+            <v-list density="compact">
+              <v-list-item
+                :to="{ name: 'exhibitor-visibility' }"
+                link
+                title="Add Exhibitor Visibility"
+              ></v-list-item>
             </v-list>
-            <v-alert v-else border="start" closable density="compact"
-              >No items found!
-            </v-alert>
           </v-card-text>
         </v-card>
       </v-col>

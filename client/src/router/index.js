@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import store from "../store";
 
 const Default = () => import("@/layouts/default/Default.vue");
 const Headerless = () => import("@/layouts/headerless/Headerless.vue");
@@ -19,6 +20,9 @@ const Invoice = () => import("@/views/Invoice.vue");
 const CredentialGenerate = () => import("@/views/CredentialGenerate.vue");
 const DashboardCheckinStaff = () => import("@/views/DashboardCheckinStaff.vue");
 const DashboardExhibitor = () => import("@/views/DashboardExhibitor.vue");
+const ExhibitorVisibility = () => import("@/views/ExhibitorVisibility.vue");
+
+const currentUser = store.getters["user/getCurrentUser"];
 
 const routes = [
   {
@@ -57,8 +61,16 @@ const routes = [
         component: Home,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Home",
         },
+        // beforeEnter: (to, from, next) => {
+        //   if (currentUser.role === "exhibitor") {
+        //     next({ name: "dashboard-exhibitor" });
+        //   } else if (currentUser.role === "checkin") {
+        //     next({ name: "dashboard-checkin-staff" });
+        //   }
+        // },
       },
       {
         path: "event-add",
@@ -66,6 +78,7 @@ const routes = [
         component: EventAdd,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Add Event",
         },
       },
@@ -83,6 +96,7 @@ const routes = [
         component: EventSingle,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Event",
         },
       },
@@ -92,6 +106,7 @@ const routes = [
         component: RegistrationFormAdd,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Add Registration Form",
         },
       },
@@ -109,7 +124,8 @@ const routes = [
         component: BadgeCreate,
         meta: {
           requiresAuth: true,
-          title: "Create  Badge",
+          requiresAdmin: true,
+          title: "Create Badge",
         },
       },
       {
@@ -118,6 +134,7 @@ const routes = [
         component: TicketAdd,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Add Ticket",
         },
       },
@@ -127,7 +144,18 @@ const routes = [
         component: CredentialGenerate,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Credential Generate",
+        },
+      },
+      {
+        path: "event/:eventId/exhibitor-visibility",
+        name: "exhibitor-visibility",
+        component: ExhibitorVisibility,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Exhibitor Visibility",
         },
       },
       {
@@ -136,6 +164,7 @@ const routes = [
         component: Users,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "View Attendees",
         },
       },
@@ -145,7 +174,7 @@ const routes = [
         component: DashboardCheckinStaff,
         meta: {
           requiresAuth: true,
-          title: "View Attendees",
+          title: "Home - Checkin",
         },
       },
       {
@@ -154,7 +183,7 @@ const routes = [
         component: DashboardExhibitor,
         meta: {
           requiresAuth: true,
-          title: "View Attendees",
+          title: "Home - Exhibitor",
         },
       },
     ],

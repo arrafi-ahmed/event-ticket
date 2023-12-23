@@ -131,25 +131,6 @@ onMounted(() => {
               </td>
               <td>
                 <span>{{ formatDateTime(item.createdAt) }}</span>
-                <!--                <v-menu>-->
-                <!--                  <template v-slot:activator="{ props }">-->
-                <!--                    <v-btn-->
-                <!--                      class="ms-2"-->
-                <!--                      icon="mdi-dots-vertical"-->
-                <!--                      v-bind="props"-->
-                <!--                      variant="text"-->
-                <!--                    >-->
-                <!--                    </v-btn>-->
-                <!--                  </template>-->
-                <!--                  <v-list density="compact">-->
-                <!--                    <v-list-item-->
-                <!--                      density="compact"-->
-                <!--                      link-->
-                <!--                      title="Modify"-->
-                <!--                      @click="openUserDetailsDialog(item.uId)"-->
-                <!--                    ></v-list-item>-->
-                <!--                  </v-list>-->
-                <!--                </v-menu>-->
               </td>
             </tr>
           </tbody>
