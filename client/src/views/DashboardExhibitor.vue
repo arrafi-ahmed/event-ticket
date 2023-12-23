@@ -27,16 +27,16 @@ const onError = (err) => {
   console.error(89, err);
 };
 
-onMounted(async () => {
+onMounted(() => {
   store.commit("badge/resetUserScannedByExhibitor");
-  await store.dispatch("event/setEventByAppUserId", currentUser.value.id);
-  await store.dispatch("badge/setUserScannedByExhibitor", {
-    qrCodeData: JSON.stringify({
-      id: 1,
-      qrUuid: "7a3960ee-6d92-4f8a-9ead-ea59b4d187fb",
-    }),
-    eventId: 2,
-  });
+  store.dispatch("event/setEventByAppUserId", currentUser.value.id);
+  // await store.dispatch("badge/setUserScannedByExhibitor", {
+  //   qrCodeData: JSON.stringify({
+  //     id: 1,
+  //     qrUuid: "7a3960ee-6d92-4f8a-9ead-ea59b4d187fb",
+  //   }),
+  //   eventId: 2,
+  // });
 });
 </script>
 
