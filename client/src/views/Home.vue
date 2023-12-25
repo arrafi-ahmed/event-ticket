@@ -1,11 +1,8 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import { formatDate, getEventLogoUrl } from "@/others/util";
-import { useDisplay } from "vuetify";
-
-const { mobile } = useDisplay();
 
 const store = useStore();
 
@@ -23,8 +20,6 @@ const events = computed(() => {
   }));
 });
 
-let dialog = ref(false);
-
 onMounted(() => {
   store.dispatch("event/setEvents");
 });
@@ -35,14 +30,15 @@ onMounted(() => {
     <v-row>
       <v-col>
         <page-title justify="space-between" title="All Events">
-          <v-btn
-            :to="{ name: 'event-add' }"
-            color="primary"
-            v-bind="props"
-            variant="tonal"
+          <v-btn :to="{ name: 'event-add' }" color="primary" variant="tonal"
             >Add Event
           </v-btn>
         </page-title>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col>
         <v-list
           v-if="events.length > 0"
           :items="events"

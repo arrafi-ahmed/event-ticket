@@ -96,8 +96,9 @@ onMounted(() => {
               <th class="text-start">Organization</th>
               <th class="text-start">Ticket</th>
               <th class="text-start">Payment Method</th>
-              <th class="text-start">Status</th>
               <th class="text-start">Amount</th>
+              <th class="text-start">Payment Status</th>
+              <th class="text-start">Checked-in?</th>
               <th class="text-start">Date</th>
             </tr>
           </thead>
@@ -114,6 +115,10 @@ onMounted(() => {
               <td>{{ item.organization }}</td>
               <td>{{ item.ticketName }}</td>
               <td class="text-capitalize">{{ item.paymentMethod }}</td>
+              <td>
+                {{ getCurrencySymbol(item.ticketCurrency, "symbol") }}
+                {{ item.totalAmount }}
+              </td>
               <td class="text-capitalize">
                 <v-chip
                   :color="
@@ -125,9 +130,12 @@ onMounted(() => {
                   >{{ item.paymentStatus }}
                 </v-chip>
               </td>
-              <td>
-                {{ getCurrencySymbol(item.ticketCurrency, "symbol") }}
-                {{ item.totalAmount }}
+              <td class="text-capitalize">
+                <v-chip
+                  :color="item.badgeStatus == 1 ? 'success' : 'yellow'"
+                  variant="flat"
+                  >{{ item.badgeStatus == 1 ? "Yes" : "No" }}
+                </v-chip>
               </td>
               <td>
                 <span>{{ formatDateTime(item.createdAt) }}</span>

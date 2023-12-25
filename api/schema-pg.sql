@@ -7,6 +7,7 @@ CREATE TABLE event
     start_date     date,
     end_date       date,
     tax_percentage numeric(4, 2) NOT NULL,
+    tax_wording    varchar(255), --added
     logo_left      varchar(255),
     logo_right     varchar(255)
 );
@@ -16,16 +17,17 @@ CREATE TABLE registration_form_type
 (
     id       serial PRIMARY KEY,
     name     varchar(50) NOT NULL,
-    event_id integer REFERENCES event --added
+    event_id integer REFERENCES event
 );
 
 -- Registration Form Information
 CREATE TABLE registration_form
 (
     id           serial PRIMARY KEY,
+    terms        text,
+    email_body   text,                                               --added
     form_type_id integer REFERENCES registration_form_type NOT NULL, --changed from smallint to int
-    event_id     integer REFERENCES event,
-    terms        text                                                --added
+    event_id     integer REFERENCES event
 );
 
 -- Badge Design Information
@@ -52,6 +54,7 @@ CREATE TABLE ticket
     price                numeric      NOT NULL,
     currency             CHAR(3)      NOT NULL,
     ticket_type          varchar(50)  NOT NULL, --standard, free, extras
+    email_body           text,                  --added
     registration_form_id integer REFERENCES registration_form,
     badge_design_id      integer REFERENCES badge_design,
     event_id             integer REFERENCES event
@@ -72,8 +75,8 @@ CREATE TABLE users
     created_at           timestamp with time zone NOT NULL,
     registration_form_id integer REFERENCES registration_form,
     ticket_id            integer REFERENCES ticket,
-    event_id             integer REFERENCES event --added
-    --purchase_id          integer REFERENCES purchase --added
+    event_id             integer REFERENCES event
+    --purchase_id          integer REFERENCES purchase
 );
 
 -- Registration Information
@@ -143,20 +146,21 @@ CREATE TABLE promo_code
 -- Purchase Information
 CREATE TABLE purchase
 (
-    id                  serial PRIMARY KEY,
-    payment_method      varchar(50)              NOT NULL,
-    payment_status      varchar(50)              NOT NULL,
-    created_at          timestamp with time zone NOT NULL,
-    tax                 numeric,
-    total_amount        numeric                  NOT NULL,
-    non_extras          integer[]                NOT NULL,
-    non_extras_quantity integer[]                NOT NULL,
-    non_extras_price    integer[]                NOT NULL,
-    extras              integer[],
-    extras_quantity     integer[],
-    extras_price        integer[],
-    registration_id     integer REFERENCES registration,
-    promo_code_id       integer                  REFERENCES promo_code ON DELETE SET NULL
+    id                   serial PRIMARY KEY,
+    payment_method       varchar(50)              NOT NULL,
+    payment_status       varchar(50)              NOT NULL,
+    created_at           timestamp with time zone NOT NULL,
+    tax                  numeric,
+    total_amount         numeric                  NOT NULL,
+    non_extras           integer[]                NOT NULL,
+    non_extras_quantity  integer[]                NOT NULL,
+    non_extras_price     integer[]                NOT NULL,
+    extras               integer[],
+    extras_quantity      integer[],
+    extras_price         integer[],
+    registration_id      integer REFERENCES registration,
+    registration_form_id integer REFERENCES registration_form,
+    promo_code_id        integer                  REFERENCES promo_code ON DELETE SET NULL
 );
 
 ALTER TABLE users
@@ -255,5 +259,11 @@ CREATE TABLE survey_filler
     registration_id      integer                  REFERENCES registration ON DELETE set null,
     purchase_id          integer                  REFERENCES purchase ON DELETE set null,
     answer_id            integer[],
-    event_id             integer                  REFERENCES event ON DELETE set null --added
+    event_id             integer                  REFERENCES event ON DELETE set null
+);
+
+CREATE TABLE settings
+(
+    key   text PRIMARY KEY,
+    value text NOT NULL
 );

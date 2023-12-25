@@ -5,6 +5,7 @@ import { formatDate, getCurrencySymbol } from "@/others/util";
 
 const store = useStore();
 const invoice = computed(() => store.state.invoice.invoice);
+const settings = computed(() => store.state.settings.settings);
 const currency = ref("$");
 
 const printInvoice = () => {
@@ -31,11 +32,13 @@ onMounted(() => {
     <header>
       <h1>Invoice</h1>
       <address>
-        <p><strong>Torch Marketing Co Ltd</strong></p>
-        <p>200 Ware Road</p>
-        <p>Hoddesdon</p>
-        <p>Herts EN11 9EY</p>
-        <p>United Kingdom</p>
+        <p>
+          <strong>{{ settings.companyName }}</strong>
+        </p>
+        <p>{{ settings.street }}</p>
+        <p>{{ settings.town }}</p>
+        <p>{{ settings.county }} {{ settings.zip }}</p>
+        <p>{{ settings.country }}</p>
       </address>
       <span class="logo"> <v-img src="/img/logo.svg"></v-img></span>
     </header>
@@ -98,12 +101,15 @@ onMounted(() => {
       </table>
       <span v-if="invoice?.event">
         <small class="ml-auto"
-          >{{ invoice.event.taxPercentage }}% tax included</small
+          >{{ invoice.event.taxPercentage }}%
+          {{ invoice.event.taxWording }} included</small
         >
       </span>
       <table v-if="invoice?.purchase" class="balance">
         <tr>
-          <th><span>Tax</span></th>
+          <th>
+            <span>{{ invoice.event.taxWording }}</span>
+          </th>
           <td>
             <span data-prefix>{{ currency }}</span
             ><span>{{ invoice.purchase.tax }}</span>
@@ -144,23 +150,19 @@ onMounted(() => {
       <h1><span>Notes</span></h1>
       <div>
         <div class="float-left">
-          <p>Payment required before entry allowed.</p>
-          <p>
-            Payment terms: Full payment is due within 28 days of invoice date.
-          </p>
+          <p class="text-pre-wrap">{{ settings.invoiceNotes }}</p>
         </div>
 
         <div class="float-right">
-          <p>Paying in US$:</p>
-          <p>Bank: Natwest Bank PLC</p>
-          <p>Account Name: Torch Marketing Co. Ltd.</p>
-          <p>IBAN: GB03NWBK60730120628943</p>
-          <p>SWIFT/BIC: NWBKGB2L</p>
+          <p>Paying in {{ settings.invoiceCurrency }}:</p>
+          <p>Bank: {{ settings.bank }}</p>
+          <p>Account Name: {{ settings.accountName }}</p>
+          <p>IBAN: {{ settings.iban }}</p>
+          <p>SWIFT/BIC: {{ settings.swift }}</p>
         </div>
 
         <p class="footer pt-15">
-          Torch Marketing Co. Ltd. Registered in England: 7849677 | Registered
-          in US: EIN: 98-1405444
+          {{ settings.invoiceFooter }}
         </p>
       </div>
     </aside>

@@ -13,12 +13,8 @@ router.post(
   (req, res, next) => {
     eventService
       .save({ body: req.body, files: req.files, userId: req.currentUser.id })
-      .then((results) => {
-        if (results.length > 0) {
-          res
-            .status(200)
-            .json(new ApiResponse("Event creation successful!", results[0]));
-        }
+      .then((result) => {
+        res.status(200).json(new ApiResponse("Event saved!", result));
       })
       .catch((err) => next(err));
   }

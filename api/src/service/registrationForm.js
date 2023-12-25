@@ -26,13 +26,21 @@ exports.getFormSubmission = async (formId) => {
                  join answer a on q.id = a.question_id
         where rf.id = ${formId}`;
 };
-
+//form w form type
 exports.getForm = async (formId) => {
   return await sql`
         select rf.*, ft.*, rf.id as rf_id, ft.id as ft_id
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
         where rf.id = ${formId}`;
+};
+//only form
+exports.getFormById = async (id) => {
+  const [form] = await sql`
+        select *
+        from registration_form
+        where id = ${id}`;
+  return form;
 };
 
 exports.getFormWQuestion = async (formId) => {
@@ -73,7 +81,8 @@ exports.saveForm = async ({ payload }) => {
           payload,
           "formTypeId",
           "eventId",
-          "terms"
+          "terms",
+          "emailBody"
         )}
             returning *`;
 
@@ -129,6 +138,7 @@ exports.submitUserForm = async ({
     tickets,
     eventId,
     currency,
+    emailBodyForm,
   },
 }) => {
   //check if badgeDesign exist, otherwise throw error
@@ -209,6 +219,7 @@ exports.submitUserForm = async ({
   purchase = {
     ...purchase,
     registrationId: insertedRegistration.id,
+    registrationFormId: formId,
     createdAt: new Date(),
     extras: extrasTickets.map((item) => item.ticketId),
     extrasQuantity: extrasTickets.map((item) => item.quantity),
@@ -254,9 +265,8 @@ exports.submitUserForm = async ({
     delete surveyFiller.id;
     delete surveyFiller.ticketId;
 
-    const [insertedSurveyFiller] = await sql`insert into survey_filler ${sql(
-      surveyFiller
-    )} returning id`;
+    const [insertedSurveyFiller] = await sql`
+            insert into survey_filler ${sql(surveyFiller)} returning id`;
   }
 
   const { invoiceContent, user, event } =
@@ -271,17 +281,18 @@ exports.submitUserForm = async ({
 
   // Generate tickets and send emails in parallel
   const sendTicketPromises = insertedBadges.map(async (badge) => {
-    const { ticketContent, user } =
+    const { ticketContent, user, emailBodyTicket } =
       await emailContentService.generateTicketContent(
         badge,
         event,
         tickets,
         insertedUsers
       );
+
     return sendMailService.sendMailWAttachment(
       user.email,
       "Ticket",
-      "Ticket attached", //load from db -> form -> ticketEmailContent
+      emailBodyTicket, //load from db -> form -> ticketEmailContent
       ticketContent
     );
   });
@@ -293,7 +304,7 @@ exports.submitUserForm = async ({
   sendMailService.sendMailWAttachment(
     formFiller.email,
     "Invoice",
-    "Invoice attached", //load from db -> form -> invoiceEmailContent
+    emailBodyForm, //load from db -> form -> invoiceEmailContent
     invoiceContent
   );
   //get invoice data and return to frontend, user will be redirected to invoice page after successful payment

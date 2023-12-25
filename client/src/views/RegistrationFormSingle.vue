@@ -31,6 +31,7 @@ const form = computed(() => store.state.registrationForm.formWQuestion);
 const fields = computed(() => store.state.registrationForm.fields);
 const tickets = computed(() => store.state.ticket.tickets);
 const clientSecret = computed(() => store.state.purchase.clientSecret);
+const settings = computed(() => store.state.settings.settings);
 
 const currStep = ref(1);
 const steps = ref(["Ticket", "Registration", "T&C", "Payment"]);
@@ -250,6 +251,7 @@ const handleSubmitStepLast = async () => {
       tickets: toRaw(quantities),
       eventId: route.params.eventId,
       currency: currency.value,
+      emailBodyForm: form.value.emailBody,
     })
     .then((result) => {
       currStep.value++;
@@ -276,24 +278,23 @@ onMounted(async () => {
     store.dispatch("event/setEvent", route.params.eventId),
     store.dispatch("registrationForm/setFields"),
     store.dispatch("registrationForm/setFormWQuestion", route.params.formId),
-    store.dispatch("ticket/setTickets", {
-      registrationFormId: route.params.formId,
-    }),
+    store.dispatch("ticket/setTicketsWEarlyBirdActivated", route.params.formId),
+    store.dispatch("settings/setSettings"),
   ]);
 
   Object.assign(
     quantities,
-    tickets.value.map(({ id, ticketType, price, name }) => ({
+    tickets.value.map(({ id, ticketType, price, name, emailBody }) => ({
       ticketId: id,
       ticketPrice: price,
       ticketType: ticketType.toLowerCase(),
       name,
       quantity: 0,
+      emailBodyTicket: emailBody,
     }))
   );
-
   // Initialize the Stripe instance
-  stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC);
+  stripe = await loadStripe(settings.value.stripePublic);
 });
 </script>
 
@@ -643,6 +644,7 @@ onMounted(async () => {
                       <v-window-item value="paypal">
                         <Paypal
                           :amount="Number(total)"
+                          :client-id="settings.paypalClientId"
                           :currency="currency.toUpperCase()"
                           @post-approval="handleSubmitStepLast"
                         />
@@ -651,27 +653,30 @@ onMounted(async () => {
                       <v-window-item value="bank">
                         <div class="pa-5">
                           <div>
-                            <span class="font-weight-bold">Payment terms: </span
-                            ><span
-                              >Full payment is due within 28 days of invoice
-                              date. Bank Transfer paying in USD</span
+                            <span class="font-weight-bold">Notes: </span
+                            ><span class="text-pre-wrap">{{
+                              settings.invoiceNotes
+                            }}</span>
+                            <span
+                              >Bank Transfer paying in
+                              {{ settings.invoiceCurrency }}</span
                             >
                           </div>
                           <div>
                             <span class="font-weight-bold">Bank: </span
-                            ><span>Natwest Bank PLC</span>
+                            ><span>{{ settings.bank }}</span>
                           </div>
                           <div>
                             <span class="font-weight-bold">Account Name: </span
-                            ><span>TorchMarketing Co. Ltd.</span>
+                            ><span>{{ settings.accountName }}</span>
                           </div>
                           <div>
                             <span class="font-weight-bold">IBAN: </span
-                            ><span>GB03NWBK60730120628943</span>
+                            ><span>{{ settings.iban }}</span>
                           </div>
                           <div>
                             <span class="font-weight-bold">SWIFT/BIC: </span
-                            ><span>NWBKGB2L</span>
+                            ><span>{{ settings.swift }}</span>
                           </div>
                           <div>DOWNLOAD YOUR INVOICE AT THE TOP</div>
                         </div>

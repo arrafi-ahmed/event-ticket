@@ -17,11 +17,13 @@ exports.getUsers = async (formId) => {
                p.id       as p_id,
                t.name     as ticket_name,
                t.currency as ticket_currency,
-               r.form_filler
+               r.form_filler,
+               b.badge_status
         FROM users u
-                 JOIN registration r ON u.id = ANY (r.registered_user_id)
+                 Left JOIN registration r ON u.id = ANY (r.registered_user_id)
                  JOIN purchase p ON r.id = p.registration_id
-                 JOIN ticket t ON t.id = u.ticket_id
+                 Left JOIN ticket t ON t.id = u.ticket_id
+                 join badge b on u.id = b.user_id
         WHERE u.registration_form_id = ${formId}
         ORDER BY p.created_at DESC;
     `;

@@ -51,3 +51,11 @@ exports.getAppUserById = async (id) => {
         WHERE id = ${id}`;
   return result;
 };
+
+exports.getExhibitorsByEventId = async (eventId) => {
+  return sql`
+        select *
+        from app_user
+        WHERE event_id = ${eventId}
+          and role = 30`;
+};

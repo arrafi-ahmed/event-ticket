@@ -93,6 +93,8 @@ onMounted(() => {
       >
         <v-list-item-title>{{ item.title }}</v-list-item-title>
       </v-list-item>
+      <v-divider class="mt-2 mb-2"></v-divider>
+      <v-list-item :to="{ name: 'settings' }" title="Settings"></v-list-item>
     </v-list>
     <template v-slot:append>
       <div class="ma-5">

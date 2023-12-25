@@ -22,6 +22,7 @@ const findFormItemTypeIndex = (id) =>
 const dialog = ref(false);
 const selectedFormItemType = reactive({ id: null, title: null });
 const terms = ref(null);
+const emailBody = ref(null);
 
 const questionInit = {
   typeId: null,
@@ -73,6 +74,7 @@ const handleSubmitPublishForm = async () => {
       formTypeId: selectedFormType.value,
       eventId: route.params.eventId,
       terms: terms.value,
+      emailBody: emailBody.value,
       formItems: toRaw(formItems),
     })
     .then((result) => {
@@ -228,7 +230,15 @@ onMounted(() => {
             density="compact"
             hide-details="auto"
             label="Registration Terms & Condition"
-            prepend-inner-icon="mdi-text-box-edit-outline"
+          >
+          </v-textarea>
+          <v-textarea
+            v-model="emailBody"
+            class="mt-2 mt-md-4 text-pre-wrap"
+            clearable
+            density="compact"
+            hide-details="auto"
+            label="Email content for invoice"
           >
           </v-textarea>
           <v-row class="mt-2 mt-md-4" justify="end">

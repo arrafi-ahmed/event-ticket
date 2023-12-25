@@ -35,7 +35,7 @@ router.get("/scanBadge", auth, (req, res, next) => {
 router.get("/scanBadgeByExhibitor", auth, (req, res, next) => {
   const { id, qrUuid } = JSON.parse(req.query.qrCodeData);
   badgeService
-    .scanBadgeByExhibitor(id, qrUuid)
+    .scanBadgeByExhibitor(id, req.currentUser.id)
     .then((result) => {
       res.status(200).json(new ApiResponse(null, result));
     })

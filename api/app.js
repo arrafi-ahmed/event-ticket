@@ -27,6 +27,8 @@ app.use("/api/ticket", require("./src/controller/ticket"));
 app.use("/api/purchase", require("./src/controller/purchase"));
 app.use("/api/users", require("./src/controller/users"));
 app.use("/api/appUser", require("./src/controller/appUser"));
+app.use("/api/report", require("./src/controller/report"));
+app.use("/api/settings", require("./src/controller/settings"));
 
 app.get("/api/version", (req, res) => {
   res.status(200).json({ version: 1.0 });

@@ -50,9 +50,9 @@ onMounted(() => {
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn
-          @click="qrScannerDialog = !qrScannerDialog"
           color="primary"
           variant="tonal"
+          @click="qrScannerDialog = !qrScannerDialog"
           >Close
         </v-btn>
       </v-card-actions>
@@ -85,8 +85,8 @@ onMounted(() => {
             <v-btn
               class="ml-5"
               color="primary"
-              variant="tonal"
               size="large"
+              variant="tonal"
               @click="qrScannerDialog = !qrScannerDialog"
             >
               Scan

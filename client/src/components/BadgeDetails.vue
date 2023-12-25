@@ -2,9 +2,7 @@
 import { onMounted } from "vue";
 
 const { badgeData, id, index } = defineProps(["badgeData", "id", "index"]);
-onMounted(() => {
-  console.log(11, badgeData);
-});
+onMounted(() => {});
 </script>
 
 <template>

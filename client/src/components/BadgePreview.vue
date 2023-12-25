@@ -1,5 +1,5 @@
 <script setup>
-import { getApiPublicImgUrl, getClientPublicImgUrl } from "@/others/util";
+import { getApiPublicImgUrl } from "@/others/util";
 import BadgeDetails from "@/components/BadgeDetails.vue";
 import { computed, onMounted } from "vue";
 import QRCodeVue3 from "qrcode-vue3";
@@ -27,9 +27,7 @@ const qrOptions = {
   color: "#000",
 };
 
-onMounted(() => {
-  console.log(10, badge);
-});
+onMounted(() => {});
 </script>
 
 <template>
@@ -48,6 +46,7 @@ onMounted(() => {
               </div>
               <v-img
                 :aspect-ratio="2"
+                :eager="true"
                 :src="getApiPublicImgUrl(event.logoLeft, 'event-logo')"
               ></v-img>
               <div class="text-caption" style="height: 18px">
@@ -60,6 +59,7 @@ onMounted(() => {
               </div>
               <v-img
                 :aspect-ratio="2"
+                :eager="true"
                 :src="getApiPublicImgUrl(event.logoRight, 'event-logo')"
               ></v-img>
               <div class="text-caption" style="height: 18px">
@@ -101,6 +101,7 @@ onMounted(() => {
               </div>
               <v-img
                 :aspect-ratio="2"
+                :eager="true"
                 :src="getApiPublicImgUrl(event.logoLeft, 'event-logo')"
               ></v-img>
               <div class="text-caption" style="height: 18px">
@@ -113,6 +114,7 @@ onMounted(() => {
               </div>
               <v-img
                 :aspect-ratio="2"
+                :eager="true"
                 :src="getApiPublicImgUrl(event.logoRight, 'event-logo')"
               ></v-img>
               <div class="text-caption" style="height: 18px">
@@ -124,21 +126,21 @@ onMounted(() => {
             <div>
               <div v-if="badge.fieldIdRear.length == 0">
                 <QRCodeVue3
+                  :cornersSquareOptions="qrOptions"
+                  :dotsOptions="qrOptions"
+                  :height="125"
                   :value="qrCode"
                   :width="125"
-                  :height="125"
-                  :dotsOptions="qrOptions"
-                  :cornersSquareOptions="qrOptions"
                 />
               </div>
               <template v-for="(id, index) in sortedFieldIdRear" :key="index">
                 <QRCodeVue3
                   v-if="index === 0"
+                  :cornersSquareOptions="qrOptions"
+                  :dotsOptions="qrOptions"
+                  :height="125"
                   :value="qrCode"
                   :width="125"
-                  :height="125"
-                  :dotsOptions="qrOptions"
-                  :cornersSquareOptions="qrOptions"
                 />
                 <badge-details
                   :id="id"

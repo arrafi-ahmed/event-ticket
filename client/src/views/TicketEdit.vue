@@ -1,6 +1,6 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -13,8 +13,11 @@ const store = useStore();
 
 const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
+const tickets = computed(() => store.state.ticket.tickets);
+const ticket = computed(() => store.state.ticket.ticket);
 
-const ticket = reactive({
+const newTicket = reactive({
+  id: null,
   name: null,
   stockInit: null,
   stockCurr: null,
@@ -24,6 +27,7 @@ const ticket = reactive({
   emailBody: null,
 });
 const earlyBird = reactive({
+  id: null,
   startDate: null,
   endDate: null,
   earlyBirdPrice: null,
@@ -32,22 +36,41 @@ const earlyBird = reactive({
 
 const form = ref(null);
 const isFormValid = ref(true);
-const isEarlyBird = ref(false);
 
-const handleAddTicket = async () => {
+const isEarlyBird = computed(() => !!newTicket.eId);
+const newIsEarlyBird = ref(false);
+
+const submittingForm = ref(false);
+
+const handleEditTicket = async () => {
   await form.value.validate();
   if (!isFormValid.value) return;
 
-  ticket.eventId = event.value.id;
-  ticket.registrationFormId = ticket.registrationForm;
-  delete ticket.registrationForm;
+  submittingForm.value = true;
 
-  store.dispatch("ticket/addTicket", { ticket, earlyBird }).then((result) => {
-    router.push({
-      name: "event-single",
-      params: { eventId: ticket.eventId },
-    });
-  });
+  newTicket.eventId = event.value.id;
+  newTicket.registrationFormId = newTicket.registrationForm;
+  newTicket.id = newTicket.ticket;
+  delete newTicket.registrationForm;
+  delete newTicket.ticket;
+  delete newTicket.eId;
+  delete newTicket.startDate;
+  delete newTicket.endDate;
+  delete newTicket.earlyBirdPrice;
+  delete newTicket.ticketId;
+
+  store
+    .dispatch("ticket/addTicket", {
+      ticket: newTicket,
+      earlyBird,
+    })
+    .then((result) => {
+      // router.push({
+      //   name: "event-single",
+      //   params: { eventId: event.value.id },
+      // });
+    })
+    .finally(() => (submittingForm.value = false));
 };
 
 onMounted(async () => {
@@ -55,16 +78,60 @@ onMounted(async () => {
     await Promise.all([
       store.dispatch("event/setEvent", route.params.eventId),
       store.dispatch("registrationForm/setForms", route.params.eventId),
+      // store.dispatch("registrationForm/setTickets", newTicket.registrationForm),
     ]);
   }
 });
+
+watch(
+  () => event.value,
+  (newVal, oldVal) => {
+    console.log(10, newVal, oldVal);
+    if (oldVal && !submittingForm.value)
+      store.dispatch("registrationForm/setForms", newVal.id);
+  }
+);
+
+let updatingRegistrationForm = ref(false);
+watch(
+  () => newTicket.registrationForm,
+  (newVal, oldVal) => {
+    console.log(11, newVal, oldVal);
+    updatingRegistrationForm.value = true;
+
+    if (!submittingForm.value) {
+      store.dispatch("ticket/setTickets", newVal);
+    }
+    updatingRegistrationForm.value = false;
+  }
+);
+
+watch(
+  () => newTicket.ticket,
+  (newVal, oldVal) => {
+    console.log(12, newVal, oldVal);
+    if (!updatingRegistrationForm.value && !submittingForm.value)
+      store.dispatch("ticket/setTicket", newVal).then(() => {
+        Object.assign(newTicket, { ...ticket.value });
+        Object.assign(newIsEarlyBird, { ...isEarlyBird });
+        if (ticket.value.eId)
+          Object.assign(earlyBird, {
+            id: ticket.value.eId,
+            startDate: new Date(ticket.value.startDate),
+            endDate: new Date(ticket.value.endDate),
+            earlyBirdPrice: ticket.value.earlyBirdPrice,
+            ticketId: ticket.value.ticketId,
+          });
+      });
+  }
+);
 </script>
 
 <template>
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Add Ticket">
+        <page-title title="Edit Ticket">
           <v-btn
             icon="mdi-arrow-left"
             variant="text"
@@ -73,28 +140,29 @@ onMounted(async () => {
         </page-title>
       </v-col>
     </v-row>
+
     <v-row justify="center">
       <v-col>
         <v-form
           ref="form"
           v-model="isFormValid"
           fast-fail
-          @submit.prevent="handleAddTicket"
+          @submit.prevent="handleEditTicket"
         >
           <v-row>
             <v-col>
               <v-select
                 v-model="event"
                 :rules="[(v) => !!v || 'Event is required!']"
-                density="comfortable"
                 disabled
+                density="comfortable"
                 hide-details="auto"
                 item-title="name"
                 item-value="id"
                 label="Event"
               ></v-select>
               <v-select
-                v-model="ticket.registrationForm"
+                v-model="newTicket.registrationForm"
                 :items="forms"
                 :rules="[(v) => !!v || 'Form is required!']"
                 class="mt-2 mt-md-4"
@@ -104,8 +172,19 @@ onMounted(async () => {
                 item-value="rfId"
                 label="Form"
               ></v-select>
+              <v-select
+                v-model="newTicket.ticket"
+                :items="tickets"
+                :rules="[(v) => !!v || 'Ticket is required!']"
+                class="mt-2 mt-md-4"
+                density="comfortable"
+                hide-details="auto"
+                item-title="name"
+                item-value="id"
+                label="Ticket"
+              ></v-select>
               <v-text-field
-                v-model="ticket.name"
+                v-model="newTicket.name"
                 :rules="[(v) => !!v || 'Name is required!']"
                 class="mt-2 mt-md-4"
                 clearable
@@ -114,7 +193,7 @@ onMounted(async () => {
                 label="Name"
               ></v-text-field>
               <v-select
-                v-model="ticket.ticketType"
+                v-model="newTicket.ticketType"
                 :items="['Standard', 'Free', 'Extras']"
                 :rules="[(v) => !!v || 'Ticket type is required!']"
                 class="mt-2 mt-md-4"
@@ -123,8 +202,8 @@ onMounted(async () => {
                 label="Ticket type"
               ></v-select>
               <v-text-field
-                v-if="ticket.ticketType !== 'Free'"
-                v-model="ticket.price"
+                v-if="newTicket.ticketType !== 'Free'"
+                v-model="newTicket.price"
                 :rules="[(v) => !!v || 'Price is required!']"
                 class="mt-2 mt-md-4"
                 density="comfortable"
@@ -143,7 +222,7 @@ onMounted(async () => {
                 type="number"
               ></v-text-field>
               <v-select
-                v-model="ticket.currency"
+                v-model="newTicket.currency"
                 :items="['USD', 'GBP', 'EUR']"
                 :rules="[(v) => !!v || 'Currency is required!']"
                 class="mt-2 mt-md-4"
@@ -153,7 +232,7 @@ onMounted(async () => {
                 type="number"
               ></v-select>
               <v-text-field
-                v-model="ticket.stockInit"
+                v-model="newTicket.stockInit"
                 :rules="[(v) => !!v || 'Initial stock is required!']"
                 class="mt-2 mt-md-4"
                 density="comfortable"
@@ -162,7 +241,7 @@ onMounted(async () => {
                 type="number"
               ></v-text-field>
               <v-textarea
-                v-model="ticket.emailBody"
+                v-model="newTicket.emailBody"
                 class="mt-2 mt-md-4 text-pre-wrap"
                 clearable
                 density="compact"
@@ -173,15 +252,16 @@ onMounted(async () => {
 
               <!--              early bird-->
               <v-switch
-                v-if="ticket.ticketType !== 'Free'"
+                v-if="newTicket.ticketType !== 'Free'"
                 v-model="isEarlyBird"
                 :label="`Apply Early Bird price? ${isEarlyBird ? 'Yes' : 'No'}`"
                 class="mt-2 mt-md-4"
                 hide-details
+                disabled
                 inset
               ></v-switch>
               <v-card
-                v-if="isEarlyBird && ticket.ticketType !== 'Free'"
+                v-if="isEarlyBird && newTicket.ticketType !== 'Free'"
                 class="border rounded-sm pa-2"
               >
                 <v-card-text>
@@ -230,7 +310,7 @@ onMounted(async () => {
                 color="primary"
                 type="submit"
                 variant="tonal"
-                >Add
+                >Save
               </v-btn>
             </v-col>
           </v-row>

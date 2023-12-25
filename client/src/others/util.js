@@ -23,6 +23,9 @@ export const formatDateTime = (inputDateTime) => {
   return `${formattedDate} ${hours}:${minutes}`;
 };
 
+export const getDateFromDateTime = (date) =>
+  new Date(date).toISOString().slice(0, 10);
+
 export const getClientPublicImgUrl = (imageName) =>
   imageName ? `/img/${imageName}` : null;
 

@@ -1,20 +1,28 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
-import { isValidImage } from "@/others/util";
+import { useRoute, useRouter } from "vue-router";
+import {
+  getDateFromDateTime,
+  getEventLogoUrl,
+  isValidImage,
+} from "@/others/util";
 import { useDisplay } from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
 
 const { mobile } = useDisplay();
 const router = useRouter();
+const route = useRoute();
 const store = useStore();
 
+const event = computed(() => store.state.event.event);
+
 const newEventInit = {
+  id: null,
   name: null,
-  startDate: new Date(),
-  endDate: new Date(),
+  startDate: null,
+  endDate: null,
   location: null,
   taxPercentage: null,
   taxWording: null,
@@ -34,6 +42,7 @@ const handleAddEvent = async () => {
   if (!isFormValid.value) return;
 
   const formData = new FormData();
+  formData.append("id", newEvent.id);
   formData.append("name", newEvent.name);
   formData.append("startDate", newEvent.startDate);
   formData.append("endDate", newEvent.endDate);
@@ -54,13 +63,23 @@ const handleAddEvent = async () => {
     });
   });
 };
+
+onMounted(() => {
+  store.dispatch("event/setEvent", route.params.eventId).then(() => {
+    Object.assign(newEvent, {
+      ...event.value,
+      startDate: new Date(event.value.startDate),
+      endDate: new Date(event.value.endDate),
+    });
+  });
+});
 </script>
 
 <template>
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Add Event">
+        <page-title title="Edit Event">
           <v-btn
             icon="mdi-arrow-left"
             variant="text"
@@ -76,6 +95,7 @@ const handleAddEvent = async () => {
           ref="form"
           v-model="isFormValid"
           fast-fail
+          v-if="newEvent.id"
           @submit.prevent="handleAddEvent"
         >
           <v-text-field
@@ -140,57 +160,79 @@ const handleAddEvent = async () => {
             prepend-inner-icon="mdi-cash"
           ></v-text-field>
 
-          <v-file-input
-            :rules="[
-              (v) =>
-                (Array.isArray(v) ? v : [v]).every((file) =>
-                  isValidImage(file)
-                ) || 'Only jpg/jpeg/png allowed!',
-            ]"
-            accept="image/*"
-            class="mt-2 mt-md-4"
-            density="compact"
-            hide-details="auto"
-            label="Event logo"
-            prepend-icon=""
-            prepend-inner-icon="mdi-camera"
-            show-size
-            @update:modelValue="handleEventLogo(0, $event)"
-          >
-            <template v-slot:selection="{ fileNames }">
-              <template v-for="fileName in fileNames" :key="fileName">
-                <v-chip class="me-2" color="primary" label size="small">
-                  {{ fileName }}
-                </v-chip>
-              </template>
-            </template>
-          </v-file-input>
+          <v-row align="center" no-gutters>
+            <v-col cols="auto" class="mt-4">
+              <v-img
+                :width="70"
+                :aspect-ratio="1.4"
+                :src="getEventLogoUrl(newEvent.logoLeft)"
+              ></v-img>
+            </v-col>
+            <v-col>
+              <v-file-input
+                :rules="[
+                  (v) =>
+                    (Array.isArray(v) ? v : [v]).every((file) =>
+                      isValidImage(file)
+                    ) || 'Only jpg/jpeg/png allowed!',
+                ]"
+                accept="image/*"
+                class="mt-5 mt-md-4 ms-1"
+                density="compact"
+                hide-details="auto"
+                label="Event logo"
+                prepend-icon=""
+                prepend-inner-icon="mdi-camera"
+                show-size
+                @update:modelValue="handleEventLogo(0, $event)"
+              >
+                <template v-slot:selection="{ fileNames }">
+                  <template v-for="fileName in fileNames" :key="fileName">
+                    <v-chip class="me-2" color="primary" label size="small">
+                      {{ fileName }}
+                    </v-chip>
+                  </template>
+                </template>
+              </v-file-input>
+            </v-col>
+          </v-row>
 
-          <v-file-input
-            :rules="[
-              (v) =>
-                (Array.isArray(v) ? v : [v]).every((file) =>
-                  isValidImage(file)
-                ) || 'Only jpg/jpeg/png allowed!',
-            ]"
-            accept="image/*"
-            class="mt-2 mt-md-4"
-            density="compact"
-            hide-details="auto"
-            label="Badge sponsor logo"
-            prepend-icon=""
-            prepend-inner-icon="mdi-camera"
-            show-size
-            @update:modelValue="handleEventLogo(1, $event)"
-          >
-            <template v-slot:selection="{ fileNames }">
-              <template v-for="fileName in fileNames" :key="fileName">
-                <v-chip class="me-2" color="primary" label size="small">
-                  {{ fileName }}
-                </v-chip>
-              </template>
-            </template>
-          </v-file-input>
+          <v-row align="center" no-gutters>
+            <v-col cols="auto" class="mt-4">
+              <v-img
+                :width="70"
+                :aspect-ratio="1.4"
+                :src="getEventLogoUrl(newEvent.logoRight)"
+              ></v-img>
+            </v-col>
+            <v-col>
+              <v-file-input
+                :rules="[
+                  (v) =>
+                    (Array.isArray(v) ? v : [v]).every((file) =>
+                      isValidImage(file)
+                    ) || 'Only jpg/jpeg/png allowed!',
+                ]"
+                accept="image/*"
+                class="mt-5 mt-md-4 ms-1"
+                density="compact"
+                hide-details="auto"
+                label="Badge sponsor logo"
+                prepend-icon=""
+                prepend-inner-icon="mdi-camera"
+                show-size
+                @update:modelValue="handleEventLogo(1, $event)"
+              >
+                <template v-slot:selection="{ fileNames }">
+                  <template v-for="fileName in fileNames" :key="fileName">
+                    <v-chip class="me-2" color="primary" label size="small">
+                      {{ fileName }}
+                    </v-chip>
+                  </template>
+                </template>
+              </v-file-input>
+            </v-col>
+          </v-row>
 
           <div class="d-flex align-center mt-3 mt-md-4">
             <v-spacer></v-spacer>
@@ -199,7 +241,7 @@ const handleAddEvent = async () => {
               color="primary"
               type="submit"
               variant="tonal"
-              >Add
+              >Save
             </v-btn>
           </div>
         </v-form>

@@ -4,15 +4,19 @@ import { onBeforeMount, ref } from "vue";
 import { toast } from "vuetify-sonner";
 
 // Change to your CLIENT ID gotten from the developer dashboard
-const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+// const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 
-const { amount, currency } = defineProps(["amount", "currency"]);
+const { amount, currency, clientId } = defineProps([
+  "amount",
+  "currency",
+  "clientId",
+]);
 const emit = defineEmits(["post-approval"]);
 const paid = ref(false);
 
 onBeforeMount(() => {
   loadScript({
-    "client-id": CLIENT_ID,
+    "client-id": clientId,
     currency: currency,
     "disable-funding": ["paylater", "venmo", "card"],
   }).then((paypal) => {

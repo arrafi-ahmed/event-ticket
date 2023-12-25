@@ -42,16 +42,18 @@ exports.getBadgeById = async (badgeId) => {
 };
 
 exports.validateQrCode = async (id, qrUuid, eventId) => {
-  const [badge] = await sql`select *
-                              from badge
-                              where id = ${id}`;
+  const [badge] = await sql`
+        select *
+        from badge
+        where id = ${id}`;
   if (
     !badge ||
-    badge.qrUuid !== qrUuid ||
-    badge.badgeStatus === 1 ||
-    badge.eventId !== eventId
-  )
+    badge.qrUuid != qrUuid ||
+    badge.badgeStatus == 1 ||
+    badge.eventId != eventId
+  ) {
     throw new CustomError("Invalid QR Code", 401);
+  }
 
   return badge;
 };
@@ -104,7 +106,7 @@ exports.getBadgeWExhibitorVisibilityById = async (badgeId) => {
   return badge;
 };
 
-exports.scanBadgeByExhibitor = async (badgeId) => {
+exports.scanBadgeByExhibitor = async (badgeId, exhibitorId) => {
   const badgeWVisibility = await exports.getBadgeWExhibitorVisibilityById(
     badgeId
   );
@@ -128,21 +130,28 @@ exports.scanBadgeByExhibitor = async (badgeId) => {
     },
     []
   );
-  const filteredFieldQuestions = badgeWVisibility.fieldIdQuestion.reduce(
-    (acc, parentItem) => {
-      return acc.concat(
-        formWAnswer.questions.filter((childItem) => parentItem == childItem.id)
-      );
-    },
-    []
-  );
-  const filteredAnswers = filteredFieldQuestions.reduce((acc, parentItem) => {
-    return acc.concat(
-      formWAnswer.answers.filter(
-        (childItem) => parentItem.id == childItem.questionId
-      )
+  let filteredFieldQuestions = [];
+  let filteredAnswers = [];
+
+  if (formWAnswer && formWAnswer.questions)
+    filteredFieldQuestions = badgeWVisibility.fieldIdQuestion.reduce(
+      (acc, parentItem) => {
+        return acc.concat(
+          formWAnswer.questions.filter(
+            (childItem) => parentItem == childItem.id
+          )
+        );
+      },
+      []
     );
-  }, []);
+  if (formWAnswer && formWAnswer.answers)
+    filteredAnswers = filteredFieldQuestions.reduce((acc, parentItem) => {
+      return acc.concat(
+        formWAnswer.answers.filter(
+          (childItem) => parentItem.id == childItem.questionId
+        )
+      );
+    }, []);
 
   const userWFieldStandard = filteredFieldStandard.reduce((obj, field) => {
     let camelCaseFieldName = toCamelCase(field.fieldName);
@@ -152,8 +161,14 @@ exports.scanBadgeByExhibitor = async (badgeId) => {
     return obj;
   }, {});
 
-  console.log(47, toCamelCase(filteredFieldStandard[0].fieldName));
-  console.log(48, user, filteredFieldStandard, userWFieldStandard);
+  //insert into badge_scan
+  const badgeScan = {
+    badgeId,
+    exhibitorId,
+    createdAt: new Date(),
+  };
+  const [insertedBadgeScan] = await sql`
+        insert into badge_scan ${sql(badgeScan)} returning *`;
 
   return {
     standards: userWFieldStandard,

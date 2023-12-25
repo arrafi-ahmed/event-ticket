@@ -18,7 +18,6 @@ $axios.interceptors.request.use((config) => {
 $axios.interceptors.response.use(
   (response) => {
     store.commit("setProgress", false);
-
     let color = "blue";
     if (response.data?.msg) {
       if (response.status >= 200 && response.status <= 299) {
@@ -41,7 +40,23 @@ $axios.interceptors.response.use(
   },
   (err) => {
     store.commit("setProgress", false);
-    if (err.response?.data?.msg) {
+    if (err.response?.data instanceof Blob) {
+      let reader = new FileReader();
+      reader.onload = function () {
+        let error = JSON.parse(reader.result);
+        toast(error.msg, {
+          cardProps: { color: "error", class: "d-print-none" },
+          action: {
+            label: "Close",
+            buttonProps: {
+              color: "white",
+            },
+            onClick() {},
+          },
+        });
+      };
+      reader.readAsText(err.response.data);
+    } else if (err.response?.data?.msg) {
       toast(err.response?.data?.msg, {
         cardProps: { color: "error", class: "d-print-none" },
         action: {

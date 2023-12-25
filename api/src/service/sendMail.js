@@ -22,7 +22,7 @@ const sendMail = async (to, subject, html) => {
 
 const sendMailWAttachment = async (to, subject, text, pdf) => {
   const pdfBuffer = Buffer.from(pdf.output(), "binary");
-
+  console.log(3, text);
   return transporter.sendMail({
     from: `Torch Events <${SMTP_USER}>`,
     to,

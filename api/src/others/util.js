@@ -71,11 +71,22 @@ const generateQrCode = async ({ id, qrUuid }) => {
 };
 
 const toCamelCase = (str) => {
-  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
     if (+match === 0) return "";
     return index === 0 ? match.toLowerCase() : match.toUpperCase();
   });
-}
+};
+
+const arrToObj = (arr) => {
+  return arr.reduce((obj, item) => {
+    obj[item.key] = item.value;
+    return obj;
+  }, {});
+};
+
+const objToArr = (obj) => {
+  return Object.entries(obj).map(([key, value]) => ({ key, value }));
+};
 
 module.exports = {
   API_BASE_URL,
@@ -92,4 +103,6 @@ module.exports = {
   formatDate,
   toCamelCase,
   logoSvgString,
+  arrToObj,
+  objToArr,
 };

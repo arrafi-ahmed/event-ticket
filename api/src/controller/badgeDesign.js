@@ -26,6 +26,13 @@ router.get("/getAllBadgeDesigns", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
+router.get("/getBadgeDesignByFormId", auth, (req, res, next) => {
+  badgeService
+    .getBadgeDesignByFormId(req.query.formId)
+    .then((result) => res.status(200).json(new ApiResponse(null, result)))
+    .catch((err) => next(err));
+});
+
 router.get("/getBadgeDesignWVisibility", auth, (req, res, next) => {
   badgeService
     .getBadgeDesignWVisibility(req.query.badgeDesignId)

@@ -23,15 +23,28 @@ exports.save = async ({ body, files }) => {
     endDate: body.endDate,
     location: body.location,
     taxPercentage: body.taxPercentage,
+    taxWording: body.taxWording,
     logoLeft,
     logoRight,
   };
-  return sql`insert into event ${sql(event)} returning *`;
+
+  if (body.id) event.id = body.id;
+  if (!logoLeft) delete event.logoLeft;
+  if (!logoRight) delete event.logoRight;
+  console.log(99, event);
+  const [upsertedEvent] = await sql`
+        insert into event ${sql(event)}
+        ON CONFLICT (id)
+        DO UPDATE SET ${sql(event)}
+        returning *`;
+
+  return upsertedEvent;
 };
 
 exports.getAllEvents = async () => {
   return sql`select *
-               from event`;
+               from event
+               order by id desc `;
 };
 
 exports.getEventById = async (id) => {

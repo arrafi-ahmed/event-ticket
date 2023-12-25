@@ -21,7 +21,7 @@ const badgeDesign = computed(() => store.state.badgeDesign.badgeDesign);
 const badgePreviewDialog = ref(false);
 
 const openBadge = async (badgeDesignId) => {
-  await store.dispatch("badgeDesign/setBadgeDesign", {
+  await store.dispatch("badgeDesign/setBadgeDesignWVisibility", {
     badgeDesignId,
   });
   badgePreviewDialog.value = !badgePreviewDialog.value;
@@ -42,6 +42,26 @@ const handleSubmitFormType = async () => {
   store.dispatch("registrationForm/addFormType", newFormType).then(() => {
     formTypeDialog.value = !formTypeDialog.value;
   });
+};
+
+const handleDownloadAttendeeReport = () => {
+  store.dispatch("report/downloadAttendeeReport", route.params.eventId);
+};
+
+const handleDownloadCheckinReport = () => {
+  store.dispatch("report/downloadCheckinReport", route.params.eventId);
+};
+
+const handleDownloadScannedBadgeReport = () => {
+  store.dispatch("report/downloadScannedBadgeReport", route.params.eventId);
+};
+
+const handleDownloadFinancialReport = () => {
+  store.dispatch("report/downloadFinancialReport", route.params.eventId);
+};
+
+const handleDownloadSurveyReport = () => {
+  store.dispatch("report/downloadSurveyReport", route.params.eventId);
 };
 
 const fetchData = async () => {
@@ -146,7 +166,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Forms:</span>
+            <span>Forms</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -176,7 +196,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Attendees:</span>
+            <span>Attendees</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -205,7 +225,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Badges:</span>
+            <span>Badges</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -230,7 +250,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Forms Types:</span>
+            <span>Forms Types</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -252,7 +272,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Credentials:</span>
+            <span>Credentials</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -270,7 +290,7 @@ onMounted(() => {
       <v-col cols="12" sm="6">
         <v-card density="compact">
           <v-card-title>
-            <span>Exhibitor Visibility:</span>
+            <span>Exhibitor Visibility</span>
             <v-divider class="my-2"></v-divider>
           </v-card-title>
           <v-card-text>
@@ -279,6 +299,81 @@ onMounted(() => {
                 :to="{ name: 'exhibitor-visibility' }"
                 link
                 title="Add Exhibitor Visibility"
+              ></v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
+            <span>Reports</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list density="compact">
+              <v-list-item
+                link
+                title="Attendee Report"
+                @click="handleDownloadAttendeeReport"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Check-In Report"
+                @click="handleDownloadCheckinReport"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Scanned Badge Report"
+                @click="handleDownloadScannedBadgeReport"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Revenue Report"
+                @click="handleDownloadFinancialReport"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Survey Report"
+                @click="handleDownloadSurveyReport"
+              ></v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6">
+        <v-card density="compact">
+          <v-card-title>
+            <span>Modify Data</span>
+            <v-divider class="my-2"></v-divider>
+          </v-card-title>
+          <v-card-text>
+            <v-list density="compact">
+              <v-list-item
+                link
+                title="Modify Event"
+                :to="{
+                  name: 'event-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Modify Tickets"
+                :to="{
+                  name: 'ticket-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
+              ></v-list-item>
+              <v-list-item
+                link
+                title="Modify Badge"
+                :to="{
+                  name: 'badge-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
               ></v-list-item>
             </v-list>
           </v-card-text>

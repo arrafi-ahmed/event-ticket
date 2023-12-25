@@ -5,6 +5,7 @@ export const namespaced = true;
 export const state = {
   badgeDesigns: [],
   badgeDesign: {},
+  badgeDesignWVisibility: {},
 };
 
 export const mutations = {
@@ -13,6 +14,9 @@ export const mutations = {
   },
   setBadgeDesign(state, payload) {
     state.badgeDesign = payload;
+  },
+  setBadgeDesignWVisibility(state, payload) {
+    state.badgeDesignWVisibility = payload;
   },
   addBadgeDesign(state, payload) {
     state.badgeDesigns.unshift(payload);
@@ -35,7 +39,24 @@ export const actions = {
         });
     });
   },
-  setBadgeDesign({ commit }, request) {
+  setBadgeDesignByFormId({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/badgeDesign/getBadgeDesignByFormId", {
+          params: {
+            formId: request.formId,
+          },
+        })
+        .then((response) => {
+          commit("setBadgeDesign", response.data?.payload);
+          resolve(response.data?.payload);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  setBadgeDesignWVisibility({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
         .get("/api/badgeDesign/getBadgeDesignWVisibility", {
@@ -44,7 +65,7 @@ export const actions = {
           },
         })
         .then((response) => {
-          commit("setBadgeDesign", response.data?.payload);
+          commit("setBadgeDesignWVisibility", response.data?.payload);
           resolve(response.data?.payload);
         })
         .catch((err) => {

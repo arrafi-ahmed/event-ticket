@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { reactive, ref } from "vue";
 
 const { modelValue, customClass } = defineProps(["modelValue", "customClass"]);
 const emit = defineEmits(["update:modelValue"]);
@@ -7,17 +7,17 @@ const menu = ref(false);
 
 const updateModelValue = (value) => {
   emit("update:modelValue", value);
+  Object.assign(swatchStyle, { backgroundColor: value });
+  menu.value = false;
 };
 
-const swatchStyle = computed(() => {
-  return {
-    backgroundColor: modelValue,
-    cursor: "pointer",
-    height: "30px",
-    width: "30px",
-    borderRadius: menu.value ? "50%" : "4px",
-    transition: "border-radius 200ms ease-in-out",
-  };
+const swatchStyle = reactive({
+  backgroundColor: modelValue,
+  cursor: "pointer",
+  height: "30px",
+  width: "30px",
+  borderRadius: menu.value ? "50%" : "4px",
+  transition: "border-radius 200ms ease-in-out",
 });
 </script>
 <template>

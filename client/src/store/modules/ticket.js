@@ -20,10 +20,23 @@ export const mutations = {
 };
 
 export const actions = {
+  setTicketsWEarlyBirdActivated({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/ticket/getTicketsWEarlyBirdActivated", { params: { formId: request } })
+        .then((response) => {
+          commit("setTickets", response.data?.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
   setTickets({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .get("/api/ticket/getTickets", { params: { payload: request } })
+        .get("/api/ticket/getTickets", { params: { formId: request } })
         .then((response) => {
           commit("setTickets", response.data?.payload);
           resolve(response);

@@ -9,6 +9,8 @@ import * as purchase from "./modules/purchase";
 import * as appUser from "./modules/appUser";
 import * as users from "./modules/users";
 import * as invoice from "./modules/invoice";
+import * as report from "./modules/report";
+import * as settings from "./modules/settings";
 
 const store = createStore({
   modules: {
@@ -22,6 +24,8 @@ const store = createStore({
     purchase,
     users,
     invoice,
+    report,
+    settings,
   },
   state: () => ({
     progress: null,

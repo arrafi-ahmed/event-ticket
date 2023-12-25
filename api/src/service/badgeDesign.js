@@ -9,30 +9,27 @@ exports.getBadgeDesign = async (id) => {
 };
 
 exports.getBadgeDesignByFormId = async (formId) => {
-  const [foundBadgeDesign] = await sql`select *
-                                         from badge_design
-                                         where registration_form_id = ${formId}`;
+  const [foundBadgeDesign] = await sql`
+        select *
+        from badge_design
+        where registration_form_id = ${formId}`;
   return foundBadgeDesign;
 };
 
 exports.saveBadgeDesign = async ({
   payload: { badgeDesign, badgeVisibility },
 }) => {
-  const foundBadgeDesign = await exports.getBadgeDesignByFormId(
-    badgeDesign.registrationFormId
-  );
-  if (foundBadgeDesign)
-    throw new CustomError("Badge design already exist!", 409);
-
-  const [insertedBadgeDesign] = await sql`insert into badge_design ${sql(
-    badgeDesign
-  )} returning *`;
+  const [insertedBadgeDesign] = await sql`
+        insert into badge_design ${sql(badgeDesign)}
+        on conflict (id)
+        do update set ${sql(badgeDesign)} returning *`;
 
   badgeVisibility.badgeDesignId = insertedBadgeDesign.id;
 
-  const insertedBadgeVisibility = await sql`insert into badge_visibility ${sql(
-    badgeVisibility
-  )} returning *`;
+  const insertedBadgeVisibility = await sql`
+        insert into badge_visibility ${sql(badgeVisibility)}
+        on conflict (id)
+        do update set ${sql(badgeVisibility)} returning *`;
 
   return insertedBadgeDesign;
 };
@@ -45,7 +42,7 @@ exports.getAllBadgeDesigns = async (eventId) => {
 
 exports.getBadgeDesignWVisibility = async (badgeDesignId) => {
   const [result] = await sql`
-        select bd.*, bv.*
+        select bd.*, bv.*, bd.id as bd_id, bv.id as bv_id
         from badge_design bd
                  join badge_visibility bv on bd.id = bv.badge_design_id
         where bd.id = ${badgeDesignId}`;

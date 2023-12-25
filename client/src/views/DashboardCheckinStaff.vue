@@ -17,17 +17,18 @@ const form = ref(null);
 const isFormValid = ref(true);
 const searchingName = ref(null);
 
-const handleSeachUser = () => {
-  store.dispatch("users/setUsersByNameNEventId", {
+const onError = (err) => {
+  console.error(89, err);
+};
+const handleSeachUser = async () => {
+  await form.value.validate();
+  if (!isFormValid.value) return;
+
+  await store.dispatch("users/setUsersByNameNEventId", {
     name: searchingName.value,
     eventId: event.value.id,
   });
 };
-
-const onError = (err) => {
-  console.error(89, err);
-};
-
 const qrScannerDialog = ref(false);
 
 const handleScan = async ([decodedString]) => {
@@ -85,9 +86,9 @@ onMounted(() => {
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn
-          @click="qrScannerDialog = !qrScannerDialog"
           color="primary"
           variant="tonal"
+          @click="qrScannerDialog = !qrScannerDialog"
           >Close
         </v-btn>
       </v-card-actions>
@@ -120,8 +121,8 @@ onMounted(() => {
             <v-btn
               class="ml-5"
               color="primary"
-              variant="tonal"
               size="large"
+              variant="tonal"
               @click="qrScannerDialog = !qrScannerDialog"
             >
               Scan
@@ -133,15 +134,19 @@ onMounted(() => {
 
     <v-row>
       <v-col>
-        <v-form v-model="isFormValid" ref="form">
+        <v-form
+          ref="form"
+          v-model="isFormValid"
+          @submit.prevent="handleSeachUser"
+        >
           <v-text-field
             v-model="searchingName"
             :rules="[(v) => !!v || 'Name is required']"
-            density="compact"
-            label="Search by name"
             append-inner-icon="mdi-magnify"
+            density="compact"
+            hide-details="auto"
+            label="Search by name"
             single-line
-            hide-details
             @click:append-inner="handleSeachUser"
           ></v-text-field>
         </v-form>
@@ -156,7 +161,7 @@ onMounted(() => {
               <th class="text-start">Name</th>
               <th class="text-start">Email</th>
               <th class="text-start">Organization</th>
-              <th class="text-start">Status</th>
+              <th class="text-start">Payment Status</th>
               <th></th>
             </tr>
           </thead>
@@ -184,9 +189,9 @@ onMounted(() => {
               </td>
               <td>
                 <v-btn
-                  @click.stop="handleCheckin(item.uId, item.pId)"
-                  variant="tonal"
                   color="primary"
+                  variant="tonal"
+                  @click.stop="handleCheckin(item.uId, item.pId)"
                   >Checkin
                 </v-btn>
               </td>
@@ -195,12 +200,12 @@ onMounted(() => {
         </v-table>
       </v-col>
     </v-row>
-    <v-alert v-else border="start" closable density="compact" class="mt-2"
+    <v-alert v-else border="start" class="mt-2" closable density="compact"
       >No users to show!
     </v-alert>
   </v-container>
 
-  <div class="d-print-block" v-if="badge.id">
+  <div v-if="badge.id" class="d-print-block">
     <badge-preview :badge="badge" :event="event"></badge-preview>
   </div>
 

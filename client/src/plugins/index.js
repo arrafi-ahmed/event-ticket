@@ -9,9 +9,9 @@ import vuetify from "./vuetify";
 import router from "../router";
 import store from "../store";
 import $axios from "@/plugins/axios";
-import { appear } from "@/directive/appear";
-import { getQueryParam, removeQueryParams } from "@/others/util";
-import { createI18n } from "vue-i18n";
+import {appear} from "@/directive/appear";
+import {getQueryParam, removeQueryParams} from "@/others/util";
+import {createI18n} from "vue-i18n";
 
 const i18n = createI18n({
   locale: "en-GB", // set locale
@@ -30,7 +30,6 @@ function handleApiQueryMsg() {
 }
 
 function handleAuthRoutes(to, isSignedin, userRole) {
-  console.log(24, userRole);
   if (to.matched.some((record) => record.meta.requiresNoAuth) && isSignedin) {
     return { name: "home" };
   } else if (

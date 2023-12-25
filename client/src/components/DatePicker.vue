@@ -1,8 +1,10 @@
 <script setup>
-import { defineEmits, defineProps, ref, watch } from "vue";
-import { formatDate } from "@/others/util";
+import { computed, defineEmits, defineProps, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
+import { formatDate } from "@/others/util";
 
+const { width, height, mobile } = useDisplay();
+const emit = defineEmits(["update:modelValue"]);
 const { label, color, modelValue, customClass, rules, variant } = defineProps([
   "label",
   "color",
@@ -11,54 +13,49 @@ const { label, color, modelValue, customClass, rules, variant } = defineProps([
   "rules",
   "variant",
 ]);
-const emit = defineEmits(["update:modelValue", "clickClear"]);
 
-const { width, height, mobile } = useDisplay();
-const isMenuOpen = ref(false);
 const selectedDate = ref(modelValue);
+const menu = ref(false);
+const formattedSelectedDate = computed(() =>
+  selectedDate.value ? formatDate(selectedDate.value) : ""
+);
 
-const handleClickClear = () => {
-  emit("clickClear");
+const handleDateChange = (newDate) => {
+  selectedDate.value = newDate;
+  emit("update:modelValue", newDate);
 };
 
-watch(modelValue, (newDate) => {
-  selectedDate.value = newDate;
-});
-
-watch(selectedDate, (newDate) => {
-  emit("update:modelValue", newDate);
-  isMenuOpen.value = false;
+watch(selectedDate, () => {
+  menu.value = false;
 });
 </script>
 
 <template>
-  <v-menu v-model="isMenuOpen" :close-on-content-click="false">
+  <v-menu v-model="menu" :close-on-content-click="false">
     <template v-slot:activator="{ props }">
       <v-text-field
-        :class="customClass"
-        :label="label"
-        :model-value="formatDate(selectedDate)"
-        :rules="rules"
-        :variant="variant"
-        clearable
-        density="compact"
-        hide-details="auto"
-        prepend-inner-icon="mdi-calendar"
-        readonly
+        v-model="formattedSelectedDate"
         v-bind="props"
-        @click:clear="handleClickClear"
-      ></v-text-field>
+        :class="customClass"
+        density="compact"
+        :rules="rules"
+        hide-details="auto"
+        :variant="variant"
+        readonly
+        prepend-inner-icon="mdi-calendar"
+        :label="label"
+        @click:clear="selectedDate = null"
+      />
     </template>
     <v-date-picker
       v-model="selectedDate"
-      :color="color"
       :height="mobile ? height : 'auto'"
       :width="mobile ? width : 'auto'"
-      position="sticky"
+      @change="handleDateChange"
+      :color="color"
       show-adjacent-months
       title=""
-    >
-    </v-date-picker>
+    />
   </v-menu>
 </template>
 <style>

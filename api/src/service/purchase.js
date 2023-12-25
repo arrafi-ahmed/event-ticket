@@ -1,9 +1,14 @@
 const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
-// const { paymentIntents } = require("stripe");
-const stripe = require("stripe")(process.env.STRIPE_SECRET);
+const settingsService = require("./settings");
+// const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 exports.createPaymentIntent = async ({ payload: { amount, currency } }) => {
+  const settings = await settingsService.getSettings();
+  console.log(33, settings.stripeSecret);
+  const stripe = require("stripe")(settings.stripeSecret);
+  console.log(34, stripe);
+
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(Number(amount) * 100),
     currency,

@@ -29,7 +29,6 @@ const signinUser = async () => {
       password: password.value,
     })
     .then((result) => {
-      console.log(22, isAdmin.value);
       if (isAdmin.value) {
         router.push({
           name: "home",
