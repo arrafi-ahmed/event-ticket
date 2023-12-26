@@ -1,12 +1,12 @@
 <script setup>
-import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
-import { computed, onMounted, reactive, ref, toRaw } from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {useStore} from "vuex";
+import {computed, onMounted, reactive, ref, toRaw} from "vue";
 import PageTitle from "@/components/PageTitle.vue";
-import { useDisplay } from "vuetify";
-import { input_fields } from "@/others/util";
+import {useDisplay} from "vuetify";
+import {input_fields} from "@/others/util";
 
-const { mobile } = useDisplay();
+const {mobile} = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -20,7 +20,7 @@ const findFormItemTypeIndex = (id) =>
   formItemTypes.findIndex((item) => item.id == id);
 
 const dialog = ref(false);
-const selectedFormItemType = reactive({ id: null, title: null });
+const selectedFormItemType = reactive({id: null, title: null});
 const terms = ref(null);
 const emailBody = ref(null);
 
@@ -31,12 +31,12 @@ const questionInit = {
   required: true,
   options: [],
 };
-const question = reactive({ ...questionInit });
+const question = reactive({...questionInit});
 const isQuestionOptionsRequired = computed(() => {
   return selectedFormItemType.id != 0 && selectedFormItemType.id != 1;
 });
 const openDialog = (itemTypeId) => {
-  Object.assign(question, { ...questionInit, options: [] });
+  Object.assign(question, {...questionInit, options: []});
   dialog.value = !dialog.value;
   const foundIndex = findFormItemTypeIndex(itemTypeId);
   Object.assign(selectedFormItemType, formItemTypes[foundIndex]);
@@ -57,7 +57,7 @@ const addFormItem = async (selectedFormItemType) => {
     delete question.options;
   }
 
-  formItems.push({ ...question });
+  formItems.push({...question});
 
   dialog.value = !dialog.value;
 };
@@ -71,19 +71,22 @@ const handleSubmitPublishForm = async () => {
 
   store
     .dispatch("registrationForm/addForm", {
-      formTypeId: selectedFormType.value,
-      eventId: route.params.eventId,
-      terms: terms.value,
-      emailBody: emailBody.value,
+      form: {
+        formTypeId: selectedFormType.value,
+        eventId: route.params.eventId,
+        terms: terms.value,
+        emailBody: emailBody.value,
+      },
       formItems: toRaw(formItems),
     })
     .then((result) => {
       router.push({
         name: "event-single",
-        params: { eventId: route.params.eventId },
+        params: {eventId: route.params.eventId},
       });
     });
 };
+
 onMounted(() => {
   store.dispatch("registrationForm/setFormTypes", route.params.eventId);
 });
@@ -136,7 +139,7 @@ onMounted(() => {
                       size="small"
                       stacked
                       v-bind="props"
-                      >Question
+                    >Question
                     </v-btn>
                   </template>
                   <v-list density="compact">
@@ -159,8 +162,8 @@ onMounted(() => {
           >
             <template v-for="(item, index) in formItems" :key="index">
               <i v-if="item.instruction" class="text-caption text-disabled">{{
-                item.instruction
-              }}</i>
+                  item.instruction
+                }}</i>
               <v-text-field
                 v-if="item.typeId == 0"
                 :label="item.text"
@@ -248,7 +251,7 @@ onMounted(() => {
                 color="primary"
                 type="submit"
                 variant="tonal"
-                >Publish
+              >Publish
               </v-btn>
             </v-col>
           </v-row>
@@ -332,7 +335,7 @@ onMounted(() => {
               :density="mobile ? 'compact' : 'default'"
               color="primary"
               type="submit"
-              >Submit
+            >Submit
             </v-btn>
           </v-card-actions>
         </v-form>

@@ -10,7 +10,7 @@ router.post("/saveForm", auth, (req, res, next) => {
       if (results) {
         res
           .status(200)
-          .json(new ApiResponse("Form creation successful!", results[0]));
+          .json(new ApiResponse("Form saved!", results[0]));
       }
     })
     .catch((err) => next(err));

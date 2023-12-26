@@ -121,7 +121,7 @@ export const actions = {
         })
         .then((response) => {
           commit("setFormWQuestion", response.data?.payload);
-          resolve(response);
+          resolve(response.data?.payload);
         })
         .catch((err) => {
           reject(err);

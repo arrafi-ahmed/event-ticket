@@ -1,8 +1,8 @@
 <script setup>
-import { defineEmits, defineProps, ref, watch } from "vue";
+import {defineEmits, defineProps, ref, watch} from "vue";
 import Phone from "@/components/Phone.vue";
 
-const { items } = defineProps([
+const {items} = defineProps([
   "items",
   "overAllIndex",
   "quantityIndex",
@@ -14,17 +14,16 @@ const emit = defineEmits(["update"]);
 watch(
   items,
   (newVal) => {
-    console.log(13, newVal);
     if (newVal) {
       inputResponses.value = newVal;
     }
   },
-  { immediate: true }
+  {immediate: true}
 );
 watch(
   () => inputResponses.value,
   (newVal) => {
-    emit("update", { newVal });
+    emit("update", {newVal});
   }
 );
 </script>
@@ -32,11 +31,16 @@ watch(
 <template v-if="items">
   <div v-if="items && items.length > 0" class="rounded my-2">
     <template v-for="(item, index) in items" :key="index">
-      <div
-        v-if="item.options && item.options.length == 0"
-        class="border rounded pa-2"
-      >
-        <h4>Question {{ index + 1 }}:</h4>
+      <div v-if="item.options && item.options.length > 0" class="border rounded pa-2">
+        <div class="d-flex align-center">
+          <h3>Question {{ index + 1 }}:</h3>
+          <v-spacer></v-spacer>
+          <v-checkbox
+            v-model="inputResponses[index].required"
+            label="Required?"
+            hide-details="auto"
+          ></v-checkbox>
+        </div>
         <v-text-field
           v-model="inputResponses[index].text"
           label="Question text"
@@ -49,45 +53,13 @@ watch(
         <v-text-field
           v-model="inputResponses[index].instruction"
           label="Question instruction"
-          :rules="[(v) => !!v || !item.required || 'required']"
           class="mt-2 mt-md-4"
           density="compact"
           hide-details="auto"
         >
         </v-text-field>
-        <v-checkbox
-          v-model="inputResponses[index].required"
-          label="Required?"
-        ></v-checkbox>
-      </div>
 
-      <div v-else class="border rounded pa-2">
-        <h4>Question {{ index + 1 }}:</h4>
-        <v-text-field
-          v-model="inputResponses[index].text"
-          label="Question text"
-          :rules="[(v) => !!v || !item.required || 'required']"
-          class="mt-2 mt-md-4"
-          density="compact"
-          hide-details="auto"
-        >
-        </v-text-field>
-        <v-text-field
-          v-model="inputResponses[index].instruction"
-          label="Question instruction"
-          :rules="[(v) => !!v || !item.required || 'required']"
-          class="mt-2 mt-md-4"
-          density="compact"
-          hide-details="auto"
-        >
-        </v-text-field>
-        <v-checkbox
-          v-model="inputResponses[index].required"
-          label="Required?"
-          hide-details="auto"
-        ></v-checkbox>
-
-        <div v-if="item.options > 0">
+        <div v-if="item.options.length > 0">
           <h4>Options:</h4>
           <template
             v-for="(itemOption, childIndex) in item.options"
@@ -104,6 +76,37 @@ watch(
             </v-text-field>
           </template>
         </div>
+      </div>
+      <div
+        v-else
+        class="border rounded pa-2"
+      >
+        <div class="d-flex align-center">
+          <h3>Question {{ index + 1 }}:</h3>
+          <v-spacer></v-spacer>
+          <v-checkbox
+            v-model="inputResponses[index].required"
+            label="Required?"
+            hide-details="auto"
+          ></v-checkbox>
+        </div>
+        <v-text-field
+          v-model="inputResponses[index].text"
+          label="Question text"
+          :rules="[(v) => !!v || !item.required || 'required']"
+          class="mt-2 mt-md-4"
+          density="compact"
+          hide-details="auto"
+        >
+        </v-text-field>
+        <v-text-field
+          v-model="inputResponses[index].instruction"
+          label="Question instruction"
+          class="mt-2 mt-md-4"
+          density="compact"
+          hide-details="auto"
+        >
+        </v-text-field>
       </div>
     </template>
   </div>

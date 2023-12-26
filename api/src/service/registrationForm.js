@@ -1,5 +1,5 @@
 const CustomError = require("../model/CustomError");
-const { sql } = require("../db");
+const {sql} = require("../db");
 const badgeService = require("./badge");
 const badgeDesignService = require("./badgeDesign");
 const usersService = require("./users");
@@ -8,7 +8,7 @@ const emailContentService = require("./emailContent");
 const sendMailService = require("./sendMail");
 
 exports.getAllForms = async (eventId) => {
-  return await sql`
+    return await sql`
         select *, rf.id as rf_id, ft.id as ft_id
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
@@ -16,7 +16,7 @@ exports.getAllForms = async (eventId) => {
 };
 // for admin
 exports.getFormSubmission = async (formId) => {
-  return await sql`
+    return await sql`
         select *
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
@@ -28,7 +28,7 @@ exports.getFormSubmission = async (formId) => {
 };
 //form w form type
 exports.getForm = async (formId) => {
-  return await sql`
+    return await sql`
         select rf.*, ft.*, rf.id as rf_id, ft.id as ft_id
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
@@ -36,15 +36,15 @@ exports.getForm = async (formId) => {
 };
 //only form
 exports.getFormById = async (id) => {
-  const [form] = await sql`
+    const [form] = await sql`
         select *
         from registration_form
         where id = ${id}`;
-  return form;
+    return form;
 };
 
 exports.getFormWQuestion = async (formId) => {
-  return await sql`
+    return await sql`
         select rf.*, ft.*, json_agg(q) as questions
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
@@ -54,7 +54,7 @@ exports.getFormWQuestion = async (formId) => {
 };
 
 exports.getFormWAnswer = async (formId, formFiller) => {
-  const [formWAnswer] = await sql`
+    const [formWAnswer] = await sql`
         select rf.*, ft.*, json_agg(q) as questions, json_agg(a) as answers
         from registration_form rf
                  join registration_form_type ft on rf.form_type_id = ft.id
@@ -63,283 +63,268 @@ exports.getFormWAnswer = async (formId, formFiller) => {
         where rf.id = ${formId}
           and a.form_filler = ${formFiller}
         group by rf.id, ft.id`;
-  return formWAnswer;
+    return formWAnswer;
 };
 
-exports.saveForm = async ({ payload }) => {
-  console.log(33, payload);
-  const [form] = await sql`
-        insert into registration_form ${sql(
-          payload,
-          "id",
-          "terms",
-          "emailBody", // changed from "emailBody"
-          "formTypeId", // changed from "formTypeId"
-          "eventId"
-        )}
+exports.saveForm = async ({payload: {form, formItems}}) => {
+    console.log(33, form);
+    console.log(34, formItems);
+    const [insertedForm] = await sql`
+        insert into registration_form ${sql(form)}
         on conflict (id)
-        do update set
-        form_type_id = excluded.form_type_id,
-        event_id = excluded.event_id,
-        terms = excluded.terms,
-        email_body = excluded.email_body
+        do update set ${sql(form)}
         returning *`;
 
-  if (payload.formItems.length > 0) {
-    const { id: registrationFormId } = form;
+    if (formItems.length > 0) {
+        const {id: registrationFormId} = insertedForm;
 
-    const formattedFormItems = payload.formItems.map((item) => {
-      item.registrationFormId = registrationFormId;
-      if (!item.options) item.options = null;
-      return item;
-    });
+        const formattedFormItems = formItems.map((item) => {
+            item.registrationFormId = registrationFormId;
+            if (!item.options) delete item.options;
+            return item;
+        });
+        console.log(0, formattedFormItems)
+        // Delete old questions
+        // await sql`delete from question where registration_form_id = ${registrationFormId}`;
 
-    // Delete old questions
-    // await sql`delete from question where registration_form_id = ${registrationFormId}`;
-
-    // Insert new questions
-    // const insertedQuestions = await sql`insert into question ${sql(
-    //   formattedFormItems
-    // )}`;
-    const insertedQuestions = await sql`
-            insert into question ${sql(formattedFormItems)}
-            on conflict (id)
-            do update set
-            type_id = excluded.type_id,
-            text = excluded.text,
-            instruction = excluded.instruction,
-            required = excluded.required,
-            options = excluded.options,
-            registration_form_id = excluded.registration_form_id
-            returning *`;
-  }
-
-  return form;
+        // Insert new questions
+        // const insertedQuestions = await sql`insert into question ${sql(
+        //   formattedFormItems
+        // )}`;
+        for (const item of formattedFormItems) {
+            const insertedQuestion = await sql`
+                insert into question ${sql(item)}
+                on conflict (id)
+                do update set ${sql(item)}
+                returning *`;
+        }
+    }
+    return insertedForm;
 };
 
 exports.getFormTypeByFormId = async (formId) => {
-  return await sql`
+    return await sql`
         select form_type_id
         from registration_form
         where id = ${formId}`;
 };
 
 exports.areRegisteredUsersExist = async (users, formId) => {
-  const results = await Promise.all(
-    users.map(async (user) => {
-      const existingRegisteredUsers = await sql`
+    const results = await Promise.all(
+        users.map(async (user) => {
+            const existingRegisteredUsers = await sql`
                 select *
                 from users u
                          join registration r on u.id = ANY (r.registered_user_id)
                 where r.registration_form_id = ${formId}
                   and u.email = ${user.email}`;
-      return existingRegisteredUsers.length > 0;
-    })
-  );
-  return results.some((value) => value === true);
+            return existingRegisteredUsers.length > 0;
+        })
+    );
+    return results.some((value) => value === true);
 };
 
 exports.submitUserForm = async ({
-  payload: {
-    registrationForm: {
-      formId,
-      allStandardAnswers,
-      questionIds,
-      additionalAnswers,
-      formFillerEmail,
-    },
-    purchase,
-    tickets,
-    eventId,
-    currency,
-    emailBodyForm,
-  },
-}) => {
-  //check if badgeDesign exist, otherwise throw error
-  const foundBadgeDesign = await badgeDesignService.getBadgeDesignByFormId(
-    formId
-  );
-  if (!foundBadgeDesign?.id)
-    throw new CustomError("Badge design for the form doesn't exist!", 404);
+                                    payload: {
+                                        registrationForm: {
+                                            formId,
+                                            allStandardAnswers,
+                                            questionIds,
+                                            additionalAnswers,
+                                            formFillerEmail,
+                                        },
+                                        purchase,
+                                        tickets,
+                                        eventId,
+                                        currency,
+                                        emailBodyForm,
+                                    },
+                                }) => {
+    //check if badgeDesign exist, otherwise throw error
+    const foundBadgeDesign = await badgeDesignService.getBadgeDesignByFormId(
+        formId
+    );
+    if (!foundBadgeDesign?.id)
+        throw new CustomError("Badge design for the form doesn't exist!", 404);
 
-  const [formType] = await exports.getFormTypeByFormId(formId);
-  //insert users
-  const users = allStandardAnswers.map((parentItem, parentIndex) => {
-    let user = {};
-    parentItem.map((childItem, childIndex) => {
-      if (childIndex === 0) user = { ...user, firstname: childItem };
-      else if (childIndex === 1) user = { ...user, surname: childItem };
-      else if (childIndex === 2) user = { ...user, jobTitle: childItem };
-      else if (childIndex === 3) user = { ...user, organization: childItem };
-      else if (childIndex === 4) user = { ...user, country: childItem };
-      else if (childIndex === 5) user = { ...user, phone: childItem };
-      else if (childIndex === 6) user = { ...user, email: childItem };
-      else if (childIndex === 7) user = { ...user, ticketId: childItem };
-      user = {
-        ...user,
-        role: Number.parseInt(formType?.formTypeId),
-        createdAt: new Date(),
-        registrationFormId: formId,
-        eventId,
-      };
-      return user;
-    });
-    return user;
-  });
-
-  const insertedUsers = await usersService.saveUsers(users);
-
-  // find formFiller userId by email
-  const formFiller = insertedUsers.find(
-    (item) => item.email === formFillerEmail
-  );
-
-  //insert answers
-  let insertedAnswers = [];
-  if (additionalAnswers.length > 0) {
-    const answers = additionalAnswers.reduce((acc, item, index) => {
-      if (item) {
-        acc.push({
-          answerText: item,
-          questionId: questionIds[index],
-          formFiller: formFiller.id,
+    const [formType] = await exports.getFormTypeByFormId(formId);
+    //insert users
+    const users = allStandardAnswers.map((parentItem, parentIndex) => {
+        let user = {};
+        parentItem.map((childItem, childIndex) => {
+            if (childIndex === 0) user = {...user, firstname: childItem};
+            else if (childIndex === 1) user = {...user, surname: childItem};
+            else if (childIndex === 2) user = {...user, jobTitle: childItem};
+            else if (childIndex === 3) user = {...user, organization: childItem};
+            else if (childIndex === 4) user = {...user, country: childItem};
+            else if (childIndex === 5) user = {...user, phone: childItem};
+            else if (childIndex === 6) user = {...user, email: childItem};
+            else if (childIndex === 7) user = {...user, ticketId: childItem};
+            user = {
+                ...user,
+                role: Number.parseInt(formType?.formTypeId),
+                createdAt: new Date(),
+                registrationFormId: formId,
+                eventId,
+            };
+            return user;
         });
-      }
-      return acc;
-    }, []);
+        return user;
+    });
 
-    insertedAnswers = await sql`insert into answer ${sql(answers)} returning *`;
-  }
+    const insertedUsers = await usersService.saveUsers(users);
 
-  //insert registration
-  const registration = {
-    createdAt: new Date(),
-    registeredUserId: insertedUsers.map((item) => item.id),
-    status: 1,
-    registrationFormId: formId,
-    formFiller: formFiller.id,
-  };
-  const [insertedRegistration] = await sql`insert into registration ${sql(
-    registration
-  )} returning id`;
+    // find formFiller userId by email
+    const formFiller = insertedUsers.find(
+        (item) => item.email === formFillerEmail
+    );
 
-  // insert purchase
-  const extrasTickets = tickets.filter(
-    (item) => item.ticketType.toLowerCase() == "extras"
-  );
-  const nonExtrasTickets = tickets.filter(
-    (item) => item.ticketType.toLowerCase() != "extras"
-  );
-  purchase = {
-    ...purchase,
-    registrationId: insertedRegistration.id,
-    registrationFormId: formId,
-    createdAt: new Date(),
-    extras: extrasTickets.map((item) => item.ticketId),
-    extrasQuantity: extrasTickets.map((item) => item.quantity),
-    extrasPrice: extrasTickets.map((item) => item.ticketPrice),
-    nonExtras: nonExtrasTickets.map((item) => item.ticketId),
-    nonExtrasQuantity: nonExtrasTickets.map((item) => item.quantity),
-    nonExtrasPrice: nonExtrasTickets.map((item) => item.ticketPrice),
-  };
+    //insert answers
+    let insertedAnswers = [];
+    if (additionalAnswers.length > 0) {
+        const answers = additionalAnswers.reduce((acc, item, index) => {
+            if (item) {
+                acc.push({
+                    answerText: item,
+                    questionId: questionIds[index],
+                    formFiller: formFiller.id,
+                });
+            }
+            return acc;
+        }, []);
 
-  const insertedPurchase = await purchaseService.savePurchase(purchase);
+        insertedAnswers = await sql`insert into answer ${sql(answers)} returning *`;
+    }
 
-  //update users with purchaseId
-  const updatedUsers = insertedUsers.map((user) => ({
-    id: user.id,
-    purchaseId: insertedPurchase.id,
-  }));
-
-  await usersService.updateUsersPurchaseId(updatedUsers);
-
-  //create badge
-  const badges = insertedUsers.map((user, index) => {
-    //check user id serial is maintained after insert
-    return {
-      badgeDesignId: foundBadgeDesign.id,
-      userId: user.id,
-      ticketId: user.ticketId,
-      purchaseId: insertedPurchase.id,
-      eventId,
-      registrationFormId: formId,
+    //insert registration
+    const registration = {
+        createdAt: new Date(),
+        registeredUserId: insertedUsers.map((item) => item.id),
+        status: 1,
+        registrationFormId: formId,
+        formFiller: formFiller.id,
     };
-  });
-  const insertedBadges = await badgeService.createBadge(badges);
+    const [insertedRegistration] = await sql`insert into registration ${sql(
+        registration
+    )} returning id`;
 
-  //insert into surveyFiller
-  if (additionalAnswers.length > 0) {
-    const surveyFiller = {
-      ...formFiller,
-      userId: formFiller.id,
-      registrationId: insertedRegistration.id,
-      purchaseId: insertedPurchase.id,
-      answerId: insertedAnswers.map((item) => item.id),
+    // insert purchase
+    const extrasTickets = tickets.filter(
+        (item) => item.ticketType.toLowerCase() == "extras"
+    );
+    const nonExtrasTickets = tickets.filter(
+        (item) => item.ticketType.toLowerCase() != "extras"
+    );
+    purchase = {
+        ...purchase,
+        registrationId: insertedRegistration.id,
+        registrationFormId: formId,
+        createdAt: new Date(),
+        extras: extrasTickets.map((item) => item.ticketId),
+        extrasQuantity: extrasTickets.map((item) => item.quantity),
+        extrasPrice: extrasTickets.map((item) => item.ticketPrice),
+        nonExtras: nonExtrasTickets.map((item) => item.ticketId),
+        nonExtrasQuantity: nonExtrasTickets.map((item) => item.quantity),
+        nonExtrasPrice: nonExtrasTickets.map((item) => item.ticketPrice),
     };
-    delete surveyFiller.id;
-    delete surveyFiller.ticketId;
 
-    const [insertedSurveyFiller] = await sql`
+    const insertedPurchase = await purchaseService.savePurchase(purchase);
+
+    //update users with purchaseId
+    const updatedUsers = insertedUsers.map((user) => ({
+        id: user.id,
+        purchaseId: insertedPurchase.id,
+    }));
+
+    await usersService.updateUsersPurchaseId(updatedUsers);
+
+    //create badge
+    const badges = insertedUsers.map((user, index) => {
+        //check user id serial is maintained after insert
+        return {
+            badgeDesignId: foundBadgeDesign.id,
+            userId: user.id,
+            ticketId: user.ticketId,
+            purchaseId: insertedPurchase.id,
+            eventId,
+            registrationFormId: formId,
+        };
+    });
+    const insertedBadges = await badgeService.createBadge(badges);
+
+    //insert into surveyFiller
+    if (additionalAnswers.length > 0) {
+        const surveyFiller = {
+            ...formFiller,
+            userId: formFiller.id,
+            registrationId: insertedRegistration.id,
+            purchaseId: insertedPurchase.id,
+            answerId: insertedAnswers.map((item) => item.id),
+        };
+        delete surveyFiller.id;
+        delete surveyFiller.ticketId;
+
+        const [insertedSurveyFiller] = await sql`
             insert into survey_filler ${sql(surveyFiller)} returning id`;
-  }
+    }
 
-  const { invoiceContent, user, event } =
-    await emailContentService.generateInvoiceContent(
-      tickets,
-      insertedUsers,
-      insertedPurchase,
-      formFiller.id,
-      eventId,
-      currency
+    const {invoiceContent, user, event} =
+        await emailContentService.generateInvoiceContent(
+            tickets,
+            insertedUsers,
+            insertedPurchase,
+            formFiller.id,
+            eventId,
+            currency
+        );
+
+    // Generate tickets and send emails in parallel
+    const sendTicketPromises = insertedBadges.map(async (badge) => {
+        const {ticketContent, user, emailBodyTicket} =
+            await emailContentService.generateTicketContent(
+                badge,
+                event,
+                tickets,
+                insertedUsers
+            );
+
+        return sendMailService.sendMailWAttachment(
+            user.email,
+            "Ticket",
+            emailBodyTicket, //load from db -> form -> ticketEmailContent
+            ticketContent
+        );
+    });
+
+    // Wait for all emails to be sent
+    Promise.all(sendTicketPromises);
+
+    // Send invoice
+    sendMailService.sendMailWAttachment(
+        formFiller.email,
+        "Invoice",
+        emailBodyForm, //load from db -> form -> invoiceEmailContent
+        invoiceContent
     );
-
-  // Generate tickets and send emails in parallel
-  const sendTicketPromises = insertedBadges.map(async (badge) => {
-    const { ticketContent, user, emailBodyTicket } =
-      await emailContentService.generateTicketContent(
-        badge,
-        event,
-        tickets,
-        insertedUsers
-      );
-
-    return sendMailService.sendMailWAttachment(
-      user.email,
-      "Ticket",
-      emailBodyTicket, //load from db -> form -> ticketEmailContent
-      ticketContent
-    );
-  });
-
-  // Wait for all emails to be sent
-  Promise.all(sendTicketPromises);
-
-  // Send invoice
-  sendMailService.sendMailWAttachment(
-    formFiller.email,
-    "Invoice",
-    emailBodyForm, //load from db -> form -> invoiceEmailContent
-    invoiceContent
-  );
-  //get invoice data and return to frontend, user will be redirected to invoice page after successful payment
-  return { purchase: insertedPurchase, user, event, tickets, currency };
+    //get invoice data and return to frontend, user will be redirected to invoice page after successful payment
+    return {purchase: insertedPurchase, user, event, tickets, currency};
 };
 
-exports.saveFormType = async ({ newFormType }) => {
-  return sql`
+exports.saveFormType = async ({newFormType}) => {
+    return sql`
         insert into registration_form_type ${sql(newFormType)}
             returning *`;
 };
 
 exports.getFormTypesByEventId = async (eventId) => {
-  return sql`
+    return sql`
         select *
         from registration_form_type
         where event_id = ${eventId}`;
 };
 
 exports.getFields = async () => {
-  return sql`
+    return sql`
         select *
         from field
         order by id`;

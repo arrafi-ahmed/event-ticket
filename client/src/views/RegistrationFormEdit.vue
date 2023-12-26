@@ -1,13 +1,13 @@
 <script setup>
-import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
-import { computed, onMounted, reactive, ref, toRaw, watch } from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {useStore} from "vuex";
+import {computed, onMounted, reactive, ref, toRaw, watch} from "vue";
 import PageTitle from "@/components/PageTitle.vue";
-import { useDisplay } from "vuetify";
-import { input_fields } from "@/others/util";
+import {useDisplay} from "vuetify";
+import {input_fields} from "@/others/util";
 import FormItemsEditable from "@/components/FormItemsEditable.vue";
 
-const { mobile } = useDisplay();
+const {mobile} = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -23,7 +23,7 @@ const newFormWQuestionInit = {
   name: null,
   questions: [],
 };
-const newFormWQuestion = reactive({ ...newFormWQuestionInit });
+const newFormWQuestion = reactive({...newFormWQuestionInit});
 const selectedForm = ref(null);
 
 const formItems = reactive([]);
@@ -32,7 +32,7 @@ const findFormItemTypeIndex = (id) =>
   formItemTypes.findIndex((item) => item.id == id);
 
 const dialog = ref(false);
-const selectedFormItemType = reactive({ id: null, title: null });
+const selectedFormItemType = reactive({id: null, title: null});
 const terms = ref(null);
 const emailBody = ref(null);
 
@@ -43,12 +43,12 @@ const questionInit = {
   required: true,
   options: [],
 };
-const question = reactive({ ...questionInit });
+const question = reactive({...questionInit});
 const isQuestionOptionsRequired = computed(() => {
   return selectedFormItemType.id != 0 && selectedFormItemType.id != 1;
 });
 const openDialog = (itemTypeId) => {
-  Object.assign(question, { ...questionInit, options: [] });
+  Object.assign(question, {...questionInit, options: []});
   dialog.value = !dialog.value;
   const foundIndex = findFormItemTypeIndex(itemTypeId);
   Object.assign(selectedFormItemType, formItemTypes[foundIndex]);
@@ -69,7 +69,7 @@ const addFormItem = async (selectedFormItemType) => {
     delete question.options;
   }
 
-  formItems.push({ ...question });
+  formItems.push({...question});
   newFormWQuestion.questions = newFormWQuestion.questions.concat(formItems);
   dialog.value = !dialog.value;
 };
@@ -85,17 +85,19 @@ const handleSubmitPublishForm = async () => {
   submitForm.value = true;
   store
     .dispatch("registrationForm/addForm", {
-      id: selectedForm.value,
-      formTypeId: newFormWQuestion.formTypeId,
-      eventId: route.params.eventId,
-      terms: newFormWQuestion.terms,
-      emailBody: newFormWQuestion.emailBody,
+      form: {
+        id: selectedForm.value,
+        formTypeId: newFormWQuestion.formTypeId,
+        eventId: route.params.eventId,
+        terms: newFormWQuestion.terms,
+        emailBody: newFormWQuestion.emailBody,
+      },
       formItems: toRaw(newFormWQuestion.questions),
     })
     .then((result) => {
       router.push({
         name: "event-single",
-        params: { eventId: route.params.eventId },
+        params: {eventId: route.params.eventId},
       });
     })
     .finally(() => (submitForm.value = false));
@@ -105,22 +107,18 @@ watch(
   () => selectedForm.value,
   (newVal, oldVal) => {
     if (submitForm.value) return;
-
-    console.log(10, newFormWQuestion);
-    Object.assign(newFormWQuestion, { ...newFormWQuestionInit });
     store
       .dispatch("registrationForm/setFormWQuestion", newVal)
       .then((result) => {
-        Object.assign(newFormWQuestion, { ...form.value });
+        Object.assign(newFormWQuestion, {...result});
       });
   },
-  { deep: true }
+  {deep: true}
 );
 
 const additionalAnswers = ref([]);
-const handleUpdateAdditionalAnswers = ({ newVal }) => {
+const handleUpdateAdditionalAnswers = ({newVal}) => {
   additionalAnswers.value = newVal;
-  console.log(11, additionalAnswers.value);
 };
 
 onMounted(() => {
@@ -159,7 +157,7 @@ onMounted(() => {
                 density="compact"
                 hide-details
                 item-title="name"
-                item-value="id"
+                item-value="rfId"
                 label="Form"
                 required
               ></v-select>
@@ -175,7 +173,7 @@ onMounted(() => {
                       size="small"
                       stacked
                       v-bind="props"
-                      >Question
+                    >Question
                     </v-btn>
                   </template>
                   <v-list density="compact">
@@ -235,7 +233,7 @@ onMounted(() => {
                   color="primary"
                   type="submit"
                   variant="tonal"
-                  >Save
+                >Save
                 </v-btn>
               </v-col>
             </v-row>
@@ -320,7 +318,7 @@ onMounted(() => {
               :density="mobile ? 'compact' : 'default'"
               color="primary"
               type="submit"
-              >Submit
+            >Submit
             </v-btn>
           </v-card-actions>
         </v-form>
