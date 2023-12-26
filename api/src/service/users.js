@@ -72,7 +72,7 @@ exports.updateUser = async (user, columns) => {
 
 exports.updateUsersPurchaseId = async (users) => {
   const formattedUsers = users.map((obj) => Object.values(obj));
-  console.log(32, formattedUsers);
+
   return sql`
         update users
         set purchase_id = (update_data.purchaseId)::int

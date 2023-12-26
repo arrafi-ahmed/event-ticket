@@ -98,7 +98,7 @@ onMounted(() => {
               <th class="text-start">Payment Method</th>
               <th class="text-start">Amount</th>
               <th class="text-start">Payment Status</th>
-              <th class="text-start">Checked-in?</th>
+              <th class="text-start">Check-in Status</th>
               <th class="text-start">Date</th>
             </tr>
           </thead>
@@ -134,7 +134,7 @@ onMounted(() => {
                 <v-chip
                   :color="item.badgeStatus == 1 ? 'success' : 'yellow'"
                   variant="flat"
-                  >{{ item.badgeStatus == 1 ? "Yes" : "No" }}
+                  >{{ item.badgeStatus == 1 ? "Checked-in" : "Not Checked-in" }}
                 </v-chip>
               </td>
               <td>

@@ -31,7 +31,7 @@ exports.save = async ({ body, files }) => {
   if (body.id) event.id = body.id;
   if (!logoLeft) delete event.logoLeft;
   if (!logoRight) delete event.logoRight;
-  console.log(99, event);
+
   const [upsertedEvent] = await sql`
         insert into event ${sql(event)}
         ON CONFLICT (id)

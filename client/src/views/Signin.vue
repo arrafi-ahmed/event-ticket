@@ -42,8 +42,7 @@ const signinUser = async () => {
           name: "dashboard-exhibitor",
         });
       }
-    })
-    .catch((err) => console.log(err));
+    });
 };
 const dialog = ref(false);
 const resetEmail = ref(null);

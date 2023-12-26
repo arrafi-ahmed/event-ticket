@@ -86,7 +86,6 @@ onMounted(async () => {
 watch(
   () => event.value,
   (newVal, oldVal) => {
-    console.log(10, newVal, oldVal);
     if (oldVal && !submittingForm.value)
       store.dispatch("registrationForm/setForms", newVal.id);
   }
@@ -96,7 +95,6 @@ let updatingRegistrationForm = ref(false);
 watch(
   () => newTicket.registrationForm,
   (newVal, oldVal) => {
-    console.log(11, newVal, oldVal);
     updatingRegistrationForm.value = true;
 
     if (!submittingForm.value) {
@@ -109,7 +107,6 @@ watch(
 watch(
   () => newTicket.ticket,
   (newVal, oldVal) => {
-    console.log(12, newVal, oldVal);
     if (!updatingRegistrationForm.value && !submittingForm.value)
       store.dispatch("ticket/setTicket", newVal).then(() => {
         Object.assign(newTicket, { ...ticket.value });
@@ -154,8 +151,8 @@ watch(
               <v-select
                 v-model="event"
                 :rules="[(v) => !!v || 'Event is required!']"
-                disabled
                 density="comfortable"
+                disabled
                 hide-details="auto"
                 item-title="name"
                 item-value="id"
@@ -256,8 +253,8 @@ watch(
                 v-model="isEarlyBird"
                 :label="`Apply Early Bird price? ${isEarlyBird ? 'Yes' : 'No'}`"
                 class="mt-2 mt-md-4"
-                hide-details
                 disabled
+                hide-details
                 inset
               ></v-switch>
               <v-card

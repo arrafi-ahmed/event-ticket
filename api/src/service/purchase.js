@@ -5,9 +5,7 @@ const settingsService = require("./settings");
 
 exports.createPaymentIntent = async ({ payload: { amount, currency } }) => {
   const settings = await settingsService.getSettings();
-  console.log(33, settings.stripeSecret);
   const stripe = require("stripe")(settings.stripeSecret);
-  console.log(34, stripe);
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(Number(amount) * 100),

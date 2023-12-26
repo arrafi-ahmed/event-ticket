@@ -11,6 +11,7 @@ const EventAdd = () => import("@/views/EventAdd.vue");
 const EventSingle = () => import("@/views/EventSingle.vue");
 const EventEdit = () => import("@/views/EventEdit.vue");
 const RegistrationFormAdd = () => import("@/views/RegistrationFormAdd.vue");
+const RegistrationFormEdit = () => import("@/views/RegistrationFormEdit.vue");
 const RegistrationFormSingle = () =>
   import("@/views/RegistrationFormSingle.vue");
 const BadgeCreate = () => import("@/views/BadgeCreate.vue");
@@ -22,7 +23,10 @@ const Invoice = () => import("@/views/Invoice.vue");
 const CredentialGenerate = () => import("@/views/CredentialGenerate.vue");
 const DashboardCheckinStaff = () => import("@/views/DashboardCheckinStaff.vue");
 const DashboardExhibitor = () => import("@/views/DashboardExhibitor.vue");
-const ExhibitorVisibility = () => import("@/views/ExhibitorVisibility.vue");
+const ExhibitorVisibilityAdd = () =>
+  import("@/views/ExhibitorVisibilityAdd.vue");
+const ExhibitorVisibilityEdit = () =>
+  import("@/views/ExhibitorVisibilityEdit.vue");
 const Settings = () => import("@/views/Settings.vue");
 
 const routes = [
@@ -115,6 +119,16 @@ const routes = [
         },
       },
       {
+        path: "event/:eventId/registration-form/edit",
+        name: "registration-form-edit",
+        component: RegistrationFormEdit,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Edit Registration Form",
+        },
+      },
+      {
         path: "event/:eventId/registration-form/:formId",
         name: "registration-form-single",
         component: RegistrationFormSingle,
@@ -173,13 +187,23 @@ const routes = [
         },
       },
       {
-        path: "event/:eventId/exhibitor-visibility",
-        name: "exhibitor-visibility",
-        component: ExhibitorVisibility,
+        path: "event/:eventId/exhibitor-visibility/add",
+        name: "exhibitor-visibility-add",
+        component: ExhibitorVisibilityAdd,
         meta: {
           requiresAuth: true,
           requiresAdmin: true,
-          title: "Exhibitor Visibility",
+          title: "Add Exhibitor Visibility",
+        },
+      },
+      {
+        path: "event/:eventId/exhibitor-visibility/edit",
+        name: "exhibitor-visibility-edit",
+        component: ExhibitorVisibilityEdit,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Edit Exhibitor Visibility",
         },
       },
       {

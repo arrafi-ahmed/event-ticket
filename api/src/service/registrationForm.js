@@ -67,27 +67,26 @@ exports.getFormWAnswer = async (formId, formFiller) => {
 };
 
 exports.saveForm = async ({ payload }) => {
-  const [existingForm] = await sql`
-        select *
-        from registration_form
-        where event_id = ${payload.eventId}
-          and form_type_id = ${payload.formTypeId}`;
-  if (existingForm) {
-    throw new CustomError("Registration Form already exists!", 409);
-  }
-
-  const [insertedForm] = await sql`
+  console.log(33, payload);
+  const [form] = await sql`
         insert into registration_form ${sql(
           payload,
-          "formTypeId",
-          "eventId",
+          "id",
           "terms",
-          "emailBody"
+          "emailBody", // changed from "emailBody"
+          "formTypeId", // changed from "formTypeId"
+          "eventId"
         )}
-            returning *`;
+        on conflict (id)
+        do update set
+        form_type_id = excluded.form_type_id,
+        event_id = excluded.event_id,
+        terms = excluded.terms,
+        email_body = excluded.email_body
+        returning *`;
 
   if (payload.formItems.length > 0) {
-    const { id: registrationFormId } = insertedForm;
+    const { id: registrationFormId } = form;
 
     const formattedFormItems = payload.formItems.map((item) => {
       item.registrationFormId = registrationFormId;
@@ -95,12 +94,27 @@ exports.saveForm = async ({ payload }) => {
       return item;
     });
 
-    const insertedQuestions = await sql`insert into question ${sql(
-      formattedFormItems
-    )}`;
+    // Delete old questions
+    // await sql`delete from question where registration_form_id = ${registrationFormId}`;
+
+    // Insert new questions
+    // const insertedQuestions = await sql`insert into question ${sql(
+    //   formattedFormItems
+    // )}`;
+    const insertedQuestions = await sql`
+            insert into question ${sql(formattedFormItems)}
+            on conflict (id)
+            do update set
+            type_id = excluded.type_id,
+            text = excluded.text,
+            instruction = excluded.instruction,
+            required = excluded.required,
+            options = excluded.options,
+            registration_form_id = excluded.registration_form_id
+            returning *`;
   }
 
-  return insertedForm;
+  return form;
 };
 
 exports.getFormTypeByFormId = async (formId) => {

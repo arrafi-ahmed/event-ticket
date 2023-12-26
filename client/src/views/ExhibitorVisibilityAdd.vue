@@ -62,7 +62,7 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Delegate Visibility">
+        <page-title title="Add Exhibitor Visibility">
           <v-btn
             icon="mdi-arrow-left"
             variant="text"

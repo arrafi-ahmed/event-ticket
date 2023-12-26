@@ -15,8 +15,9 @@ const store = useStore();
 const formTypes = computed(() => store.state.registrationForm.formTypes);
 const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
-const badgeDesigns = computed(() => store.state.badgeDesign.badgeDesigns);
-const badgeDesign = computed(() => store.state.badgeDesign.badgeDesign);
+const badgeDesignWVisibility = computed(
+  () => store.state.badgeDesign.badgeDesignWVisibility
+);
 
 const badgePreviewDialog = ref(false);
 
@@ -47,19 +48,15 @@ const handleSubmitFormType = async () => {
 const handleDownloadAttendeeReport = () => {
   store.dispatch("report/downloadAttendeeReport", route.params.eventId);
 };
-
 const handleDownloadCheckinReport = () => {
   store.dispatch("report/downloadCheckinReport", route.params.eventId);
 };
-
 const handleDownloadScannedBadgeReport = () => {
   store.dispatch("report/downloadScannedBadgeReport", route.params.eventId);
 };
-
 const handleDownloadFinancialReport = () => {
   store.dispatch("report/downloadFinancialReport", route.params.eventId);
 };
-
 const handleDownloadSurveyReport = () => {
   store.dispatch("report/downloadSurveyReport", route.params.eventId);
 };
@@ -155,6 +152,26 @@ onMounted(() => {
                   density="compact"
                   title="Ticket"
                 ></v-list-item>
+                <v-list-item
+                  :to="{
+                    name: 'exhibitor-visibility-add',
+                    params: {
+                      eventId: route.params.eventId,
+                    },
+                  }"
+                  density="compact"
+                  title="Exhibitor Visibility"
+                ></v-list-item>
+                <v-list-item
+                  :to="{
+                    name: 'credential-generate',
+                    params: {
+                      eventId: route.params.eventId,
+                    },
+                  }"
+                  density="compact"
+                  title="Generate Credential"
+                ></v-list-item>
               </v-list>
             </v-menu>
           </v-row>
@@ -222,88 +239,28 @@ onMounted(() => {
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6">
-        <v-card density="compact">
-          <v-card-title>
-            <span>Badges</span>
-            <v-divider class="my-2"></v-divider>
-          </v-card-title>
-          <v-card-text>
-            <v-list v-if="badgeDesigns.length > 0" density="compact">
-              <template v-for="(item, index) in badgeDesigns">
-                <v-list-item
-                  v-if="item"
-                  :key="index"
-                  :title="item?.title"
-                  link
-                  @click="openBadge(item.id)"
-                ></v-list-item>
-              </template>
-            </v-list>
-            <v-alert v-else border="start" closable density="compact"
-              >No items found!
-            </v-alert>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6">
-        <v-card density="compact">
-          <v-card-title>
-            <span>Forms Types</span>
-            <v-divider class="my-2"></v-divider>
-          </v-card-title>
-          <v-card-text>
-            <v-list v-if="formTypes.length > 0" density="compact">
-              <template v-for="(item, index) in formTypes">
-                <v-list-item
-                  v-if="item"
-                  :key="index"
-                  :title="`${item?.name}`"
-                ></v-list-item>
-              </template>
-            </v-list>
-            <v-alert v-else border="start" closable density="compact"
-              >No items found!
-            </v-alert>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6">
-        <v-card density="compact">
-          <v-card-title>
-            <span>Credentials</span>
-            <v-divider class="my-2"></v-divider>
-          </v-card-title>
-          <v-card-text>
-            <v-list density="compact">
-              <v-list-item
-                :to="{ name: 'credential-generate' }"
-                link
-                title="View Credentials"
-              ></v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6">
-        <v-card density="compact">
-          <v-card-title>
-            <span>Exhibitor Visibility</span>
-            <v-divider class="my-2"></v-divider>
-          </v-card-title>
-          <v-card-text>
-            <v-list density="compact">
-              <v-list-item
-                :to="{ name: 'exhibitor-visibility' }"
-                link
-                title="Add Exhibitor Visibility"
-              ></v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
+      <!--      <v-col cols="12" sm="6">-->
+      <!--        <v-card density="compact">-->
+      <!--          <v-card-title>-->
+      <!--            <span>Forms Types</span>-->
+      <!--            <v-divider class="my-2"></v-divider>-->
+      <!--          </v-card-title>-->
+      <!--          <v-card-text>-->
+      <!--            <v-list v-if="formTypes.length > 0" density="compact">-->
+      <!--              <template v-for="(item, index) in formTypes">-->
+      <!--                <v-list-item-->
+      <!--                  v-if="item"-->
+      <!--                  :key="index"-->
+      <!--                  :title="`${item?.name}`"-->
+      <!--                ></v-list-item>-->
+      <!--              </template>-->
+      <!--            </v-list>-->
+      <!--            <v-alert v-else border="start" closable density="compact"-->
+      <!--              >No items found!-->
+      <!--            </v-alert>-->
+      <!--          </v-card-text>-->
+      <!--        </v-card>-->
+      <!--      </v-col>-->
 
       <v-col cols="12" sm="6">
         <v-card density="compact">
@@ -352,28 +309,44 @@ onMounted(() => {
           <v-card-text>
             <v-list density="compact">
               <v-list-item
-                link
-                title="Modify Event"
                 :to="{
                   name: 'event-edit',
                   params: { eventId: $route.params.eventId },
                 }"
+                link
+                title="Modify Event"
               ></v-list-item>
               <v-list-item
+                :to="{
+                  name: 'registration-form-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
                 link
-                title="Modify Tickets"
+                title="Modify Form"
+              ></v-list-item>
+              <v-list-item
                 :to="{
                   name: 'ticket-edit',
                   params: { eventId: $route.params.eventId },
                 }"
+                link
+                title="Modify Tickets"
               ></v-list-item>
               <v-list-item
-                link
-                title="Modify Badge"
                 :to="{
                   name: 'badge-edit',
                   params: { eventId: $route.params.eventId },
                 }"
+                link
+                title="Modify Badge"
+              ></v-list-item>
+              <v-list-item
+                :to="{
+                  name: 'exhibitor-visibility-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
+                link
+                title="Modify Exhibitor Visibility"
               ></v-list-item>
             </v-list>
           </v-card-text>
@@ -384,7 +357,7 @@ onMounted(() => {
 
   <v-dialog v-model="badgePreviewDialog" width="700">
     <badge-preview
-      :badge="badgeDesign"
+      :badge="badgeDesignWVisibility"
       :event="event"
       card-title="Badge Design Preview"
     ></badge-preview>

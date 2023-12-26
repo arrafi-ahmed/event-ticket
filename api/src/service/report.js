@@ -147,7 +147,10 @@ exports.downloadScannedBadgeReport = async (eventId) => {
       { header: "User Id", key: "id", width: 10 },
       { header: "Name", key: "name", width: 30 },
       { header: "Email", key: "email", width: 30 },
+      { header: "Phone", key: "phone", width: 30 },
+      { header: "Job Title", key: "jobTitle", width: 30 },
       { header: "Organization", key: "organization", width: 30 },
+      { header: "Country", key: "country", width: 30 },
       { header: "Scanned At", key: "createdAt", width: 30 },
     ];
 
@@ -156,12 +159,17 @@ exports.downloadScannedBadgeReport = async (eventId) => {
         id: item.uId,
         name: item.firstname + " " + item.surname,
         email: item.email,
+        phone: item.phone,
+        jobTitle: item.jobTitle,
         organization: item.organization,
+        country: item.country,
         createdAt: item.createdAt,
       });
     });
     const buffer = await workbook.xlsx.writeBuffer();
-    archive.append(buffer, { name: `Exhibitor_${exhibitor.id}_Report.xlsx` });
+    archive.append(buffer, {
+      name: `Exhibitor_Report-${exhibitor.username}-${exhibitor.organization}.xlsx`,
+    });
   }
 
   await archive.finalize();
@@ -245,8 +253,6 @@ exports.downloadSurveyReport = async (eventId) => {
     return acc;
   }, {});
 
-  console.log(13, groupedSurveyData);
-
   const archive = archiver("zip", {
     zlib: { level: 9 }, // Sets the compression level.
   });
@@ -297,7 +303,6 @@ exports.downloadSurveyReport = async (eventId) => {
       worksheet.addRow(row);
     });
 
-    console.log(key);
     const buffer = await workbook.xlsx.writeBuffer();
     archive.append(buffer, { name: `Survey_Report_${key}.xlsx` });
   }

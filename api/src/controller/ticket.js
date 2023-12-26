@@ -8,9 +8,7 @@ router.post("/save", auth, (req, res, next) => {
     .saveTicket(req.body)
     .then((results) => {
       if (results) {
-        res
-          .status(200)
-          .json(new ApiResponse("Ticket saved!", results[0]));
+        res.status(200).json(new ApiResponse("Ticket saved!", results[0]));
       }
     })
     .catch((err) => next(err));

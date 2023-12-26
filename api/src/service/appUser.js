@@ -3,7 +3,7 @@ const { sql } = require("../db");
 
 exports.getAppUser = async (eventId) => {
   const appUsers = await sql`
-        SELECT a.*, u.*, a.role as role, u.role as uRole
+        SELECT a.*, u.*, u.id as u_id, u.role as u_role, a.id as a_id, a.role as role
         FROM app_user a
                  LEFT JOIN users u ON a.user_id = u.id
         WHERE a.role IN (20, 30)
@@ -54,8 +54,9 @@ exports.getAppUserById = async (id) => {
 
 exports.getExhibitorsByEventId = async (eventId) => {
   return sql`
-        select *
-        from app_user
-        WHERE event_id = ${eventId}
-          and role = 30`;
+        select a.*, u.*, u.id as u_id, u.role as u_role, a.role as role, a.id as id
+        from app_user a
+                 join users u on a.user_id = u.id
+        WHERE a.event_id = ${eventId}
+          and a.role = 30`;
 };

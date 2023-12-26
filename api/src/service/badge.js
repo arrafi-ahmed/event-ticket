@@ -46,13 +46,10 @@ exports.validateQrCode = async (id, qrUuid, eventId) => {
         select *
         from badge
         where id = ${id}`;
-  if (
-    !badge ||
-    badge.qrUuid != qrUuid ||
-    badge.badgeStatus == 1 ||
-    badge.eventId != eventId
-  ) {
+  if (!badge || badge.qrUuid != qrUuid || badge.eventId != eventId) {
     throw new CustomError("Invalid QR Code", 401);
+  } else if (badge.badgeStatus == 1) {
+    throw new CustomError("Already checked-in", 401);
   }
 
   return badge;
@@ -73,26 +70,15 @@ exports.getBadgeWDesignWVisibility = async (badgeId) => {
                  join badge_design bd on b.badge_design_id = bd.id
                  join badge_visibility bv on b.badge_design_id = bv.badge_design_id
         where b.id = ${badgeId}`;
-  console.log(90, result);
   return result;
 };
 
 exports.addExhibitorVisibility = async (exhibitorVisibility) => {
-  const [foundVisibility] = await sql`
-        select *
-        from exhibitor_visibility
-        where registration_form_id = ${exhibitorVisibility.registrationFormId}`;
-
-  if (foundVisibility)
-    throw new CustomError(
-      "Exhibitor visibility already exist for selected form",
-      409
-    );
-
   const [insertedVisibility] = await sql`
-        insert into exhibitor_visibility ${sql(
-          exhibitorVisibility
-        )} returning *`;
+        insert into exhibitor_visibility ${sql(exhibitorVisibility)}
+        ON CONFLICT (id)
+        DO UPDATE SET ${sql(exhibitorVisibility)}
+        RETURNING *`;
 
   return insertedVisibility;
 };
@@ -106,11 +92,19 @@ exports.getBadgeWExhibitorVisibilityById = async (badgeId) => {
   return badge;
 };
 
+exports.getExhibitorVisibilityByFormId = async (formId) => {
+  const [exhibitorVisibility] = await sql`
+        select *
+        from exhibitor_visibility
+        where registration_form_id = ${formId}`;
+
+  return exhibitorVisibility;
+};
+
 exports.scanBadgeByExhibitor = async (badgeId, exhibitorId) => {
   const badgeWVisibility = await exports.getBadgeWExhibitorVisibilityById(
     badgeId
   );
-  console.log(45, badgeId, badgeWVisibility);
   if (!badgeWVisibility) throw new CustomError("No data available!", 404);
 
   const user = await usersService.getUserById(badgeWVisibility.userId);

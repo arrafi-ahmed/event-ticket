@@ -23,7 +23,9 @@ export const actions = {
   setTicketsWEarlyBirdActivated({ commit }, request) {
     return new Promise((resolve, reject) => {
       $axios
-        .get("/api/ticket/getTicketsWEarlyBirdActivated", { params: { formId: request } })
+        .get("/api/ticket/getTicketsWEarlyBirdActivated", {
+          params: { formId: request },
+        })
         .then((response) => {
           commit("setTickets", response.data?.payload);
           resolve(response);

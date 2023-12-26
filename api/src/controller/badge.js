@@ -42,6 +42,15 @@ router.get("/scanBadgeByExhibitor", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
+router.get("/getExhibitorVisibilityByFormId", auth, (req, res, next) => {
+  badgeService
+    .getExhibitorVisibilityByFormId(req.query.formId)
+    .then((result) => {
+      res.status(200).json(new ApiResponse(null, result));
+    })
+    .catch((err) => next(err));
+});
+
 router.post("/addExhibitorVisibility", auth, (req, res, next) => {
   badgeService
     .addExhibitorVisibility(req.body)
@@ -51,7 +60,7 @@ router.post("/addExhibitorVisibility", auth, (req, res, next) => {
     .then((result) => {
       res
         .status(200)
-        .json(new ApiResponse("Exhibitor visibility added", result));
+        .json(new ApiResponse("Exhibitor visibility saved", result));
     })
     .catch((err) => next(err));
 });

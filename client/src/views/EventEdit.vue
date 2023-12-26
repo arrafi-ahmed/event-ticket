@@ -3,11 +3,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
-import {
-  getDateFromDateTime,
-  getEventLogoUrl,
-  isValidImage,
-} from "@/others/util";
+import { getEventLogoUrl, isValidImage } from "@/others/util";
 import { useDisplay } from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
 
@@ -92,10 +88,10 @@ onMounted(() => {
     <v-row>
       <v-col>
         <v-form
+          v-if="newEvent.id"
           ref="form"
           v-model="isFormValid"
           fast-fail
-          v-if="newEvent.id"
           @submit.prevent="handleAddEvent"
         >
           <v-text-field
@@ -161,11 +157,11 @@ onMounted(() => {
           ></v-text-field>
 
           <v-row align="center" no-gutters>
-            <v-col cols="auto" class="mt-4">
+            <v-col class="mt-4" cols="auto">
               <v-img
-                :width="70"
                 :aspect-ratio="1.4"
                 :src="getEventLogoUrl(newEvent.logoLeft)"
+                :width="70"
               ></v-img>
             </v-col>
             <v-col>
@@ -198,11 +194,11 @@ onMounted(() => {
           </v-row>
 
           <v-row align="center" no-gutters>
-            <v-col cols="auto" class="mt-4">
+            <v-col class="mt-4" cols="auto">
               <v-img
-                :width="70"
                 :aspect-ratio="1.4"
                 :src="getEventLogoUrl(newEvent.logoRight)"
+                :width="70"
               ></v-img>
             </v-col>
             <v-col>

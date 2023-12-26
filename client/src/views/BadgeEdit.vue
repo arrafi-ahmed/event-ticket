@@ -5,7 +5,6 @@ import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import ColorPicker from "@/components/ColorPicker.vue";
-import BadgePreview from "@/components/BadgePreview.vue";
 
 const { mobile } = useDisplay();
 const route = useRoute();
@@ -85,19 +84,16 @@ const handleSaveBadge = async () => {
     .finally(() => (submitSaveBadge = false));
 };
 
-const dialog = ref(false);
-
 watch(
   () => newBadgeDesign.registrationForm,
   (newVal, oldVal) => {
     if (submitSaveBadge) return;
-    
+
     const foundForm = forms.value.find((item) => item.rfId == newVal);
     newBadgeDesign.title = foundForm?.name?.toUpperCase();
     store
       .dispatch("badgeDesign/setBadgeDesignByFormId", { formId: newVal })
       .then((result) => {
-        console.log(4, result);
         return store.dispatch("badgeDesign/setBadgeDesignWVisibility", {
           badgeDesignId: result.id,
         });
@@ -220,10 +216,10 @@ onMounted(async () => {
                 </v-col>
                 <v-col>
                   <color-picker
+                    :key="newBadgeDesign.colorScheme"
                     v-model="newBadgeDesign.colorScheme"
                     customClass="mt-2 mt-md-4"
                     label="Color Scheme"
-                    :key="newBadgeDesign.colorScheme"
                   ></color-picker>
                 </v-col>
               </v-row>
@@ -273,12 +269,6 @@ onMounted(async () => {
               <v-row class="mt-2 mt-md-4" justify="end">
                 <v-col cols="auto">
                   <v-btn
-                    color="primary"
-                    variant="tonal"
-                    @click="dialog = !dialog"
-                    >Design Preview
-                  </v-btn>
-                  <v-btn
                     :density="mobile ? 'comfortable' : 'default'"
                     class="ms-1"
                     color="primary"
@@ -294,14 +284,6 @@ onMounted(async () => {
       </v-col>
     </v-row>
   </v-container>
-
-  <v-dialog v-model="dialog" width="700">
-    <badge-preview
-      :badge="{ ...newBadgeDesign, ...newBadgeVisibility }"
-      :event="event"
-      card-title="Badge Design Preview"
-    ></badge-preview>
-  </v-dialog>
 </template>
 
 <style scoped></style>

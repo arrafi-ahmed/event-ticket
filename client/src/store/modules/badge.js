@@ -5,6 +5,7 @@ export const namespaced = true;
 export const state = {
   badge: {},
   userScannedByExhibitor: {},
+  exhibitorVisibility: {},
 };
 
 export const mutations = {
@@ -16,6 +17,9 @@ export const mutations = {
   },
   setUserScannedByExhibitor(state, payload) {
     state.userScannedByExhibitor = payload;
+  },
+  setExhibitorVisibility(state, payload) {
+    state.exhibitorVisibility = payload;
   },
   resetUserScannedByExhibitor(state) {
     state.userScannedByExhibitor = {};
@@ -62,6 +66,21 @@ export const actions = {
         .then((response) => {
           commit("setUserScannedByExhibitor", response.data?.payload);
           resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  setExhibitorVisibilityByFormId({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/badge/getExhibitorVisibilityByFormId", {
+          params: { formId: request },
+        })
+        .then((response) => {
+          commit("setExhibitorVisibility", response.data?.payload);
+          resolve(response.data?.payload);
         })
         .catch((err) => {
           reject(err);

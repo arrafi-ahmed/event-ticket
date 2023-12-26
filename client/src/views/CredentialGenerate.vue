@@ -277,17 +277,18 @@ watch(
 
         <v-form ref="form" v-model="isFormValid" fast-fail>
           <v-select
+            class="mb-2 mb-md-4"
             v-model="selectedFormId"
             :items="forms"
             :rules="[(v) => !!v || 'Exhibitor Form is required!']"
-            class="my-2"
             density="comfortable"
             hide-details="auto"
             item-title="name"
             item-value="rfId"
             label="Select Exhibitor Form"
           ></v-select>
-          <small class="ps-1"
+
+          <small class="ps-2"
             ><i>Exhibitor format = Name - Email - Organization</i></small
           >
           <v-select
@@ -300,15 +301,22 @@ watch(
             item-value="id"
             label="Select Exhibitor"
           ></v-select>
+
           <v-text-field
             v-model="user.username"
-            :rules="[(v) => !!v || 'Username is required!']"
-            class="mt-2"
+            :rules="[
+              (v) => !!v || 'Username is required!',
+              (v) =>
+                /^[a-zA-Z0-9]*$/.test(v) ||
+                'Username must only contain letters and numbers!',
+            ]"
+            class="mt-2 mt-md-4"
             clearable
             density="compact"
             hide-details="auto"
             label="Username"
-          ></v-text-field>
+          >
+          </v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
