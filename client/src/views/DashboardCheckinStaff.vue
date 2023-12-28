@@ -5,9 +5,10 @@ import { getEventLogoUrl } from "@/others/util";
 import PageTitle from "@/components/PageTitle.vue";
 import BadgePreview from "@/components/BadgePreview.vue";
 import { QrcodeStream } from "vue-qrcode-reader";
+import { useDisplay } from "vuetify";
 
 const store = useStore();
-
+const { mobile } = useDisplay();
 const currentUser = computed(() => store.getters["user/getCurrentUser"]);
 const event = computed(() => store.state.event.event);
 const users = computed(() => store.state.users.users);
@@ -77,27 +78,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
-    <v-card>
-      <v-card-title>Scan QR Code</v-card-title>
-      <v-card-text>
-        <qrcode-stream @detect="handleScan" @error="onError"></qrcode-stream>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          variant="tonal"
-          @click="qrScannerDialog = !qrScannerDialog"
-          >Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
   <v-container class="d-print-none">
     <v-row>
       <v-col>
-        <page-title :title="event.name" justify="space-between">
+        <page-title
+          :title="event.name"
+          :justify="mobile ? 'space-around' : 'space-between'"
+        >
           <v-row align="center">
             <v-col v-if="event.logoLeft" cols="auto">
               <div>
@@ -205,9 +192,27 @@ onMounted(() => {
     </v-alert>
   </v-container>
 
-  <div v-if="badge.id" class="d-print-block">
+  <div v-if="badge.id" class="d-none d-print-block">
     <badge-preview :badge="badge" :event="event"></badge-preview>
   </div>
+
+  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
+    <v-card>
+      <v-card-title>Scan QR Code</v-card-title>
+      <v-card-text>
+        <qrcode-stream @detect="handleScan" @error="onError"></qrcode-stream>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          variant="tonal"
+          @click="qrScannerDialog = !qrScannerDialog"
+          >Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <v-dialog v-model="userDetailsDialog" width="600">
     <v-card density="compact">
@@ -248,49 +253,4 @@ onMounted(() => {
   </v-dialog>
 </template>
 
-<style>
-/* this affects the margin in the printer settings*/
-@page {
-  size: A5 landscape;
-  margin: 0;
-}
-
-/* this affects the margin on the content before sending to printer*/
-@media print {
-  @page {
-    size: A5 landscape;
-    margin: 0;
-  }
-
-  body {
-    width: 210mm;
-    height: 148mm;
-  }
-
-  .v-main {
-    padding: 0;
-    margin: 0;
-  }
-
-  .badge-wrapper {
-    width: 210mm;
-    height: auto;
-  }
-
-  .badge {
-    margin: 21mm 10mm 7mm 10mm;
-    width: 190mm;
-    height: 120mm;
-    -webkit-print-color-adjust: exact;
-    color-adjust: exact;
-  }
-
-  .v-main,
-  .badge-wrapper,
-  .badge {
-    /* Remove page breaks */
-    page-break-before: auto;
-    page-break-after: auto;
-  }
-}
-</style>
+<style></style>

@@ -4,7 +4,6 @@ import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
 import { useDisplay } from "vuetify";
-import BadgePreview from "@/components/BadgePreview.vue";
 import { getEventLogoUrl } from "@/others/util";
 
 const { mobile } = useDisplay();
@@ -12,21 +11,9 @@ const { mobile } = useDisplay();
 const route = useRoute();
 const store = useStore();
 
-const formTypes = computed(() => store.state.registrationForm.formTypes);
 const event = computed(() => store.state.event.event);
 const forms = computed(() => store.state.registrationForm.forms);
-const badgeDesignWVisibility = computed(
-  () => store.state.badgeDesign.badgeDesignWVisibility
-);
 
-const badgePreviewDialog = ref(false);
-
-const openBadge = async (badgeDesignId) => {
-  await store.dispatch("badgeDesign/setBadgeDesignWVisibility", {
-    badgeDesignId,
-  });
-  badgePreviewDialog.value = !badgePreviewDialog.value;
-};
 const newFormTypeInit = { name: null, eventId: null };
 const newFormType = reactive({ ...newFormTypeInit });
 
@@ -66,7 +53,6 @@ const fetchData = async () => {
     store.dispatch("registrationForm/setFormTypes", route.params.eventId),
     store.dispatch("event/setEvent", route.params.eventId),
     store.dispatch("registrationForm/setForms", route.params.eventId),
-    store.dispatch("badgeDesign/setBadgeDesigns", route.params.eventId),
   ]);
 };
 watch(
@@ -226,6 +212,7 @@ onMounted(() => {
                   :to="{
                     name: 'users',
                     params: {
+                      eventId: route.params.eventId,
                       formId: item.rfId,
                     },
                   }"
@@ -238,29 +225,6 @@ onMounted(() => {
           </v-card-text>
         </v-card>
       </v-col>
-
-      <!--      <v-col cols="12" sm="6">-->
-      <!--        <v-card density="compact">-->
-      <!--          <v-card-title>-->
-      <!--            <span>Forms Types</span>-->
-      <!--            <v-divider class="my-2"></v-divider>-->
-      <!--          </v-card-title>-->
-      <!--          <v-card-text>-->
-      <!--            <v-list v-if="formTypes.length > 0" density="compact">-->
-      <!--              <template v-for="(item, index) in formTypes">-->
-      <!--                <v-list-item-->
-      <!--                  v-if="item"-->
-      <!--                  :key="index"-->
-      <!--                  :title="`${item?.name}`"-->
-      <!--                ></v-list-item>-->
-      <!--              </template>-->
-      <!--            </v-list>-->
-      <!--            <v-alert v-else border="start" closable density="compact"-->
-      <!--              >No items found!-->
-      <!--            </v-alert>-->
-      <!--          </v-card-text>-->
-      <!--        </v-card>-->
-      <!--      </v-col>-->
 
       <v-col cols="12" sm="6">
         <v-card density="compact">
@@ -354,14 +318,6 @@ onMounted(() => {
       </v-col>
     </v-row>
   </v-container>
-
-  <v-dialog v-model="badgePreviewDialog" width="700">
-    <badge-preview
-      :badge="badgeDesignWVisibility"
-      :event="event"
-      card-title="Badge Design Preview"
-    ></badge-preview>
-  </v-dialog>
 
   <v-dialog v-model="formTypeDialog" width="350">
     <v-card>

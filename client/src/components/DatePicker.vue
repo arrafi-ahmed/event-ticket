@@ -1,11 +1,11 @@
 <script setup>
-import { computed, defineEmits, defineProps, ref, watch } from "vue";
-import { useDisplay } from "vuetify";
-import { formatDate } from "@/others/util";
+import {computed, defineEmits, defineProps, ref, watch} from "vue";
+import {useDisplay} from "vuetify";
+import {formatDate} from "@/others/util";
 
-const { width, height, mobile } = useDisplay();
+const {width, height, mobile} = useDisplay();
 const emit = defineEmits(["update:modelValue"]);
-const { label, color, modelValue, customClass, rules, variant } = defineProps([
+const {label, color, modelValue, customClass, rules, variant} = defineProps([
   "label",
   "color",
   "modelValue",
@@ -13,8 +13,7 @@ const { label, color, modelValue, customClass, rules, variant } = defineProps([
   "rules",
   "variant",
 ]);
-
-const selectedDate = ref(modelValue);
+const selectedDate = ref(new Date(modelValue));
 const menu = ref(false);
 const formattedSelectedDate = computed(() =>
   selectedDate.value ? formatDate(selectedDate.value) : ""
@@ -24,13 +23,15 @@ const handleDateChange = (newDate) => {
   selectedDate.value = newDate;
   emit("update:modelValue", newDate);
 };
-
-watch(selectedDate, () => {
-  menu.value = false;
-});
+watch(
+  () => selectedDate.value,
+  () => {
+    menu.value = false;
+  }
+);
 </script>
 
-<template>
+<template v-if="selectedDate.value">
   <v-menu v-model="menu" :close-on-content-click="false">
     <template v-slot:activator="{ props }">
       <v-text-field
@@ -54,7 +55,7 @@ watch(selectedDate, () => {
       :width="mobile ? width : 'auto'"
       show-adjacent-months
       title=""
-      @change="handleDateChange"
+      @update:modelValue="handleDateChange"
     />
   </v-menu>
 </template>

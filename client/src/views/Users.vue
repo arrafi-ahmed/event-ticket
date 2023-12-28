@@ -5,11 +5,15 @@ import { useRoute } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
 import { formatDateTime, getCurrencySymbol } from "@/others/util";
 import FormAnswer from "@/components/FormAnswer.vue";
+import BadgePreview from "@/components/BadgePreview.vue";
 
 const store = useStore();
 const route = useRoute();
 
 const users = computed(() => store.state.users.users);
+const badge = computed(() => store.state.badge.badge);
+const event = computed(() => store.state.event.event);
+
 const surveyInit = reactive({});
 let survey = reactive({});
 const attendee = reactive({});
@@ -65,6 +69,17 @@ const deleteUser = (userId, registrationId) => {
   });
 };
 
+const handleClickPrintBadge = async (badgeId) => {
+  store.commit("badge/resetBadge");
+  await Promise.all([
+    store.dispatch("event/setEvent", route.params.eventId),
+    store.dispatch("badge/print", { badgeId }),
+  ]);
+  setTimeout(function () {
+    window.print();
+  }, 500);
+};
+
 store.commit("users/resetUsers");
 onMounted(() => {
   store.dispatch("users/setUsers", route.params.formId);
@@ -72,7 +87,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-container>
+  <div v-if="badge.id" class="d-none d-print-block">
+    <badge-preview :badge="badge" :event="event"></badge-preview>
+  </div>
+
+  <v-container class="d-print-none">
     <v-row>
       <v-col>
         <page-title justify="space-between" title="Attendee List">
@@ -92,7 +111,6 @@ onMounted(() => {
             <tr>
               <th class="text-start">Invoice</th>
               <th class="text-start">Name</th>
-              <th class="text-start">Email</th>
               <th class="text-start">Organization</th>
               <th class="text-start">Ticket</th>
               <th class="text-start">Payment Method</th>
@@ -100,6 +118,7 @@ onMounted(() => {
               <th class="text-start">Payment Status</th>
               <th class="text-start">Check-in Status</th>
               <th class="text-start">Date</th>
+              <th class="text-start"></th>
             </tr>
           </thead>
           <tbody>
@@ -111,7 +130,6 @@ onMounted(() => {
             >
               <td>{{ item.pId }}</td>
               <td>{{ item.firstname }} {{ item.surname }}</td>
-              <td>{{ item.email }}</td>
               <td>{{ item.organization }}</td>
               <td>{{ item.ticketName }}</td>
               <td class="text-capitalize">{{ item.paymentMethod }}</td>
@@ -139,6 +157,16 @@ onMounted(() => {
               </td>
               <td>
                 <span>{{ formatDateTime(item.createdAt) }}</span>
+              </td>
+              <td>
+                <v-btn
+                  color="primary"
+                  variant="tonal"
+                  class="mx-0 px-0"
+                  @click.stop="handleClickPrintBadge(item.bId)"
+                >
+                  <span style="white-space: normal"> Print Badge </span>
+                </v-btn>
               </td>
             </tr>
           </tbody>
@@ -272,7 +300,7 @@ onMounted(() => {
   </v-dialog>
 </template>
 
-<style scoped>
+<style>
 .rowTitle {
   width: 152px;
 }

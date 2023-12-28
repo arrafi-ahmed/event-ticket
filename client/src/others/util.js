@@ -14,6 +14,14 @@ export const formatDate = (inputDate) => {
   return `${day}/${month}/${year}`;
 };
 
+// get iso datetime offset with timezone
+export const toLocalISOString = (inputDate) => {
+  const date = new Date(inputDate);
+  const tzoffset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+  const localISOTime = new Date(date - tzoffset).toISOString().slice(0, -1);
+  return localISOTime;
+};
+
 export const formatDateTime = (inputDateTime) => {
   const formattedDate = formatDate(inputDateTime);
   const date = new Date(inputDateTime);

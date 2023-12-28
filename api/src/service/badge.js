@@ -51,7 +51,6 @@ exports.validateQrCode = async (id, qrUuid, eventId) => {
   } else if (badge.badgeStatus == 1) {
     throw new CustomError("Already checked-in", 401);
   }
-
   return badge;
 };
 

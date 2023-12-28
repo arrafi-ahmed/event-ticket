@@ -9,7 +9,7 @@ let sql = postgres({
   database: DB_DATABASE,
   password: DB_PASSWORD,
   transform: postgres.camel,
-  ssl: false,
+  ssl: true,
   // waitForConnections: true,
   // connectionLimit: 10,
   // queueLimit: 0,

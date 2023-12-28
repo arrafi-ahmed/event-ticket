@@ -1,12 +1,13 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useStore } from "vuex";
-import { useRoute, useRouter } from "vue-router";
-import { useDisplay } from "vuetify";
+import {computed, onMounted, reactive, ref, watch} from "vue";
+import {useStore} from "vuex";
+import {useRoute, useRouter} from "vue-router";
+import {useDisplay} from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
+import {toLocalISOString} from "@/others/util";
 
-const { mobile } = useDisplay();
+const {mobile} = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -59,16 +60,21 @@ const handleEditTicket = async () => {
   delete newTicket.earlyBirdPrice;
   delete newTicket.ticketId;
 
+  earlyBird.startDate = toLocalISOString(earlyBird.startDate).slice(0, 10)
+  earlyBird.endDate = toLocalISOString(earlyBird.endDate).slice(0, 10)
+
+  console.log(98, earlyBird)
+
   store
     .dispatch("ticket/addTicket", {
       ticket: newTicket,
       earlyBird,
     })
     .then((result) => {
-      // router.push({
-      //   name: "event-single",
-      //   params: { eventId: event.value.id },
-      // });
+      router.push({
+        name: "event-single",
+        params: {eventId: event.value.id},
+      });
     })
     .finally(() => (submittingForm.value = false));
 };
@@ -109,13 +115,13 @@ watch(
   (newVal, oldVal) => {
     if (!updatingRegistrationForm.value && !submittingForm.value)
       store.dispatch("ticket/setTicket", newVal).then(() => {
-        Object.assign(newTicket, { ...ticket.value });
-        Object.assign(newIsEarlyBird, { ...isEarlyBird });
+        Object.assign(newTicket, {...ticket.value});
+        Object.assign(newIsEarlyBird, {...isEarlyBird});
         if (ticket.value.eId)
           Object.assign(earlyBird, {
             id: ticket.value.eId,
-            startDate: new Date(ticket.value.startDate),
-            endDate: new Date(ticket.value.endDate),
+            startDate: ticket.value.startDate,
+            endDate: ticket.value.endDate,
             earlyBirdPrice: ticket.value.earlyBirdPrice,
             ticketId: ticket.value.ticketId,
           });
@@ -251,6 +257,7 @@ watch(
               <v-switch
                 v-if="newTicket.ticketType !== 'Free'"
                 v-model="isEarlyBird"
+                color="primary"
                 :label="`Apply Early Bird price? ${isEarlyBird ? 'Yes' : 'No'}`"
                 class="mt-2 mt-md-4"
                 disabled
@@ -307,7 +314,7 @@ watch(
                 color="primary"
                 type="submit"
                 variant="tonal"
-                >Save
+              >Save
               </v-btn>
             </v-col>
           </v-row>

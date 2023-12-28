@@ -1,13 +1,13 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import { reactive, ref } from "vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
-import { isValidImage } from "@/others/util";
-import { useDisplay } from "vuetify";
+import {reactive, ref} from "vue";
+import {useStore} from "vuex";
+import {useRouter} from "vue-router";
+import {isValidImage, toLocalISOString} from "@/others/util";
+import {useDisplay} from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
 
-const { mobile } = useDisplay();
+const {mobile} = useDisplay();
 const router = useRouter();
 const store = useStore();
 
@@ -20,7 +20,7 @@ const newEventInit = {
   taxWording: null,
   logos: [null, null],
 };
-const newEvent = reactive({ ...newEventInit });
+const newEvent = reactive({...newEventInit});
 
 const form = ref(null);
 const isFormValid = ref(true);
@@ -35,8 +35,8 @@ const handleAddEvent = async () => {
 
   const formData = new FormData();
   formData.append("name", newEvent.name);
-  formData.append("startDate", newEvent.startDate);
-  formData.append("endDate", newEvent.endDate);
+  formData.append("startDate", toLocalISOString(newEvent.startDate).slice(0,10));
+  formData.append("endDate", toLocalISOString(newEvent.endDate).slice(0,10));
   formData.append("location", newEvent.location);
   formData.append("taxPercentage", newEvent.taxPercentage);
   formData.append("taxWording", newEvent.taxWording);
@@ -48,7 +48,7 @@ const handleAddEvent = async () => {
 
   store.dispatch("event/addEvent", formData).then((result) => {
     // newEvent = {...newEvent, ...newEventInit}
-    Object.assign(newEvent, { ...newEventInit, logos: [null, null] });
+    Object.assign(newEvent, {...newEventInit, logos: [null, null]});
     router.push({
       name: "home",
     });
@@ -199,7 +199,7 @@ const handleAddEvent = async () => {
               color="primary"
               type="submit"
               variant="tonal"
-              >Add
+            >Add
             </v-btn>
           </div>
         </v-form>

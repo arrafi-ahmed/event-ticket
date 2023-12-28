@@ -207,7 +207,7 @@ const routes = [
         },
       },
       {
-        path: "users/:formId",
+        path: "event/:eventId/form/:formId/users",
         name: "users",
         component: Users,
         meta: {

@@ -181,4 +181,52 @@ onMounted(() => {});
   height: 120mm;
   background: #fff;
 }
+
+/* this affects the margin in the printer settings*/
+@page {
+  size: A5 landscape;
+  margin: 0;
+}
+
+/* this affects the margin on the content before sending to printer*/
+@media print {
+  @page {
+    size: A5 landscape;
+    margin: 0;
+  }
+
+  body {
+    width: 210mm;
+    height: 148mm;
+  }
+
+  .v-main {
+    padding: 0;
+    margin: 0;
+  }
+
+  .badge-wrapper {
+    width: 210mm;
+    height: auto;
+  }
+
+  .badge {
+    margin: 21mm 10mm 7mm 10mm;
+    width: 190mm;
+    height: 120mm;
+  }
+
+  .v-main,
+  .badge-wrapper,
+  .badge {
+    /* Remove page breaks */
+    page-break-before: auto;
+    page-break-after: auto;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important; /* Chrome, Safari */
+    color-adjust: exact !important; /* Firefox */
+  }
+}
 </style>

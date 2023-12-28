@@ -5,7 +5,9 @@ import { QrcodeStream } from "vue-qrcode-reader";
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import FormAnswer from "@/components/FormAnswer.vue";
+import { useDisplay } from "vuetify";
 
+const { mobile } = useDisplay();
 const store = useStore();
 
 const currentUser = computed(() => store.getters["user/getCurrentUser"]);
@@ -41,27 +43,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
-    <v-card>
-      <v-card-title>Scan QR Code</v-card-title>
-      <v-card-text>
-        <qrcode-stream @detect="handleScan" @error="onError"></qrcode-stream>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          variant="tonal"
-          @click="qrScannerDialog = !qrScannerDialog"
-          >Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
   <v-container>
     <v-row>
       <v-col>
-        <page-title :title="event.name" justify="space-between">
+        <page-title
+          :title="event.name"
+          :justify="mobile ? 'space-around' : 'space-between'"
+        >
           <v-row align="center">
             <v-col v-if="event.logoLeft" cols="auto">
               <div>
@@ -157,6 +145,24 @@ onMounted(() => {
       </v-col>
     </v-row>
   </v-container>
+
+  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
+    <v-card>
+      <v-card-title>Scan QR Code</v-card-title>
+      <v-card-text>
+        <qrcode-stream @detect="handleScan" @error="onError"></qrcode-stream>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          variant="tonal"
+          @click="qrScannerDialog = !qrScannerDialog"
+          >Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped></style>
