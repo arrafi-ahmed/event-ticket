@@ -1,3 +1,5 @@
+# Event Ticketing
+
 ## Features
 - Implemented Event Registration system with customizable forms and unique badge designs
 - Ensured a seamless registration process with unique email entries and flexible ticketing options
