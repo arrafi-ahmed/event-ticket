@@ -13,6 +13,9 @@ export const mutations = {
   updateSettings(state, payload) {
     Object.assign(state.settings, { ...payload });
   },
+  resetPrivateKeys(state) {
+    state.settings.stripeSecret = null
+  },
 };
 
 export const actions = {
@@ -20,6 +23,19 @@ export const actions = {
     return new Promise((resolve, reject) => {
       $axios
         .get("/api/settings/getSettings")
+        .then((response) => {
+          commit("setSettings", response.data.payload);
+          resolve(response);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  setSettingsWOPrivateKeys({ commit }, request) {
+    return new Promise((resolve, reject) => {
+      $axios
+        .get("/api/settings/getSettingsWOPrivateKeys")
         .then((response) => {
           commit("setSettings", response.data.payload);
           resolve(response);

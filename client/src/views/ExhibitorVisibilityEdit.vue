@@ -32,7 +32,6 @@ const isFormValid = ref(true);
 const handleSubmit = async () => {
   await form.value.validate();
   if (!isFormValid.value) return;
-
   store
     .dispatch("badge/addExhibitorVisibility", newExhibitorVisibility)
     .then((result) => {
@@ -65,7 +64,12 @@ watch(
 
 onMounted(async () => {
   if (route.params.eventId) {
-    Object.assign(newExhibitorVisibility, newExhibitorVisibilityInit);
+    Object.assign(newExhibitorVisibility, {
+      ...newExhibitorVisibilityInit,
+      fieldIdStandard: [],
+      fieldIdQuestion: [],
+    });
+    store.commit("registrationForm/resetFormWQuestion");
     await Promise.all([
       store.dispatch("event/setEvent", route.params.eventId),
       store.dispatch("registrationForm/setForms", route.params.eventId),
@@ -123,11 +127,6 @@ onMounted(async () => {
             <v-col>
               <h4 class="pb-2">Standard Fields</h4>
               <v-table density="compact">
-                <thead>
-                  <tr>
-                    <th>Field Name</th>
-                  </tr>
-                </thead>
                 <tbody>
                   <tr v-for="item in fields" :key="item.id">
                     <td>
@@ -147,12 +146,10 @@ onMounted(async () => {
             </v-col>
             <v-col cols="12" md="6">
               <h4 class="pb-2">Questions</h4>
-              <v-table density="compact">
-                <thead>
-                  <tr>
-                    <th>Questions</th>
-                  </tr>
-                </thead>
+              <v-table
+                v-if="formWQuestion.questions?.length > 0"
+                density="compact"
+              >
                 <tbody>
                   <tr
                     v-for="(item, index) in formWQuestion.questions"
@@ -172,12 +169,15 @@ onMounted(async () => {
                   </tr>
                 </tbody>
               </v-table>
+              <v-alert v-else border="start" closable density="compact"
+                >No items found!
+              </v-alert>
             </v-col>
           </v-row>
           <v-row class="mt-2 mt-md-4" justify="end">
             <v-col cols="auto">
               <v-btn class="ms-1" color="primary" type="submit" variant="tonal"
-                >Submit
+                >Save
               </v-btn>
             </v-col>
           </v-row>

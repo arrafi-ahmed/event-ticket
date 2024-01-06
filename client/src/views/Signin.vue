@@ -1,12 +1,9 @@
 <script setup>
+import Logo from "@/components/Logo.vue";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { isValidEmail } from "@/others/util";
-import PageTitle from "@/components/PageTitle.vue";
-import { useDisplay } from "vuetify";
 
-const { mobile } = useDisplay();
 const store = useStore();
 const router = useRouter();
 
@@ -15,6 +12,7 @@ const password = ref(null);
 const isAdmin = computed(() => store.getters["user/isAdmin"]);
 const isChckinStaff = computed(() => store.getters["user/isChckinStaff"]);
 const isExhibitor = computed(() => store.getters["user/isExhibitor"]);
+const visible = ref(false);
 
 const form = ref(null);
 const isFormValid = ref(true);
@@ -44,133 +42,61 @@ const signinUser = async () => {
       }
     });
 };
-const dialog = ref(false);
-const resetEmail = ref(null);
-const resetForm = ref(null);
-const isResetFormValid = ref(true);
-
-const handleSubmitResetPassword = async () => {
-  await resetForm.value.validate();
-  if (!isResetFormValid.value) return;
-
-  store
-    .dispatch("user/requestResetPass", resetEmail.value)
-    .then((res) => {
-      dialog.value = !dialog.value;
-    })
-    .catch((err) => {});
-};
 </script>
 
 <template>
-  <v-container class="fill-height">
-    <v-row align="center" justify="center">
-      <v-col cols="12" md="4">
-        <page-title justify="center" title="Sign In"></page-title>
-        <v-card
-          class="mx-auto pa-2 pa-md-5 my-2 my-md-5"
-          color="grey-lighten-3"
-          elevation="4"
-          max-width="500"
+  <div>
+    <v-card
+      class="mx-auto px-12 py-8 my-12"
+      elevation="8"
+      max-width="400"
+      rounded="lg"
+    >
+      <logo
+        custom-class="clickable justify-center mb-10"
+        @click="router.push({ name: 'signin' })"
+      />
+
+      <v-form
+        ref="form"
+        v-model="isFormValid"
+        fast-fail
+        @submit.prevent="signinUser"
+      >
+        <v-text-field
+          v-model="username"
+          :rules="[(v) => !!v || 'Username is required!']"
+          density="compact"
+          label="Username"
+          placeholder="Email address"
+          prepend-inner-icon="mdi-email-outline"
+          variant="outlined"
+        ></v-text-field>
+
+        <v-text-field
+          v-model="password"
+          :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
+          :rules="[(v) => !!v || 'Password is required!']"
+          :type="visible ? 'text' : 'password'"
+          density="compact"
+          label="Password"
+          placeholder="Enter your password"
+          prepend-inner-icon="mdi-lock-outline"
+          variant="outlined"
+          @click:append-inner="visible = !visible"
+        ></v-text-field>
+
+        <v-btn
+          block
+          class="mb-6"
+          color="blue"
+          size="large"
+          type="submit"
+          variant="tonal"
         >
-          <v-card-text>
-            <v-form
-              ref="form"
-              v-model="isFormValid"
-              fast-fail
-              @submit.prevent="signinUser"
-            >
-              <!-- username -->
-              <v-text-field
-                v-model="username"
-                :rules="[(v) => !!v || 'Username is required!']"
-                class="mt-2"
-                clearable
-                density="compact"
-                hide-details="auto"
-                label="Username"
-                prepend-inner-icon="mdi-account"
-              ></v-text-field>
-
-              <!-- Password -->
-              <v-text-field
-                v-model="password"
-                :rules="[(v) => !!v || 'Password is required!']"
-                class="mt-2"
-                clearable
-                density="compact"
-                hide-details="auto"
-                label="Password"
-                prepend-inner-icon="mdi-lock"
-                type="password"
-              ></v-text-field>
-
-              <div class="d-flex align-center mt-3 mt-md-4">
-                <div>
-                  <div
-                    class="clickable text-blue"
-                    @click="router.push({ name: 'register' })"
-                  >
-                    No Account?
-                  </div>
-                  <div class="clickable text-blue" @click="dialog = !dialog">
-                    Forgot Password?
-                  </div>
-                </div>
-                <v-spacer></v-spacer>
-                <v-btn
-                  :density="mobile ? 'comfortable' : 'default'"
-                  color="primary"
-                  type="submit"
-                  >Sign In
-                </v-btn>
-              </div>
-            </v-form>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
-
-  <v-dialog v-model="dialog" width="350">
-    <v-card>
-      <v-card-title>
-        <span>Reset Password</span>
-      </v-card-title>
-      <v-card-text>
-        <v-form
-          ref="resetForm"
-          v-model="isResetFormValid"
-          fast-fail
-          @submit.prevent="handleSubmitResetPassword"
-        >
-          <v-text-field
-            v-model="resetEmail"
-            :rules="[
-              (v) => !!v || 'Email is required!',
-              (v) => isValidEmail || 'Invalid Email',
-            ]"
-            class="mt-2"
-            clearable
-            density="compact"
-            hide-details="auto"
-            label="Email"
-            variant="solo"
-          ></v-text-field>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-              :density="mobile ? 'compact' : 'default'"
-              color="primary"
-              type="submit"
-              >Submit
-            </v-btn>
-          </v-card-actions>
-        </v-form>
-      </v-card-text>
+          Sign In
+        </v-btn>
+      </v-form>
     </v-card>
-  </v-dialog>
+  </div>
 </template>
-
-<style></style>

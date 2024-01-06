@@ -1,12 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
-import { formatDate, getCurrencySymbol } from "@/others/util";
+import { formatDate, getCurrencySymbol, padStr } from "@/others/util";
 
 const store = useStore();
-const invoice = computed(() => store.state.invoice.invoice);
+const invoice = computed(() => store.state.purchase.invoice);
 const settings = computed(() => store.state.settings.settings);
-const currency = ref("$");
+const currency = ref(null);
 
 const printInvoice = () => {
   window.print();
@@ -28,7 +28,7 @@ onMounted(() => {
       </v-btn>
     </v-row>
   </v-container>
-  <div v-if="invoice" class="invoice-wrapper">
+  <div v-if="invoice" class="invoice-wrapper d-print-block">
     <header>
       <h1>Invoice</h1>
       <address>
@@ -50,11 +50,12 @@ onMounted(() => {
           {{ invoice.user.surname }}
         </p>
       </address>
+
       <table v-if="invoice?.purchase" class="meta">
         <tr>
           <th><span>Invoice #</span></th>
           <td>
-            <span>{{ String(invoice.purchase.id).padStart(8, "0") }}</span>
+            <span>{{ padStr(invoice.purchase.id, 8) }}</span>
           </td>
         </tr>
         <tr>
@@ -64,10 +65,12 @@ onMounted(() => {
           </td>
         </tr>
       </table>
+
       <div v-if="invoice?.event" class="event-title">
         <strong>Event: </strong>
         <span>{{ invoice.event.name }}</span>
       </div>
+
       <table
         v-if="invoice?.tickets && invoice?.tickets.length > 0"
         class="inventory"
@@ -87,78 +90,117 @@ onMounted(() => {
             </td>
             <td>
               <span data-prefix>{{ currency }}</span
-              ><span>{{ ticket.ticketPrice }}</span>
+              ><span>{{ ticket.earlyBirdPrice || ticket.ticketPrice }}</span>
             </td>
             <td>
               <span>{{ ticket.quantity }}</span>
             </td>
             <td>
               <span data-prefix>{{ currency }}</span
-              ><span>{{ ticket.ticketPrice * ticket.quantity }}</span>
+              ><span>{{
+                (ticket.earlyBirdPrice
+                  ? ticket.earlyBirdPrice
+                  : ticket.ticketPrice) * ticket.quantity
+              }}</span>
             </td>
           </tr>
         </tbody>
       </table>
-      <span v-if="invoice?.event">
-        <small class="ml-auto"
-          >{{ invoice.event.taxPercentage }}%
-          {{ invoice.event.taxWording }} included</small
-        >
-      </span>
-      <table v-if="invoice?.purchase" class="balance">
-        <tr>
-          <th>
-            <span>{{ invoice.event.taxWording }}</span>
-          </th>
-          <td>
-            <span data-prefix>{{ currency }}</span
-            ><span>{{ invoice.purchase.tax }}</span>
-          </td>
-        </tr>
-        <tr>
-          <th><span>Total</span></th>
-          <td>
-            <span data-prefix>{{ currency }}</span
-            ><span>{{ invoice.purchase.totalAmount }}</span>
-          </td>
-        </tr>
-        <tr>
-          <th><span>Amount Paid</span></th>
-          <td>
-            <span data-prefix>{{ currency }}</span
-            ><span>{{
-              invoice.purchase.paymentStatus == "succeeded"
-                ? invoice.purchase.totalAmount
-                : 0.0
-            }}</span>
-          </td>
-        </tr>
-        <tr>
-          <th><span>Balance Due</span></th>
-          <td>
-            <span data-prefix>{{ currency }}</span
-            ><span>{{
-              invoice.purchase.paymentStatus != "succeeded"
-                ? invoice.purchase.totalAmount
-                : 0.0
-            }}</span>
-          </td>
-        </tr>
-      </table>
+
+      <div class="d-flex justify-end">
+        <table v-if="invoice?.purchase" class="balance">
+          <tr>
+            <th>
+              <span>SubTotal</span>
+            </th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{ invoice.purchase.subTotalAmount }}</span>
+            </td>
+          </tr>
+          <tr v-if="invoice.promo?.discountAmount">
+            <th>
+              <span>Discount ({{ invoice.promo.discountText }})</span>
+            </th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{ invoice.promo.discountAmount }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              <span
+                >{{ invoice.event.taxWording }} ({{
+                  invoice.event.taxPercentage
+                }}%)</span
+              >
+            </th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{ invoice.purchase.tax }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th><span>Total</span></th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{ invoice.purchase.totalAmount }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th><span>Amount Paid</span></th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{
+                invoice.purchase.paymentStatus == "succeeded"
+                  ? invoice.purchase.totalAmount
+                  : 0.0
+              }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th><span>Balance Due</span></th>
+            <td>
+              <span data-prefix>{{ currency }}</span
+              ><span>{{
+                invoice.purchase.paymentStatus != "succeeded"
+                  ? invoice.purchase.totalAmount
+                  : 0.0
+              }}</span>
+            </td>
+          </tr>
+        </table>
+      </div>
     </article>
+
     <aside>
       <h1><span>Notes</span></h1>
       <div>
-        <div class="float-left">
-          <p class="text-pre-wrap">{{ settings.invoiceNotes }}</p>
-        </div>
-
-        <div class="float-right">
-          <p>Paying in {{ settings.invoiceCurrency }}:</p>
-          <p>Bank: {{ settings.bank }}</p>
-          <p>Account Name: {{ settings.accountName }}</p>
-          <p>IBAN: {{ settings.iban }}</p>
-          <p>SWIFT/BIC: {{ settings.swift }}</p>
+        <p class="text-pre-wrap my-2">{{ settings.invoiceNotes }}</p>
+        <div class="d-flex justify-space-between mt-5">
+          <template
+            v-for="(item, index) in invoice.event.bankDetailsCurrencies"
+            :key="index"
+          >
+            <div v-if="Number(item) === 0" class="">
+              <div>Bank Transfer paying in USD:</div>
+              <p class="text-pre-wrap">
+                {{ settings.bankDetailsUsd }}
+              </p>
+            </div>
+            <div v-else-if="Number(item) === 1" class="">
+              <div>Bank Transfer paying in GBP:</div>
+              <p class="text-pre-wrap">
+                {{ settings.bankDetailsGbp }}
+              </p>
+            </div>
+            <div v-else-if="Number(item) === 2" class="">
+              <div>Bank Transfer paying in EUR:</div>
+              <p class="text-pre-wrap">
+                {{ settings.bankDetailsEur }}
+              </p>
+            </div>
+          </template>
         </div>
 
         <p class="footer pt-15">
@@ -175,13 +217,13 @@ onMounted(() => {
 <style scoped>
 .invoice-wrapper {
   box-sizing: border-box;
-  height: auto;
+  height: 11in !important;
   margin: 0 auto;
   overflow: hidden;
   width: 8.5in !important;
   background: #fff;
   border-radius: 1px;
-  padding: 15px;
+  padding: 30px;
 }
 
 body,
@@ -394,22 +436,31 @@ aside p {
 }
 
 @media print {
-  * {
-    -webkit-print-color-adjust: exact;
-  }
-
   html {
     background: 0 0;
     padding: 0;
   }
 
   body {
-    box-shadow: none;
     margin: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  .invoice-wrapper {
+    /* Remove page breaks */
+    page-break-before: auto;
+    page-break-after: auto;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important; /* Chrome, Safari */
+    color-adjust: exact !important; /* Firefox */
   }
 }
 
 @page {
   margin: 0;
+  size: A4 portrait;
 }
 </style>

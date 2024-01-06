@@ -2,6 +2,12 @@ const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
 const { arrToObj, objToArr } = require("../others/util");
 
+exports.getSettingsWOPrivateKeys = async () => {
+  const settings = await exports.getSettings();
+  delete settings.stripeSecret;
+  return settings;
+};
+
 exports.getSettings = async () => {
   const settingsArr = await sql`
         select *

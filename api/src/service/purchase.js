@@ -25,13 +25,24 @@ exports.savePurchase = async (purchase) => {
 };
 
 exports.updatePurchase = async (purchase, columns) => {
-  return await sql`
+  const [updatedPurchase] = await sql`
         update purchase
         set ${sql(purchase, columns)}
-        where id = ${purchase.id}`;
+        where id = ${purchase.id}
+        returning *, id as p_id`;
+
+  return updatedPurchase;
 };
 
 exports.getPurchaseById = async (id) => {
+  return await sql`
+        select *
+        from purchase
+        where id = ${id}
+    `;
+};
+
+exports.getInvoiceByPurchaseId = async (purchaseId) => {
   return await sql`
         select *
         from purchase

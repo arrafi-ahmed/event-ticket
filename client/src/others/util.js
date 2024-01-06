@@ -1,10 +1,47 @@
 import { toast } from "vuetify-sonner";
 import { countries } from "@/others/country-list";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export const appName = "Torch Events";
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const clientBaseUrl = import.meta.env.VITE_BASE_URL;
 export const isProd = import.meta.env.PROD;
+
+export const printBadge = async (badge) => {
+  await new Promise((resolve, reject) => {
+    setTimeout(async () => {
+      try {
+        html2canvas(badge, {
+          width: badge.clientWidth,
+          height: badge.clientHeight,
+          useCORS: true,
+        }).then((canvas) => {
+          const canvasData = canvas.toDataURL("image/png", 1.0);
+          const pdf = new jsPDF("l", "mm", "a5");
+          pdf.addImage(canvasData, "PNG", 10, 21, 190, 120, "", "FAST");
+          const blob = pdf.output("blob");
+
+          // Create the invisible iframe
+          const foundIframe = document.querySelector("iframe");
+          if (foundIframe) foundIframe.parentNode.removeChild(foundIframe);
+          const iframe = document.createElement("iframe");
+          iframe.style.display = "none";
+          document.body.appendChild(iframe);
+          iframe.src = URL.createObjectURL(blob);
+          iframe.onload = function () {
+            iframe.contentWindow.print();
+          };
+        });
+        console.log(1);
+        resolve();
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
+    }, 100);
+  });
+};
 
 export const formatDate = (inputDate) => {
   const date = new Date(inputDate);
@@ -30,6 +67,8 @@ export const formatDateTime = (inputDateTime) => {
   // const seconds = `0${date.getSeconds()}`.slice(-2);
   return `${formattedDate} ${hours}:${minutes}`;
 };
+
+export const padStr = (str, num) => String(str).padStart(num, "0");
 
 export const getDateFromDateTime = (date) =>
   new Date(date).toISOString().slice(0, 10);
@@ -129,6 +168,10 @@ export const input_fields = [
   { id: 4, title: "Dropdown" },
 ];
 
+export const getInputType = (typeId) => {
+  return input_fields.find((item) => item.id == typeId);
+};
+
 export const getCountryList = (filterName) => {
   if (filterName === "all") return countries;
   return countries.map((item) => item[filterName]);
@@ -151,3 +194,9 @@ export const generateQrCode = async ({ id, qrUuid }) => {
   const qrCode = await qr.toDataURL(data);
   return qrCode.split(",")[1]; // Extract base64 data
 };
+
+export const currencyItems = [
+  { title: "USD", value: 0 },
+  { title: "GBP", value: 1 },
+  { title: "EUR", value: 2 },
+];

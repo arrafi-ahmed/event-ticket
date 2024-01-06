@@ -1,13 +1,18 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import {computed, onMounted, reactive, ref} from "vue";
-import {useStore} from "vuex";
-import {useRoute, useRouter} from "vue-router";
-import {getEventLogoUrl, isValidImage, toLocalISOString} from "@/others/util";
-import {useDisplay} from "vuetify";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useStore } from "vuex";
+import { useRoute, useRouter } from "vue-router";
+import {
+  currencyItems,
+  getEventLogoUrl,
+  isValidImage,
+  toLocalISOString,
+} from "@/others/util";
+import { useDisplay } from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
 
-const {mobile} = useDisplay();
+const { mobile } = useDisplay();
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
@@ -23,14 +28,21 @@ const newEventInit = {
   taxPercentage: null,
   taxWording: null,
   logos: [null, null],
+  banner: null,
+  bankDetailsCurrencies: [],
 };
-const newEvent = reactive({...newEventInit});
+const newEvent = reactive({ ...newEventInit });
 
 const form = ref(null);
 const isFormValid = ref(true);
 
 const handleEventLogo = (index, files) => {
   newEvent.logos[index] = files[0];
+};
+
+const handleEventBanner = (files) => {
+  newEvent.banner = files[0];
+  console.log(9, files[0]);
 };
 
 const handleAddEvent = async () => {
@@ -40,20 +52,27 @@ const handleAddEvent = async () => {
   const formData = new FormData();
   formData.append("id", newEvent.id);
   formData.append("name", newEvent.name);
-  formData.append("startDate", toLocalISOString(newEvent.startDate).slice(0,10));
-  formData.append("endDate", toLocalISOString(newEvent.endDate).slice(0,10));
+  formData.append(
+    "startDate",
+    toLocalISOString(newEvent.startDate).slice(0, 10)
+  );
+  formData.append("endDate", toLocalISOString(newEvent.endDate).slice(0, 10));
   formData.append("location", newEvent.location);
   formData.append("taxPercentage", newEvent.taxPercentage);
   formData.append("taxWording", newEvent.taxWording);
+  formData.append("bankDetailsCurrencies", newEvent.bankDetailsCurrencies);
   newEvent.logos.forEach((item, index) => {
     formData.append("files", item);
     newEvent.logos[index] = item?.name;
   });
   formData.append("logos", JSON.stringify(newEvent.logos));
 
+  if (newEvent.banner) {
+    formData.append("files", newEvent.banner);
+  }
+
   store.dispatch("event/addEvent", formData).then((result) => {
-    // newEvent = {...newEvent, ...newEventInit}
-    Object.assign(newEvent, {...newEventInit, logos: [null, null]});
+    Object.assign(newEvent, { ...newEventInit, logos: [null, null] });
     router.push({
       name: "home",
     });
@@ -155,7 +174,18 @@ onMounted(() => {
             label="Tax Wording"
             prepend-inner-icon="mdi-cash"
           ></v-text-field>
-
+          <v-select
+            v-model="newEvent.bankDetailsCurrencies"
+            :items="currencyItems"
+            class="text-capitalize mt-2 mt-md-4"
+            density="compact"
+            hide-details="auto"
+            item-title="title"
+            item-value="value"
+            label="Bank Details Currencies"
+            multiple
+            prepend-inner-icon="mdi-cash"
+          ></v-select>
           <v-row align="center" no-gutters>
             <v-col class="mt-4" cols="auto">
               <v-img
@@ -230,6 +260,43 @@ onMounted(() => {
             </v-col>
           </v-row>
 
+          <v-row align="center" no-gutters>
+            <v-col class="mt-4" cols="auto">
+              <v-img
+                :aspect-ratio="1.4"
+                :src="getEventLogoUrl(newEvent.banner)"
+                :width="70"
+              ></v-img>
+            </v-col>
+            <v-col>
+              <v-file-input
+                :rules="[
+                  (v) =>
+                    (Array.isArray(v) ? v : [v]).every((file) =>
+                      isValidImage(file)
+                    ) || 'Only jpg/jpeg/png allowed!',
+                ]"
+                accept="image/*"
+                class="mt-5 mt-md-4 ms-1"
+                density="compact"
+                hide-details="auto"
+                label="Banner"
+                prepend-icon=""
+                prepend-inner-icon="mdi-camera"
+                show-size
+                @update:modelValue="handleEventBanner"
+              >
+                <template v-slot:selection="{ fileNames }">
+                  <template v-for="fileName in fileNames" :key="fileName">
+                    <v-chip class="me-2" color="primary" label size="small">
+                      {{ fileName }}
+                    </v-chip>
+                  </template>
+                </template>
+              </v-file-input>
+            </v-col>
+          </v-row>
+
           <div class="d-flex align-center mt-3 mt-md-4">
             <v-spacer></v-spacer>
             <v-btn
@@ -237,7 +304,7 @@ onMounted(() => {
               color="primary"
               type="submit"
               variant="tonal"
-            >Save
+              >Save
             </v-btn>
           </div>
         </v-form>

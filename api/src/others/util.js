@@ -88,6 +88,11 @@ const objToArr = (obj) => {
   return Object.entries(obj).map(([key, value]) => ({ key, value }));
 };
 
+const toArrWOKey = (arr) => {
+  return arr.map((obj) => Object.values(obj));
+};
+
+
 module.exports = {
   API_BASE_URL,
   VUE_BASE_URL,
@@ -105,4 +110,5 @@ module.exports = {
   logoSvgString,
   arrToObj,
   objToArr,
+  toArrWOKey,
 };

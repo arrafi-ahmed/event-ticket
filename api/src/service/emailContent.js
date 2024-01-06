@@ -73,21 +73,23 @@ exports.generateInvoiceContent = async (
   purchase,
   formFillerId,
   eventId,
-  eventCurrency
+  eventCurrency,
+  promo
 ) => {
   const currency = getCurrencySymbol(eventCurrency, "symbol");
   const user = users.find((item) => item.id == formFillerId);
   const [event] = await eventService.getEventById(eventId);
   const settings = await settingsService.getSettings();
 
-  const doc = new jsPDF();
   //header
+  const doc = new jsPDF();
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text("Invoice", 105, 20, { align: "center" });
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
+  doc.setFontSize(10);
   // Torch Marketing Co Ltd address and logo
   doc.text(`${settings.companyName}`, 15, 30);
   doc.text(`${settings.street}`, 15, 35);
@@ -99,78 +101,140 @@ exports.generateInvoiceContent = async (
   const logoPath = join(__dirname, "..", "others", "logo.jpg");
   const logoImgData = readFileSync(logoPath).toString("base64");
   doc.addImage(logoImgData, "JPEG", 130, 30, 60, 20);
+  // doc.addImage("examples/images/Octonyan.jpg", "JPEG", 130, 30, 60, 20);
 
   // Recipient address and Invoice details
   doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
   doc.text("Recipient", 15, 65);
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.text(`${user.organization}\n${user.firstname} ${user.surname}`, 15, 70);
 
-  doc.text("Invoice #", 130, 70);
+  doc.text("Invoice", 130, 70);
   doc.text(`${String(purchase.id).padStart(8, "0")}`, 160, 70);
   doc.text("Date", 130, 75);
   doc.text(`${formatDate(purchase.createdAt)}`, 160, 75);
 
+  doc.text(`Event: ${event.name}`, 15, 85);
+
   // Table header
   doc.setFillColor(200, 200, 200);
-  doc.rect(15, 90, 180, 10, "F");
+  doc.rect(15, 90, 180, 8, "F");
   doc.text("Item", 20, 95);
   doc.text("Rate", 145, 95);
   doc.text("Quantity", 160, 95);
   doc.text("Price", 180, 95);
 
   // Table rows
-  let yPos = 105;
+  let yPos = 103;
   tickets.forEach((ticket) => {
-    doc.text(ticket.name, 20, yPos);
-    doc.text(`${currency}${ticket.ticketPrice}`, 145, yPos);
+    const ticketPrice = ticket.earlyBirdPrice
+      ? ticket.earlyBirdPrice
+      : ticket.ticketPrice;
+
+    doc.text(`${ticket.name}`, 20, yPos);
+    doc.text(`${currency}${ticketPrice}`, 145, yPos);
     doc.text(`${ticket.quantity}`, 160, yPos);
-    doc.text(`${currency}${ticket.ticketPrice * ticket.quantity}`, 180, yPos);
+    doc.text(`${currency}${ticketPrice * ticket.quantity}`, 180, yPos);
     yPos += 7;
   });
 
+  // Notes
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("Notes", 15, yPos + 5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`${settings.invoiceNotes}`, 15, yPos + 10);
+
   // Tax and Total
-  doc.text(
-    `${event.taxPercentage}% ${event.taxWording} included`,
-    15,
-    yPos + 10
-  );
-  doc.text(`${event.taxWording}`, 145, yPos + 15);
-  doc.text(`${currency}${purchase.tax}`, 175, yPos + 15);
-  doc.text("Total", 145, yPos + 20);
-  doc.text(`${currency}${purchase.totalAmount}`, 175, yPos + 20);
-  doc.text("Amount Paid", 145, yPos + 25);
+  if (!promo.discountAmount) {
+    doc.text(`SubTotal`, 145, yPos + 15);
+    doc.text(`${currency}${purchase.subTotalAmount}`, 185, yPos + 15);
+  } else {
+    doc.text(`SubTotal`, 145, yPos + 10);
+    doc.text(`${currency}${purchase.subTotalAmount}`, 185, yPos + 10);
+    doc.text(`Discount (${promo.discountText})`, 145, yPos + 15);
+    doc.text(`${currency}${promo.discountAmount}`, 185, yPos + 15);
+  }
+  doc.text(`${event.taxWording} (${event.taxPercentage}%)`, 145, yPos + 20);
+  doc.text(`${currency}${purchase.tax}`, 185, yPos + 20);
+  doc.text(`Total`, 145, yPos + 25);
+  doc.text(`${currency}${purchase.totalAmount}`, 185, yPos + 25);
+  doc.text("Amount Paid", 145, yPos + 30);
   doc.text(
     `${currency}${
       purchase.paymentStatus == "succeeded" ? purchase.totalAmount : 0.0
     }`,
-    175,
-    yPos + 25
+    185,
+    yPos + 30
   );
-  doc.text("Balance Due", 145, yPos + 30);
+  doc.text("Balance Due", 145, yPos + 35);
   doc.text(
     `${currency}${
       purchase.paymentStatus != "succeeded" ? purchase.totalAmount : 0.0
     }`,
-    175,
-    yPos + 30
+    185,
+    yPos + 35
   );
 
-  // Notes
-  doc.setFont("helvetica", "bold");
-  doc.text("Notes", 15, yPos + 40);
-  doc.setFont("helvetica", "normal");
+  event.bankDetailsCurrencies.forEach((item, index) => {
+    let position = {
+      titleX: null,
+      titleY: null,
+      detailsX: null,
+      detailsY: null,
+    };
+    if (index === 0) {
+      Object.assign(position, {
+        titleX: 15,
+        titleY: yPos + 45,
+        detailsX: 15,
+        detailsY: yPos + 50,
+      });
+    } else if (index === 1) {
+      Object.assign(position, {
+        titleX: 110,
+        titleY: yPos + 45,
+        detailsX: 110,
+        detailsY: yPos + 50,
+      });
+    } else if (index === 2) {
+      Object.assign(position, {
+        titleX: 15,
+        titleY: yPos + 75,
+        detailsX: 15,
+        detailsY: yPos + 70,
+      });
+    }
 
-  doc.text(`${settings.invoiceNotes}`, 15, yPos + 50);
-
-  doc.text(`Paying in ${settings.invoiceCurrency}:`, 130, yPos + 45);
-  doc.text(`Bank: ${settings.bank}`, 130, yPos + 50);
-  doc.text(`Account Name: ${settings.accountName}`, 130, yPos + 55);
-  doc.text(`IBAN: ${settings.iban}`, 130, yPos + 60);
-  doc.text(`SWIFT/BIC: ${settings.swift}`, 130, yPos + 65);
+    if (Number(item) === 0) {
+      doc.text(`Paying in USD:`, position.titleX, position.titleY);
+      doc.text(
+        `${settings.bankDetailsUsd}:`,
+        position.detailsX,
+        position.detailsY
+      );
+    } else if (Number(item) === 1) {
+      doc.text(`Paying in GBP:`, position.titleX, position.titleY);
+      doc.text(
+        `${settings.bankDetailsGbp}:`,
+        position.detailsX,
+        position.detailsY
+      );
+    } else if (Number(item) === 2) {
+      doc.text(`Paying in EUR:`, position.titleX, position.titleY);
+      doc.text(
+        `${settings.bankDetailsEur}:`,
+        position.detailsX,
+        position.detailsY
+      );
+    }
+  });
 
   // Footer
-  doc.text(`${settings.invoiceFooter}`, 15, yPos + 80);
+  doc.text(`${settings.invoiceFooter}`, 15, 210 + 75);
 
   return { invoiceContent: doc, user, event };
 };

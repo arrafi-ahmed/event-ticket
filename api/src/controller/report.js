@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const ApiResponse = require("../model/ApiResponse");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const reportService = require("../service/report");
 
 router.get("/downloadAttendeeReport", auth, (req, res, next) => {

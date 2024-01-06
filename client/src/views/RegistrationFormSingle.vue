@@ -63,6 +63,43 @@ const allStandardAnswers = ref([]);
 let quantities = reactive([]);
 
 const currency = computed(() => tickets.value[0]?.currency);
+
+const promo = reactive({});
+const promoCodeInput = ref(null);
+
+const handleClickPromo = async () => {
+  if (!promoCodeInput.value) return;
+  await store
+    .dispatch("promo/setPromoByCodeNFormId", {
+      code: promoCodeInput.value,
+      formId: route.params.formId,
+    })
+    .then((result) => {
+      Object.assign(promo, {
+        ...result,
+        discountType: Number(result.discountType),
+      });
+      promoApplied.value = true;
+    });
+};
+const promoApplied = ref(false);
+const promoDiscountText = computed(() =>
+  promo.discountType === 0
+    ? `${promo.discountValue}%`
+    : `${getCurrencySymbol(currency.value, "symbol")}${promo.discountValue}`
+);
+const promoDiscountAmount = computed(() => {
+  let amount = 0;
+  if (promo.code) {
+    amount = Number(subtotal.value);
+    if (promo.discountType === 0) {
+      amount = amount * (promo.discountValue / 100);
+    } else if (promo.code && promo.discountType === 1) {
+      amount = promo.discountValue;
+    }
+  }
+  return amount;
+});
 const subtotal = computed(() => {
   let amountTotal = 0;
   quantities.forEach((parentItem) => {
@@ -79,7 +116,12 @@ const subtotal = computed(() => {
 const tax = computed(() =>
   Number(subtotal.value * (event.value.taxPercentage / 100)).toFixed(2)
 );
-const total = computed(() => Number(subtotal.value) + Number(tax.value));
+const total = computed(
+  () =>
+    Number(subtotal.value) -
+    Number(promoDiscountAmount.value) +
+    Number(tax.value)
+);
 const sum = computed(() => {
   return quantities.reduce((total, item) => {
     if (item.ticketType.toLowerCase() !== "extras") {
@@ -95,6 +137,20 @@ const submitForm1 = ref(null);
 const isSubmitForm1Valid = ref(true);
 
 const handleSubmitStep1 = async () => {
+  if (promoDiscountAmount.value >= subtotal.value) {
+    toast("Invalid payment amount!", {
+      cardProps: { color: "error" },
+      action: {
+        label: "Close",
+        buttonProps: {
+          color: "white",
+        },
+        onClick() {},
+      },
+    });
+    return;
+  }
+
   quantities = quantities.filter((item) => Number(item.quantity) !== 0);
 
   allStandardAnswers.value = Array(sum.value).fill(null);
@@ -245,17 +301,23 @@ const handleSubmitStepLast = async () => {
       purchase: {
         paymentMethod: paymentTab.value,
         paymentStatus,
+        subTotalAmount: Number(subtotal.value),
         totalAmount: Number(total.value),
-        tax: tax.value,
+        tax: Number(tax.value),
       },
       tickets: toRaw(quantities),
       eventId: route.params.eventId,
       currency: currency.value,
       emailBodyForm: form.value.emailBody,
+      promo: {
+        ...promo,
+        discountText: promoDiscountText.value,
+        discountAmount: promoDiscountAmount.value,
+      },
     })
     .then((result) => {
       currStep.value++;
-      store.commit("invoice/setInvoice", result.data.payload);
+      store.commit("purchase/setInvoice", result.data.payload);
       return router.push({ name: "invoice" });
     })
     .finally(() => {
@@ -279,19 +341,22 @@ onMounted(async () => {
     store.dispatch("registrationForm/setFields"),
     store.dispatch("registrationForm/setFormWQuestion", route.params.formId),
     store.dispatch("ticket/setTicketsWEarlyBirdActivated", route.params.formId),
-    store.dispatch("settings/setSettings"),
+    store.dispatch("settings/setSettingsWOPrivateKeys"),
   ]);
 
   Object.assign(
     quantities,
-    tickets.value.map(({ id, ticketType, price, name, emailBody }) => ({
-      ticketId: id,
-      ticketPrice: price,
-      ticketType: ticketType.toLowerCase(),
-      name,
-      quantity: 0,
-      emailBodyTicket: emailBody,
-    }))
+    tickets.value.map(
+      ({ id, ticketType, price, earlyBirdPrice, name, emailBody }) => ({
+        ticketId: id,
+        name,
+        ticketType: ticketType.toLowerCase(),
+        quantity: 0,
+        ticketPrice: price,
+        earlyBirdPrice: earlyBirdPrice || undefined,
+        emailBodyTicket: emailBody,
+      })
+    )
   );
   // Initialize the Stripe instance
   stripe = await loadStripe(settings.value.stripePublic);
@@ -299,7 +364,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-container>
+  <v-container v-if="event.name">
     <v-row>
       <v-col>
         <page-title :title="event.name" justify="space-between">
@@ -447,9 +512,28 @@ onMounted(async () => {
                       </tbody>
                     </v-table>
 
+                    <v-row class="mt-2 mt-md-4" justify="end" no-gutters>
+                      <v-col cols="2">
+                        <v-text-field
+                          v-model="promoCodeInput"
+                          :disabled="promoApplied"
+                          append-inner-icon="mdi-arrow-right-circle"
+                          density="compact"
+                          hide-details
+                          label="Promo Code"
+                          variant="outlined"
+                          @click:append-inner="handleClickPromo"
+                        ></v-text-field>
+                        <small v-if="promo.code" class="text-red"
+                          >Promo code {{ promo.code }} applied!</small
+                        >
+                      </v-col>
+                    </v-row>
+
                     <summary-price
                       v-if="tickets[0]"
                       :currency="currency"
+                      :promoDiscountAmount="promoDiscountAmount"
                       :subtotal="subtotal"
                       :tax="tax"
                       :taxPercentage="event.taxPercentage"
@@ -459,8 +543,8 @@ onMounted(async () => {
                     <v-row class="mt-2" justify="end">
                       <v-col cols="auto">
                         <v-btn
-                          :density="mobile ? 'compact' : 'default'"
-                          :disabled="sum < 1"
+                          :density="mobile ? 'comfortable' : 'default'"
+                          :disabled="sum < 1 || promoDiscountAmount >= subtotal"
                           color="primary"
                           type="submit"
                           >Continue
@@ -546,7 +630,7 @@ onMounted(async () => {
                     <v-row justify="end">
                       <v-col cols="auto">
                         <v-btn
-                          :density="mobile ? 'compact' : 'default'"
+                          :density="mobile ? 'comfortable' : 'default'"
                           class="mt-2 mt-md-4"
                           color="primary"
                           @click.prevent="handleSubmitStep2"
@@ -576,7 +660,7 @@ onMounted(async () => {
                   <v-row justify="end">
                     <v-col cols="auto">
                       <v-btn
-                        :density="mobile ? 'compact' : 'default'"
+                        :density="mobile ? 'comfortable' : 'default'"
                         :disabled="form.terms ? !acceptTerms : false"
                         class="mt-2 mt-md-4"
                         color="primary"
@@ -611,7 +695,7 @@ onMounted(async () => {
                             {{ item.name }}
                           </td>
                           <td class="w-25 text-center">
-                            {{ item.ticketPrice }}
+                            {{ item.earlyBirdPrice || item.ticketPrice }}
                           </td>
                           <td class="w-25 text-center">
                             {{ item.quantity }}
@@ -623,11 +707,20 @@ onMounted(async () => {
                     <summary-price
                       v-if="tickets[0]"
                       :currency="currency"
+                      :promoDiscountAmount="promoDiscountAmount"
                       :subtotal="subtotal"
                       :tax="tax"
                       :taxPercentage="event.taxPercentage"
                       :total="total"
                     />
+
+                    <v-row class="mt-2" justify="end" no-gutters>
+                      <v-col cols="auto">
+                        <small v-if="promo.code" class="text-red"
+                          >Promo code {{ promo.code }} applied!</small
+                        >
+                      </v-col>
+                    </v-row>
 
                     <h3 class="pb-5">Payment Methods</h3>
                     <v-tabs v-model="paymentTab" bg-color="primary">
@@ -657,28 +750,40 @@ onMounted(async () => {
                             ><span class="text-pre-wrap">{{
                               settings.invoiceNotes
                             }}</span>
-                            <span
-                              >Bank Transfer paying in
-                              {{ settings.invoiceCurrency }}</span
+                          </div>
+                          <v-row class="mt-5">
+                            <template
+                              v-for="(
+                                item, index
+                              ) in event.bankDetailsCurrencies"
+                              :key="index"
                             >
-                          </div>
-                          <div>
-                            <span class="font-weight-bold">Bank: </span
-                            ><span>{{ settings.bank }}</span>
-                          </div>
-                          <div>
-                            <span class="font-weight-bold">Account Name: </span
-                            ><span>{{ settings.accountName }}</span>
-                          </div>
-                          <div>
-                            <span class="font-weight-bold">IBAN: </span
-                            ><span>{{ settings.iban }}</span>
-                          </div>
-                          <div>
-                            <span class="font-weight-bold">SWIFT/BIC: </span
-                            ><span>{{ settings.swift }}</span>
-                          </div>
-                          <div>DOWNLOAD YOUR INVOICE AT THE TOP</div>
+                              <v-col v-if="Number(item) === 0">
+                                <div class="font-weight-bold">
+                                  Bank Transfer paying in USD:
+                                </div>
+                                <div class="text-pre-wrap">
+                                  {{ settings.bankDetailsUsd }}
+                                </div>
+                              </v-col>
+                              <v-col v-else-if="Number(item) === 1">
+                                <div class="font-weight-bold">
+                                  Bank Transfer paying in GBP:
+                                </div>
+                                <div class="text-pre-wrap">
+                                  {{ settings.bankDetailsGbp }}
+                                </div>
+                              </v-col>
+                              <v-col v-else-if="Number(item) === 2">
+                                <div class="font-weight-bold">
+                                  Bank Transfer paying in EUR:
+                                </div>
+                                <div class="text-pre-wrap">
+                                  {{ settings.bankDetailsEur }}
+                                </div>
+                              </v-col>
+                            </template>
+                          </v-row>
                         </div>
                       </v-window-item>
                     </v-window>
@@ -688,7 +793,7 @@ onMounted(async () => {
                   <v-row v-if="paymentTab !== 'paypal'" justify="end">
                     <v-col cols="auto">
                       <v-btn
-                        :density="mobile ? 'compact' : 'default'"
+                        :density="mobile ? 'comfortable' : 'default'"
                         :disabled="isPaymentBtnDisabled"
                         class="mt-2 mt-md-4"
                         color="primary"

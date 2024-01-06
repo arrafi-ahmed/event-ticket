@@ -1,15 +1,17 @@
 -- Event Information
 CREATE TABLE event
 (
-    id             serial PRIMARY KEY,
-    name           varchar(255)  NOT NULL,
-    location       varchar(255)  NOT NULL,
-    start_date     date,
-    end_date       date,
-    tax_percentage numeric(4, 2) NOT NULL,
-    tax_wording    varchar(255), --added
-    logo_left      varchar(255),
-    logo_right     varchar(255)
+    id                      serial PRIMARY KEY,
+    name                    varchar(255)  NOT NULL,
+    location                varchar(255)  NOT NULL,
+    start_date              date,
+    end_date                date,
+    tax_percentage          numeric(4, 2) NOT NULL,
+    tax_wording             varchar(255), --added
+    logo_left               varchar(255),
+    logo_right              varchar(255),
+    banner                  varchar(255),
+    bank_details_currencies integer[]     -- 0 -> USD, 1 -> GBP, 2 -> EUR
 );
 
 -- Registration Form Type
@@ -118,7 +120,7 @@ CREATE TABLE answer
 (
     id          serial PRIMARY KEY,
     answer_text text                          NOT NULL,
-    question_id integer REFERENCES question,
+    question_id integer REFERENCES question ON DELETE CASCADE,
     form_filler integer REFERENCES users (id) NOT NULL
 );
 
@@ -133,14 +135,14 @@ CREATE TABLE early_bird
 );
 
 -- Promo Code Information
-CREATE TABLE promo_code
+CREATE TABLE promo
 (
-    id             serial PRIMARY KEY,
-    code           varchar(50) NOT NULL,
-    discount_type  varchar(50) NOT NULL,
-    discount_value numeric     NOT NULL,
-    event_id       integer REFERENCES event,
-    ticket_id      integer REFERENCES ticket
+    id                   serial PRIMARY KEY,
+    code                 varchar(50) NOT NULL,
+    discount_type        smallint    NOT NULL, -- 0 -> percentage, 1 -> fixed amount
+    discount_value       numeric     NOT NULL,
+    stock_curr           integer,
+    registration_form_id INTEGER REFERENCES registration_form
 );
 
 -- Purchase Information
@@ -160,7 +162,8 @@ CREATE TABLE purchase
     extras_price         integer[],
     registration_id      integer REFERENCES registration,
     registration_form_id integer REFERENCES registration_form,
-    promo_code_id        integer                  REFERENCES promo_code ON DELETE SET NULL
+    promo_id             integer                  REFERENCES promo ON DELETE SET NULL,
+    discount_amount      numeric
 );
 
 ALTER TABLE users

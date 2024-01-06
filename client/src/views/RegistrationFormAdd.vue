@@ -1,12 +1,12 @@
 <script setup>
-import {useRoute, useRouter} from "vue-router";
-import {useStore} from "vuex";
-import {computed, onMounted, reactive, ref, toRaw} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { computed, onMounted, reactive, ref, toRaw } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
-import {useDisplay} from "vuetify";
-import {input_fields} from "@/others/util";
+import { useDisplay } from "vuetify";
+import { input_fields } from "@/others/util";
 
-const {mobile} = useDisplay();
+const { mobile } = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -20,7 +20,7 @@ const findFormItemTypeIndex = (id) =>
   formItemTypes.findIndex((item) => item.id == id);
 
 const dialog = ref(false);
-const selectedFormItemType = reactive({id: null, title: null});
+const selectedFormItemType = reactive({ id: null, title: null });
 const terms = ref(null);
 const emailBody = ref(null);
 
@@ -31,12 +31,12 @@ const questionInit = {
   required: true,
   options: [],
 };
-const question = reactive({...questionInit});
+const question = reactive({ ...questionInit });
 const isQuestionOptionsRequired = computed(() => {
   return selectedFormItemType.id != 0 && selectedFormItemType.id != 1;
 });
 const openDialog = (itemTypeId) => {
-  Object.assign(question, {...questionInit, options: []});
+  Object.assign(question, { ...questionInit, options: [] });
   dialog.value = !dialog.value;
   const foundIndex = findFormItemTypeIndex(itemTypeId);
   Object.assign(selectedFormItemType, formItemTypes[foundIndex]);
@@ -57,7 +57,7 @@ const addFormItem = async (selectedFormItemType) => {
     delete question.options;
   }
 
-  formItems.push({...question});
+  formItems.push({ ...question });
 
   dialog.value = !dialog.value;
 };
@@ -82,9 +82,13 @@ const handleSubmitPublishForm = async () => {
     .then((result) => {
       router.push({
         name: "event-single",
-        params: {eventId: route.params.eventId},
+        params: { eventId: route.params.eventId },
       });
     });
+};
+
+const removeQuestion = (index) => {
+  formItems.splice(index, 1);
 };
 
 onMounted(() => {
@@ -139,7 +143,7 @@ onMounted(() => {
                       size="small"
                       stacked
                       v-bind="props"
-                    >Question
+                      >Question
                     </v-btn>
                   </template>
                   <v-list density="compact">
@@ -162,64 +166,105 @@ onMounted(() => {
           >
             <template v-for="(item, index) in formItems" :key="index">
               <i v-if="item.instruction" class="text-caption text-disabled">{{
-                  item.instruction
-                }}</i>
-              <v-text-field
-                v-if="item.typeId == 0"
-                :label="item.text"
-                class="mt-2"
-                density="compact"
-                disabled
-                hide-details="auto"
-              ></v-text-field>
-              <v-textarea
-                v-else-if="item.typeId == 1"
-                :label="item.text"
-                class="mt-2"
-                density="compact"
-                disabled
-                hide-details="auto"
-              ></v-textarea>
-              <v-radio-group
-                v-else-if="item.typeId == 2"
-                :label="item.text"
-                class="mt-2"
-                disabled
-                hide-details="auto"
-              >
-                <template v-if="item.options.length > 0">
-                  <v-radio
-                    v-for="(childItem, index) in item.options"
-                    :key="index"
-                    :label="childItem"
-                  ></v-radio>
-                </template>
-              </v-radio-group>
+                item.instruction
+              }}</i>
+              <div v-if="item.typeId == 0" class="d-flex align-center">
+                <v-text-field
+                  :label="item.text"
+                  class="mt-2"
+                  density="compact"
+                  disabled
+                  hide-details="auto"
+                ></v-text-field>
+                <v-btn
+                  class="ms-2"
+                  color="error"
+                  variant="tonal"
+                  @click="removeQuestion(index)"
+                  >Remove
+                </v-btn>
+              </div>
+              <div v-else-if="item.typeId == 1" class="d-flex align-center">
+                <v-textarea
+                  :label="item.text"
+                  class="mt-2"
+                  density="compact"
+                  disabled
+                  hide-details="auto"
+                ></v-textarea>
+                <v-btn
+                  class="ms-2"
+                  color="error"
+                  variant="tonal"
+                  @click="removeQuestion(index)"
+                  >Remove
+                </v-btn>
+              </div>
+              <div v-else-if="item.typeId == 2" class="d-flex align-center">
+                <v-radio-group
+                  :label="item.text"
+                  class="mt-2"
+                  disabled
+                  hide-details="auto"
+                >
+                  <template v-if="item.options.length > 0">
+                    <v-radio
+                      v-for="(childItem, index) in item.options"
+                      :key="index"
+                      :label="childItem"
+                    ></v-radio>
+                  </template>
+                </v-radio-group>
+                <v-btn
+                  class="ms-2"
+                  color="error"
+                  variant="tonal"
+                  @click="removeQuestion(index)"
+                  >Remove
+                </v-btn>
+              </div>
               <div
                 v-else-if="item.typeId == 3"
-                class="mt-2 v-label d-block pl-4"
+                class="mt-2 d-block pl-4 d-flex align-center justify-space-between"
               >
-                <p>{{ item.text }}</p>
-                <template v-if="item.options.length > 0">
-                  <v-checkbox
-                    v-for="(childItem, index) in item.options"
-                    :key="index"
-                    :label="childItem"
-                    density="compact"
-                    disabled
-                    hide-details="auto"
-                  ></v-checkbox>
-                </template>
+                <div>
+                  <p class="v-label">{{ item.text }}</p>
+                  <template v-if="item.options.length > 0">
+                    <v-checkbox
+                      v-for="(childItem, index) in item.options"
+                      :key="index"
+                      :label="childItem"
+                      density="compact"
+                      disabled
+                      hide-details="auto"
+                    ></v-checkbox>
+                  </template>
+                </div>
+                <v-btn
+                  class="ms-2"
+                  color="error"
+                  variant="tonal"
+                  @click="removeQuestion(index)"
+                  >Remove
+                </v-btn>
               </div>
-              <v-select
-                v-if="item.typeId == 4"
-                :items="item.options"
-                :label="item.text"
-                class="mt-2"
-                density="compact"
-                disabled
-                hide-details="auto"
-              ></v-select>
+              <div v-else-if="item.typeId == 4" class="d-flex align-center">
+                <v-select
+                  :items="item.options"
+                  :label="item.text"
+                  class="mt-2"
+                  density="compact"
+                  disabled
+                  hide-details="auto"
+                ></v-select>
+                <v-btn
+                  class="ms-2"
+                  color="error"
+                  variant="tonal"
+                  @click="removeQuestion(index)"
+                  >Remove
+                </v-btn>
+              </div>
               <v-divider
                 v-if="formItems.length != index + 1"
                 class="my-2"
@@ -251,7 +296,7 @@ onMounted(() => {
                 color="primary"
                 type="submit"
                 variant="tonal"
-              >Publish
+                >Publish
               </v-btn>
             </v-col>
           </v-row>
@@ -335,7 +380,7 @@ onMounted(() => {
               :density="mobile ? 'compact' : 'default'"
               color="primary"
               type="submit"
-            >Submit
+              >Submit
             </v-btn>
           </v-card-actions>
         </v-form>

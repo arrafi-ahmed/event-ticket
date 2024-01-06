@@ -20,17 +20,32 @@ exports.createBadge = async (badges) => {
   return await sql`insert into badge ${sql(formattedBadges)} returning *`;
 };
 
-exports.updateBadgeStatus = async (userId, purchaseId) => {
+exports.updateBadgeStatus = async (id, badgeStatus) => {
+  const [updatedBadge] = await sql`
+        update badge
+        set badge_status = ${badgeStatus}
+        where id = ${id}
+        returning *, id as b_id`;
+
+  return updatedBadge;
+};
+
+exports.updateBadgeStatusByUserIdNPurchaseId = async (
+  userId,
+  purchaseId,
+  badgeStatus
+) => {
   const [purchase] = await purchaseService.getPurchaseById(purchaseId);
   if (purchase.paymentStatus.toLowerCase() === "pending")
     throw new CustomError("Payment status is pending!", 401);
 
+  console.log(84, userId, purchaseId, badgeStatus);
+
   const [updatedBadge] = await sql`
         update badge
-        set badge_status = 1
+        set badge_status = ${badgeStatus}::int
         where user_id = ${userId}
         returning *`;
-
   return updatedBadge;
 };
 
@@ -114,7 +129,6 @@ exports.scanBadgeByExhibitor = async (badgeId, exhibitorId) => {
   );
 
   const fields = await registrationFormService.getFields();
-
   const filteredFieldStandard = badgeWVisibility.fieldIdStandard.reduce(
     (acc, parentItem) => {
       return acc.concat(
@@ -130,9 +144,9 @@ exports.scanBadgeByExhibitor = async (badgeId, exhibitorId) => {
     filteredFieldQuestions = badgeWVisibility.fieldIdQuestion.reduce(
       (acc, parentItem) => {
         return acc.concat(
-          formWAnswer.questions.filter(
-            (childItem) => parentItem == childItem.id
-          )
+          formWAnswer.questions.filter((childItem) => {
+            return parentItem == childItem.id;
+          })
         );
       },
       []

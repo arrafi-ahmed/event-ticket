@@ -1,16 +1,14 @@
 const router = require("express").Router();
 const registrationFormService = require("../service/registrationForm");
 const ApiResponse = require("../model/ApiResponse");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 
 router.post("/saveForm", auth, (req, res, next) => {
   registrationFormService
     .saveForm(req.body)
     .then((results) => {
       if (results) {
-        res
-          .status(200)
-          .json(new ApiResponse("Form saved!", results[0]));
+        res.status(200).json(new ApiResponse("Form saved!", results[0]));
       }
     })
     .catch((err) => next(err));
@@ -23,7 +21,7 @@ router.post("/saveFormType", auth, (req, res, next) => {
       if (results) {
         res
           .status(200)
-          .json(new ApiResponse("Form Type creation successful!", results[0]));
+          .json(new ApiResponse("Form type saved!", results[0]));
       }
     })
     .catch((err) => next(err));

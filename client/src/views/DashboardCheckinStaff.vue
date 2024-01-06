@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
-import { getEventLogoUrl } from "@/others/util";
+import { getEventLogoUrl, printBadge } from "@/others/util";
 import PageTitle from "@/components/PageTitle.vue";
 import BadgePreview from "@/components/BadgePreview.vue";
 import { QrcodeStream } from "vue-qrcode-reader";
@@ -31,27 +31,38 @@ const handleSeachUser = async () => {
   });
 };
 const qrScannerDialog = ref(false);
+const isPaused = ref(false);
 
-const handleScan = async ([decodedString]) => {
-  qrScannerDialog.value = !qrScannerDialog.value;
-  store.commit("badge/resetBadge");
-  await store.dispatch("badge/scanBadge", {
-    qrCodeData: decodedString.rawValue,
-    eventId: event.value.id,
-  });
-  setTimeout(function () {
-    window.print();
-  }, 500);
-};
+const badgeWrapper = ref(null);
 
 const handleCheckin = async (userId, purchaseId) => {
-  store.commit("badge/resetBadge");
-  await store.dispatch("badge/checkin", { userId, purchaseId });
-  // await nextTick();
-  setTimeout(function () {
-    window.print();
-  }, 500);
+  await store
+    .dispatch("badge/checkin", { userId, purchaseId })
+    .then(() => {
+      return printBadge(badgeWrapper.value?.children?.[0]);
+    })
+    .finally(() => {
+      store.commit("badge/resetBadge");
+    });
 };
+
+const handleScan = async ([decodedString]) => {
+  isPaused.value = true; // pause the camera stream
+  await store
+    .dispatch("badge/scanBadgeByCheckin", {
+      qrCodeData: decodedString.rawValue,
+      eventId: event.value.id,
+    })
+    .then(() => {
+      return printBadge(badgeWrapper.value?.children?.[0]);
+    })
+    .finally(() => {
+      store.commit("badge/resetBadge");
+      console.log(2);
+      isPaused.value = false;
+    });
+};
+
 const user = reactive({});
 
 const userDetailsDialog = ref(false);
@@ -78,12 +89,16 @@ onMounted(() => {
 </script>
 
 <template>
+  <div v-if="badge.id" ref="badgeWrapper" class="d-print-block">
+    <badge-preview :badge="badge" :event="event"></badge-preview>
+  </div>
+
   <v-container class="d-print-none">
     <v-row>
       <v-col>
         <page-title
-          :title="event.name"
           :justify="mobile ? 'space-around' : 'space-between'"
+          :title="event.name"
         >
           <v-row align="center">
             <v-col v-if="event.logoLeft" cols="auto">
@@ -192,15 +207,15 @@ onMounted(() => {
     </v-alert>
   </v-container>
 
-  <div v-if="badge.id" class="d-none d-print-block">
-    <badge-preview :badge="badge" :event="event"></badge-preview>
-  </div>
-
   <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
     <v-card>
       <v-card-title>Scan QR Code</v-card-title>
       <v-card-text>
-        <qrcode-stream @detect="handleScan" @error="onError"></qrcode-stream>
+        <qrcode-stream
+          :paused="isPaused"
+          @detect="handleScan"
+          @error="onError"
+        ></qrcode-stream>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

@@ -12,4 +12,14 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
+const isAdmin = (req, res, next) => {
+  const currentUser = req.currentUser;
+  if (!currentUser) res.status(400).json({ message: "Invalid request" });
+  try {
+    if (currentUser.role.toLowerCase() === "admin") next();
+  } catch (error) {
+    res.status(400).json({ message: "Invalid request" });
+  }
+};
+
+module.exports = { auth, isAdmin };

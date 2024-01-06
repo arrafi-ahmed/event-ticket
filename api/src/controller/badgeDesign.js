@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const badgeService = require("../service/badgeDesign");
 const ApiResponse = require("../model/ApiResponse");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const registrationFormService = require("../service/registrationForm");
 
 router.post("/saveBadgeDesign", auth, (req, res, next) => {
@@ -12,7 +12,7 @@ router.post("/saveBadgeDesign", auth, (req, res, next) => {
         res
           .status(200)
           .json(
-            new ApiResponse("Badge design creation successful!", results[0])
+            new ApiResponse("Badge design saved!", results[0])
           );
       }
     })

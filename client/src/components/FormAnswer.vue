@@ -28,7 +28,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="items?.length > 0 && items[0]" class="rounded py-2">
+  <div v-if="items?.length > 0 && items[0]" class="rounded py-2 form-op-90">
     <template v-for="(item, index) in items" :key="index">
       <v-text-field
         v-if="item.typeId == 0"
@@ -117,10 +117,10 @@ watch(
 </template>
 
 <style>
-.v-field--disabled,
-.v-input--disabled,
-.v-selection-control--disabled {
-  opacity: 0.85;
+.form-op-90 .v-field--disabled,
+.form-op-90 .v-input--disabled,
+.form-op-90 .v-selection-control--disabled {
+  opacity: 0.9;
   pointer-events: none;
 }
 </style>

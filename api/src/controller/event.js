@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const eventService = require("../service/event");
 const ApiResponse = require("../model/ApiResponse");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const { uploadEventLogo } = require("../middleware/upload");
 const compressImages = require("../middleware/compress");
 

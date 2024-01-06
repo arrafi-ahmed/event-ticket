@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const usersService = require("../service/users");
 const purchaseService = require("../service/purchase");
+const badgeService = require("../service/badge");
 const ApiResponse = require("../model/ApiResponse");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 
 router.get("/getUsers", auth, (req, res, next) => {
   usersService
@@ -26,35 +27,51 @@ router.get("/getUsersByNameNEventId", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
-router.post("/updateUser", auth, (req, res, next) => {
-  const user = req.body.payload;
-  const userColumns = [
-    "firstname",
-    "surname",
-    "email",
-    "phone",
-    "jobTitle",
-    "organization",
-  ];
-  const purchaseColumns = ["paymentStatus"];
+router.post("/updateUser", auth, async (req, res, next) => {
+  try {
+    const user = req.body.payload;
+    const userColumns = [
+      "firstname",
+      "surname",
+      "email",
+      "phone",
+      "jobTitle",
+      "organization",
+    ];
+    const purchaseColumns = ["paymentStatus"];
 
-  usersService
-    .updateUser(user, userColumns)
-    .then(() => {
-      if (user.paymentStatus) {
-        return purchaseService.updatePurchase(
-          {
-            id: user.pId,
-            paymentStatus: user.paymentStatus,
-          },
-          purchaseColumns
-        );
-      }
-    })
-    .then((result) => {
-      res.status(200).json(new ApiResponse("Attendee updated!", result));
-    })
-    .catch((err) => next(err));
+    const userResult = await usersService.updateUser(user, userColumns);
+
+    let purchaseResult = null;
+
+    if (user.paymentStatus)
+      purchaseResult = await purchaseService.updatePurchase(
+        {
+          id: user.pId,
+          paymentStatus: user.paymentStatus,
+        },
+        purchaseColumns
+      );
+
+    let badgeResult = null;
+
+    if (user.badgeStatus != undefined) {
+      badgeResult = await badgeService.updateBadgeStatus(
+        user.bId,
+        user.badgeStatus
+      );
+    }
+
+    res.status(200).json(
+      new ApiResponse("User updated!", {
+        ...userResult,
+        ...purchaseResult,
+        ...badgeResult,
+      })
+    );
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post("/updatePaymentStatus", auth, (req, res, next) => {
@@ -81,7 +98,7 @@ router.get("/deleteUser", auth, (req, res, next) => {
       if (results) {
         res
           .status(200)
-          .json(new ApiResponse("Attendee deleted!", req.query.userId));
+          .json(new ApiResponse("User deleted!", req.query.userId));
       }
     })
     .catch((err) => next(err));

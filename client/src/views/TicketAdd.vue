@@ -1,13 +1,13 @@
 <script setup>
 import PageTitle from "@/components/PageTitle.vue";
-import {computed, onMounted, reactive, ref} from "vue";
-import {useStore} from "vuex";
-import {useRoute, useRouter} from "vue-router";
-import {useDisplay} from "vuetify";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useStore } from "vuex";
+import { useRoute, useRouter } from "vue-router";
+import { useDisplay } from "vuetify";
 import DatePicker from "@/components/DatePicker.vue";
-import {toLocalISOString} from "@/others/util";
+import { toLocalISOString } from "@/others/util";
 
-const {mobile} = useDisplay();
+const { mobile } = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -43,13 +43,13 @@ const handleAddTicket = async () => {
   ticket.registrationFormId = ticket.registrationForm;
   delete ticket.registrationForm;
 
-  earlyBird.startDate = toLocalISOString(earlyBird.startDate).slice(0,10)
-  earlyBird.endDate = toLocalISOString(earlyBird.endDate).slice(0,10)
+  earlyBird.startDate = toLocalISOString(earlyBird.startDate).slice(0, 10);
+  earlyBird.endDate = toLocalISOString(earlyBird.endDate).slice(0, 10);
 
-  store.dispatch("ticket/addTicket", {ticket, earlyBird}).then((result) => {
+  store.dispatch("ticket/addTicket", { ticket, earlyBird }).then((result) => {
     router.push({
       name: "event-single",
-      params: {eventId: ticket.eventId},
+      params: { eventId: ticket.eventId },
     });
   });
 };
@@ -234,7 +234,7 @@ onMounted(async () => {
                 color="primary"
                 type="submit"
                 variant="tonal"
-              >Add
+                >Add
               </v-btn>
             </v-col>
           </v-row>

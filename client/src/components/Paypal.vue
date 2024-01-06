@@ -2,10 +2,9 @@
 import { loadScript } from "@paypal/paypal-js";
 import { onBeforeMount, ref } from "vue";
 import { toast } from "vuetify-sonner";
+import {useStore} from "vuex";
 
-// Change to your CLIENT ID gotten from the developer dashboard
-// const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-
+const store = useStore()
 const { amount, currency, clientId } = defineProps([
   "amount",
   "currency",
@@ -15,18 +14,21 @@ const emit = defineEmits(["post-approval"]);
 const paid = ref(false);
 
 onBeforeMount(() => {
+  store.commit("setProgress", true);
   loadScript({
     "client-id": clientId,
     currency: currency,
     "disable-funding": ["paylater", "venmo", "card"],
-  }).then((paypal) => {
-    paypal
-      .Buttons({
-        createOrder: createOrder,
-        onApprove: onApprove,
-      })
-      .render("#paypal-button-container");
-  });
+  })
+    .then((paypal) => {
+      paypal
+        .Buttons({
+          createOrder: createOrder,
+          onApprove: onApprove,
+        })
+        .render("#paypal-button-container");
+    })
+    .finally(() => store.commit("setProgress", false));
 });
 
 const createOrder = (data, actions) => {

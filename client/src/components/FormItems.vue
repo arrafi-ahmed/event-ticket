@@ -86,7 +86,10 @@ watch(inputResponses.value, (newVal) => {
             <span v-if="item.required" style="color: red">*</span>
           </template>
           <template v-if="item.options?.length > 0">
-            <div v-if="item.instruction" class="text-caption font-italic pb-1">
+            <div
+              v-if="item.instruction"
+              class="text-caption font-italic pb-1 ps-2"
+            >
               {{ item.instruction }}
             </div>
             <v-radio
@@ -155,4 +158,8 @@ watch(inputResponses.value, (newVal) => {
   </div>
 </template>
 
-<style scoped></style>
+<style>
+.v-label {
+  opacity: var(--v-high-emphasis-opacity);
+}
+</style>

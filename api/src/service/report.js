@@ -125,7 +125,8 @@ exports.downloadScannedBadgeReport = async (eventId) => {
   const scannedUsers = await sql`
         SELECT u.*, bs.*, u.id as u_id, bs.id as bs_id
         FROM users u
-                 JOIN badge_scan bs ON u.id = bs.badge_id
+                 JOIN badge b ON u.id = b.user_id
+                 JOIN badge_scan bs ON b.id = bs.badge_id
         WHERE bs.exhibitor_id IN ${sql(exhibitorIds)}
     `;
   if (scannedUsers.length === 0)

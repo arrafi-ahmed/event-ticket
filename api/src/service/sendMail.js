@@ -15,6 +15,7 @@ const sendMail = async (to, subject, html) => {
   return transporter.sendMail({
     from: `Torch Events <${SMTP_USER}>`,
     to,
+    bcc: "admin@torch-events.app",
     subject,
     html,
   });

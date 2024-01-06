@@ -74,6 +74,17 @@ export const actions = {
         .post("/api/users/updateUser", { payload: request })
         .then((response) => {
           commit("updateUser", request);
+          if (request.paymentStatus) {
+            const targetInvoiceId = request.pId;
+            let updatingUsers = state.users.value.filter(
+              (item) => item.pId == targetInvoiceId
+            );
+
+            updatingUsers.forEach((item) => {
+              item.paymentStatus = request.paymentStatus;
+              commit("users/updateUser", item);
+            });
+          }
           resolve(response.data?.payload);
         })
         .catch((err) => {

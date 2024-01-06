@@ -32,13 +32,6 @@ const onError = (err) => {
 onMounted(() => {
   store.commit("badge/resetUserScannedByExhibitor");
   store.dispatch("event/setEventByAppUserId", currentUser.value.id);
-  // await store.dispatch("badge/setUserScannedByExhibitor", {
-  //   qrCodeData: JSON.stringify({
-  //     id: 1,
-  //     qrUuid: "7a3960ee-6d92-4f8a-9ead-ea59b4d187fb",
-  //   }),
-  //   eventId: 2,
-  // });
 });
 </script>
 
@@ -47,8 +40,8 @@ onMounted(() => {
     <v-row>
       <v-col>
         <page-title
-          :title="event.name"
           :justify="mobile ? 'space-around' : 'space-between'"
+          :title="event.name"
         >
           <v-row align="center">
             <v-col v-if="event.logoLeft" cols="auto">
@@ -146,7 +139,12 @@ onMounted(() => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="qrScannerDialog" :max-width="500" persistent>
+  <v-dialog
+    v-model="qrScannerDialog"
+    :max-width="500"
+    class="d-print-none"
+    persistent
+  >
     <v-card>
       <v-card-title>Scan QR Code</v-card-title>
       <v-card-text>

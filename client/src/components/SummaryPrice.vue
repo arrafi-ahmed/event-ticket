@@ -1,13 +1,15 @@
 <script setup>
 import { getCurrencySymbol } from "@/others/util";
 
-const { currency, subtotal, taxPercentage, tax, total } = defineProps([
-  "currency",
-  "subtotal",
-  "taxPercentage",
-  "tax",
-  "total",
-]);
+const { currency, subtotal, promoDiscountAmount, taxPercentage, tax, total } =
+  defineProps([
+    "currency",
+    "subtotal",
+    "promoDiscountAmount",
+    "taxPercentage",
+    "tax",
+    "total",
+  ]);
 </script>
 
 <template>
@@ -22,6 +24,27 @@ const { currency, subtotal, taxPercentage, tax, total } = defineProps([
         size="large"
       >
         <span class="chip-currency-font">{{ subtotal }}</span>
+      </v-chip>
+    </v-col>
+  </v-row>
+
+  <v-row
+    v-if="promoDiscountAmount"
+    align="center"
+    class="mt-2"
+    justify="end"
+    no-gutters
+  >
+    <v-col cols="auto">
+      <span>Discount: </span>
+    </v-col>
+    <v-col class="ml-2" cols="auto">
+      <v-chip
+        :prepend-icon="getCurrencySymbol(currency, 'icon')"
+        class="chip-currency"
+        size="large"
+      >
+        <span class="chip-currency-font">{{ promoDiscountAmount }}</span>
       </v-chip>
     </v-col>
   </v-row>

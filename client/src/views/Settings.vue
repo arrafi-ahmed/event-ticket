@@ -5,6 +5,7 @@ import { useStore } from "vuex";
 
 const store = useStore();
 const settings = computed(() => store.state.settings.settings);
+const isAdmin = computed(() => store.getters["user/isAdmin"]);
 const newSettings = reactive({});
 
 const handleSubmitSettings = () => {
@@ -12,6 +13,8 @@ const handleSubmitSettings = () => {
 };
 
 onMounted(async () => {
+  if (!isAdmin.value) return;
+
   await store.dispatch("settings/setSettings");
   Object.assign(newSettings, { ...settings.value });
 });
@@ -35,12 +38,6 @@ onMounted(async () => {
       <v-col>
         <h3 class="mb-2 mb-md-4">Address</h3>
         <v-table density="comfortable" hover>
-          <thead>
-            <tr>
-              <th class="text-start">Key</th>
-              <th class="text-center">Value</th>
-            </tr>
-          </thead>
           <tbody>
             <tr>
               <td>Company Name</td>
@@ -117,55 +114,41 @@ onMounted(async () => {
       <v-col>
         <h3 class="mb-2 mb-md-4">Bank Details</h3>
         <v-table density="comfortable" hover>
-          <thead>
-            <tr>
-              <th class="text-start">Key</th>
-              <th class="text-center">Value</th>
-            </tr>
-          </thead>
           <tbody>
             <tr>
-              <td>Bank</td>
+              <td>USD</td>
               <td>
-                <v-text-field
-                  v-model="newSettings.bank"
+                <v-textarea
+                  v-model="newSettings.bankDetailsUsd"
+                  class="text-pre-wrap"
                   density="compact"
                   hide-details="auto"
                   variant="outlined"
-                ></v-text-field>
+                ></v-textarea>
               </td>
             </tr>
             <tr>
-              <td>Account Name</td>
+              <td>GBP</td>
               <td>
-                <v-text-field
-                  v-model="newSettings.accountName"
+                <v-textarea
+                  v-model="newSettings.bankDetailsGbp"
+                  class="text-pre-wrap"
                   density="compact"
                   hide-details="auto"
                   variant="outlined"
-                ></v-text-field>
+                ></v-textarea>
               </td>
             </tr>
             <tr>
-              <td>IBAN</td>
+              <td>EUR</td>
               <td>
-                <v-text-field
-                  v-model="newSettings.iban"
+                <v-textarea
+                  v-model="newSettings.bankDetailsEur"
+                  class="text-pre-wrap"
                   density="compact"
                   hide-details="auto"
                   variant="outlined"
-                ></v-text-field>
-              </td>
-            </tr>
-            <tr>
-              <td>Swift</td>
-              <td>
-                <v-text-field
-                  v-model="newSettings.swift"
-                  density="compact"
-                  hide-details="auto"
-                  variant="outlined"
-                ></v-text-field>
+                ></v-textarea>
               </td>
             </tr>
           </tbody>
@@ -178,24 +161,7 @@ onMounted(async () => {
         <h3 class="mb-2 mb-md-4">Invoice</h3>
 
         <v-table density="comfortable" hover>
-          <thead>
-            <tr>
-              <th class="text-start">Key</th>
-              <th class="text-center">Value</th>
-            </tr>
-          </thead>
           <tbody>
-            <tr>
-              <td>Invoice Paying Currency</td>
-              <td>
-                <v-text-field
-                  v-model="newSettings.invoiceCurrency"
-                  density="compact"
-                  hide-details="auto"
-                  variant="outlined"
-                ></v-text-field>
-              </td>
-            </tr>
             <tr>
               <td>Invoice Notes</td>
               <td>
@@ -230,12 +196,6 @@ onMounted(async () => {
         <h3 class="mb-2 mb-md-4">Payment</h3>
 
         <v-table density="comfortable" hover>
-          <thead>
-            <tr>
-              <th class="text-start">Key</th>
-              <th class="text-center">Value</th>
-            </tr>
-          </thead>
           <tbody>
             <tr>
               <td>Stripe public key</td>

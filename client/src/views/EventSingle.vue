@@ -50,16 +50,16 @@ const handleDownloadSurveyReport = () => {
 
 const fetchData = async () => {
   return Promise.all([
+    store.dispatch("registrationForm/setForms", route.params.eventId),
     store.dispatch("registrationForm/setFormTypes", route.params.eventId),
     store.dispatch("event/setEvent", route.params.eventId),
-    store.dispatch("registrationForm/setForms", route.params.eventId),
   ]);
 };
 watch(
   () => route.params.eventId,
-  async (newItem, oldItem) => {
+  (newItem, oldItem) => {
     if (route.name === "event-single" && newItem && newItem !== oldItem) {
-      await fetchData();
+      fetchData();
     }
   }
 );
@@ -140,13 +140,13 @@ onMounted(() => {
                 ></v-list-item>
                 <v-list-item
                   :to="{
-                    name: 'exhibitor-visibility-add',
+                    name: 'promo-add',
                     params: {
                       eventId: route.params.eventId,
                     },
                   }"
                   density="compact"
-                  title="Exhibitor Visibility"
+                  title="Promo"
                 ></v-list-item>
                 <v-list-item
                   :to="{
@@ -156,7 +156,7 @@ onMounted(() => {
                     },
                   }"
                   density="compact"
-                  title="Generate Credential"
+                  title="Credential"
                 ></v-list-item>
               </v-list>
             </v-menu>
@@ -208,7 +208,7 @@ onMounted(() => {
                 <v-list-item
                   v-if="item"
                   :key="index"
-                  :title="`${item?.name}`"
+                  :title="`${item?.name} List`"
                   :to="{
                     name: 'users',
                     params: {
@@ -286,7 +286,7 @@ onMounted(() => {
                   params: { eventId: $route.params.eventId },
                 }"
                 link
-                title="Modify Form"
+                title="Modify Form Questions"
               ></v-list-item>
               <v-list-item
                 :to="{
@@ -294,7 +294,7 @@ onMounted(() => {
                   params: { eventId: $route.params.eventId },
                 }"
                 link
-                title="Modify Tickets"
+                title="Modify Ticket"
               ></v-list-item>
               <v-list-item
                 :to="{
@@ -303,6 +303,14 @@ onMounted(() => {
                 }"
                 link
                 title="Modify Badge"
+              ></v-list-item>
+              <v-list-item
+                :to="{
+                  name: 'promo-edit',
+                  params: { eventId: $route.params.eventId },
+                }"
+                link
+                title="Modify Promo Code"
               ></v-list-item>
               <v-list-item
                 :to="{

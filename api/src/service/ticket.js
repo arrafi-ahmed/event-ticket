@@ -1,5 +1,6 @@
 const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
+const { toArrWOKey } = require("../others/util");
 
 exports.saveTicket = async ({ payload: { ticket, earlyBird } }) => {
   ticket.stockCurr = ticket.stockInit;
@@ -22,6 +23,19 @@ exports.saveTicket = async ({ payload: { ticket, earlyBird } }) => {
   }
 
   return upsertedTicket;
+};
+
+exports.updateTickets = async (tickets) => {
+  const formattedTickets = toArrWOKey(tickets);
+
+  return sql`
+        update ticket
+        set stock_curr = (update_data.stockCurr)::int
+        from (values ${sql(
+          formattedTickets
+        )}) as update_data (ticketId, stockCurr)
+        where ticket.id = (update_data.ticketId)::int
+    `;
 };
 
 exports.getTicketsWEarlyBirdActivated = async (formId) => {

@@ -7,7 +7,9 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint  --fix --ignore-path .gitignore"
+    "lint": "eslint  --fix --ignore-path .gitignore",
+    "ionic:build": "npm run build",
+    "ionic:serve": "vite dev --host"
   },
   "dependencies": {
     "@mdi/font": "7.0.96",
@@ -16,6 +18,8 @@
     "axios": "^1.5.0",
     "core-js": "^3.29.0",
     "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "qrcode-vue3": "^1.6.8",
     "roboto-fontface": "*",
     "vue": "^3.2.0",

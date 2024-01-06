@@ -24,6 +24,7 @@ app.use("/api/registrationForm", require("./src/controller/registrationForm"));
 app.use("/api/badgeDesign", require("./src/controller/badgeDesign"));
 app.use("/api/badge", require("./src/controller/badge"));
 app.use("/api/ticket", require("./src/controller/ticket"));
+app.use("/api/promo", require("./src/controller/promo"));
 app.use("/api/purchase", require("./src/controller/purchase"));
 app.use("/api/users", require("./src/controller/users"));
 app.use("/api/appUser", require("./src/controller/appUser"));

@@ -5,10 +5,10 @@ import * as registrationForm from "./modules/registrationForm";
 import * as badgeDesign from "./modules/badgeDesign";
 import * as badge from "./modules/badge";
 import * as ticket from "./modules/ticket";
+import * as promo from "./modules/promo";
 import * as purchase from "./modules/purchase";
 import * as appUser from "./modules/appUser";
 import * as users from "./modules/users";
-import * as invoice from "./modules/invoice";
 import * as report from "./modules/report";
 import * as settings from "./modules/settings";
 
@@ -21,9 +21,9 @@ const store = createStore({
     badge,
     badgeDesign,
     ticket,
+    promo,
     purchase,
     users,
-    invoice,
     report,
     settings,
   },

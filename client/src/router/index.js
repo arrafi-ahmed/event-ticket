@@ -18,6 +18,8 @@ const BadgeCreate = () => import("@/views/BadgeCreate.vue");
 const BadgeEdit = () => import("@/views/BadgeEdit.vue");
 const TicketAdd = () => import("@/views/TicketAdd.vue");
 const TicketEdit = () => import("@/views/TicketEdit.vue");
+const PromoAdd = () => import("@/views/PromoAdd.vue");
+const PromoEdit = () => import("@/views/PromoEdit.vue");
 const Users = () => import("@/views/Users.vue");
 const Invoice = () => import("@/views/Invoice.vue");
 const CredentialGenerate = () => import("@/views/CredentialGenerate.vue");
@@ -109,7 +111,7 @@ const routes = [
         },
       },
       {
-        path: "event/:eventId/registration-form/add",
+        path: "event/:eventId/form/add",
         name: "registration-form-add",
         component: RegistrationFormAdd,
         meta: {
@@ -119,7 +121,7 @@ const routes = [
         },
       },
       {
-        path: "event/:eventId/registration-form/edit",
+        path: "event/:eventId/form/edit",
         name: "registration-form-edit",
         component: RegistrationFormEdit,
         meta: {
@@ -129,7 +131,7 @@ const routes = [
         },
       },
       {
-        path: "event/:eventId/registration-form/:formId",
+        path: "event/:eventId/form/:formId",
         name: "registration-form-single",
         component: RegistrationFormSingle,
         meta: {
@@ -174,6 +176,26 @@ const routes = [
           requiresAuth: true,
           requiresAdmin: true,
           title: "Edit Ticket",
+        },
+      },
+      {
+        path: "event/:eventId/promo/add",
+        name: "promo-add",
+        component: PromoAdd,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Add Promo Code",
+        },
+      },
+      {
+        path: "event/:eventId/promo/edit",
+        name: "promo-edit",
+        component: PromoEdit,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Edit Promo Code",
         },
       },
       {
@@ -240,6 +262,7 @@ const routes = [
         component: Settings,
         meta: {
           requiresAuth: true,
+          requiresAdmin: true,
           title: "Settings",
         },
       },

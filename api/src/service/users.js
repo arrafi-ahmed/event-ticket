@@ -1,13 +1,14 @@
 const CustomError = require("../model/CustomError");
-const {sql, raw} = require("../db");
+const { sql, raw } = require("../db");
 const registrationService = require("./registration");
+const {toArrWOKey} = require("../others/util");
 
 exports.saveUsers = async (users) => {
-    return sql`insert into users ${sql(users)} returning *`;
+  return sql`insert into users ${sql(users)} returning *`;
 };
 
 exports.getUsers = async (formId) => {
-    return sql`
+  return sql`
         SELECT u.*,
                u.id       as u_id,
                p.payment_method,
@@ -31,7 +32,7 @@ exports.getUsers = async (formId) => {
 };
 
 exports.getUserByEmail = async (email) => {
-    return sql`
+  return sql`
         select *
         from users
         where email = ${email}
@@ -39,42 +40,43 @@ exports.getUserByEmail = async (email) => {
 };
 
 exports.getUsersByNameNEventId = async (name, eventId) => {
-    const [firstName, lastName] = name.split(" ");
+  const [firstName, lastName] = name.split(" ");
 
-    return await sql`
+  return await sql`
         SELECT u.*, p.payment_status, u.id as u_id, p.id as p_id
         FROM users u
                  join purchase p on u.purchase_id = p.id
         WHERE event_id = ${eventId}
           AND ((firstname ILIKE ${"%" + firstName + "%"} AND surname ILIKE ${
-                "%" + lastName + "%"
-        })
+    "%" + lastName + "%"
+  })
             OR firstname ILIKE ${"%" + name + "%"}
             OR surname ILIKE ${"%" + name + "%"})
     `;
 };
 
 exports.getUserById = async (id) => {
-    const [user] = await sql`
+  const [user] = await sql`
         select *
         from users
         where id = ${id}
     `;
-    return user;
+  return user;
 };
 
 exports.updateUser = async (user, columns) => {
-    const [updatedUser] = await sql`
+  const [updatedUser] = await sql`
         update users
         set ${sql(user, columns)}
-        where id = ${user.uId}`;
-    return updatedUser;
+        where id = ${user.uId}
+        returning *, id as u_id`;
+  return updatedUser;
 };
 
 exports.updateUsersPurchaseId = async (users) => {
-    const formattedUsers = users.map((obj) => Object.values(obj));
+  const formattedUsers = toArrWOKey(users);
 
-    return sql`
+  return sql`
         update users
         set purchase_id = (update_data.purchaseId)::int
         from (values ${sql(formattedUsers)}) as update_data (id, purchaseId)
@@ -83,21 +85,21 @@ exports.updateUsersPurchaseId = async (users) => {
 };
 
 exports.deleteUser = async (userId, registrationId) => {
-    //del from reg
-    let registration = await registrationService.findById(registrationId);
-    registration.registeredUserId = registration.registeredUserId.filter(
-        (item) => item != userId
-    );
-    const updatedRegistration = await sql`
+  //del from reg
+  let registration = await registrationService.findById(registrationId);
+  registration.registeredUserId = registration.registeredUserId.filter(
+    (item) => item != userId
+  );
+  const updatedRegistration = await sql`
         update registration
         set ${sql(registration, ["registeredUserId"])}
         where id = ${registrationId}`;
 
-    await sql`delete
+  await sql`delete
               from badge
               where user_id = ${userId}`;
 
-    return sql`
+  return sql`
         delete
         from users
         where id = ${userId}
@@ -105,7 +107,7 @@ exports.deleteUser = async (userId, registrationId) => {
 };
 //getUsersByFormId
 exports.getExhibitorsByFormId = async (formId) => {
-    return sql`
+  return sql`
         select *
         from users
         WHERE registration_form_id = ${formId}

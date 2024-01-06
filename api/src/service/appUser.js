@@ -40,8 +40,20 @@ exports.saveAppUser = async ({ payload }) => {
   if (payload.type == "checkin") {
     delete user.userId;
   }
-  payload.password = exports.generatePassword();
-  return sql`insert into app_user ${sql(payload)} returning *`;
+
+  // if add request
+  if (!payload.id) {
+    delete payload.id;
+    payload.password = exports.generatePassword();
+  }
+
+  const [upsertedUser] = await sql`
+        insert into app_user ${sql(payload)}
+        on conflict (id)
+        do update set ${sql(payload)}
+        returning *`;
+
+  return upsertedUser;
 };
 
 exports.getAppUserById = async (id) => {
@@ -49,6 +61,15 @@ exports.getAppUserById = async (id) => {
         SELECT *
         FROM app_user
         WHERE id = ${id}`;
+  return result;
+};
+
+exports.remove = async (id) => {
+  const [result] = await sql`
+        delete
+        FROM app_user
+        WHERE id = ${id}
+        returning *`;
   return result;
 };
 
